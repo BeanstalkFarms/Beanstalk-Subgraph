@@ -1,0 +1,156 @@
+# An entity representing an account's Plot
+type Plot @entity {
+  id: ID!
+  timestamp: BigInt!
+  account: Account!
+  txn: Bytes!
+  season: Season!
+  index: BigDecimal!
+  beans: BigDecimal!
+  pods: BigDecimal!
+  weather: Int!
+  harvested: Boolean!
+}
+
+# An entity representing an account's Bean Deposit
+type BeanDeposit @entity {
+  id: ID!
+  account: Account!
+  season: Season!
+  beans: BigDecimal!
+  farmedBeans: BigDecimal!
+  depositedBeans: BigDecimal!
+}
+
+# An entity representing an account's LP Deposit
+type LPDeposit @entity {
+  id: ID!
+  account: Account!
+  season: Season!
+  lp: BigDecimal!
+}
+
+# An entity representing an account's Bean Withdrawal
+type BeanWithdrawal @entity {
+  id: ID!
+  account: Account!
+  season: Season!
+  beans: BigDecimal!
+}
+
+# An entity representing an account's LP Withdrawal
+type LPWithdrawal @entity {
+  id: ID!
+  account: Account!
+  season: Season!
+  lp: BigDecimal!
+}
+
+# An entity that holds the current Season
+type State @entity {
+  id: ID!
+  season: BigInt!
+}
+
+# An entity that holds Season level data
+type Season @entity {
+  id: ID! # the Season ID.
+  timestamp: BigInt! # The Season timestamp.
+  price: BigDecimal! # The TWAP for the Season.
+
+  podIndex: BigDecimal! # The Pod index
+  weather: BigInt! # The Weather
+  plots: [Plot!]! @derivedFrom(field: "season") # The Plots created
+  newPods: BigDecimal! # The number of new Pods
+  pods: BigDecimal! # The total number of Pods
+  harvestableBeans: BigDecimal! # The total number of harvestable Beans
+  harvestedPods: BigDecimal! # The total number of Harvestable + Harvested Pods
+  numberOfSowers: Int! # The total number of unique Sowers
+  numberOfSows: Int! # The total number of Sows
+  sownBeans: BigDecimal! # The total number of Sown Beans
+
+  beanDeposits: [BeanDeposit!]! @derivedFrom(field: "season") # The Bean Deposits
+  beanWithdrawals: [BeanWithdrawal!]! @derivedFrom(field: "season") # The Bean Withdrawals
+  newDepositedBeans: BigDecimal! # The number of new deposited Beans
+  newRemovedBeans: BigDecimal! # The number of new removed Beans
+  newWithdrawnBeans: BigDecimal! # The number of new withdrawn Beans
+  depositedBeans: BigDecimal! # The total number of deposited Beans
+  withdrawnBeans: BigDecimal! # The total number of withdrawn Beans
+  claimableBeans: BigDecimal! # The total number of claimable Beans
+  budgetBeans: BigDecimal! # The total number of budget Beans
+  pooledBeans: BigDecimal! # The total number pooled Beans
+  beans: BigDecimal! # The total number of Beans
+
+  pooledEth: BigDecimal! # The total number of pooled Ether
+
+  lp: BigDecimal! # The total number of LP Tokens
+  lpDeposits: [LPDeposit!]! @derivedFrom(field: "season") # The LP Deposits
+  lpWithdrawals: [LPWithdrawal!]! @derivedFrom(field: "season") # The LP Withdrawals
+  newDepositedLP: BigDecimal! # The number of new deposited LP
+  newRemovedLP: BigDecimal! # The number of new removed LP
+  newWithdrawnLP: BigDecimal! # The total number of new withdrawn LP
+  depositedLP: BigDecimal! # The total number of deposited LP
+  withdrawnLP: BigDecimal! # The total number of withdrawn LP
+  claimableLP: BigDecimal! # The total number of claimable LP
+
+  sopEth: BigDecimal! # The number of unclaimed SOP Eth
+  cumulativeSopEth: BigDecimal! # The cumulative total SOP Eth
+  claimedSopEth: BigDecimal! # The number of claimed SOP Eth
+  reinvestedSopEth: BigDecimal! # The number of reinvested SOP Eth
+
+  stalk: BigDecimal! # The total number of Stalk
+  seeds: BigDecimal! # The total number of Seeds
+
+  newFarmableBeans: BigDecimal! # The number of new Farmable Beans
+  newHarvestablePods: BigDecimal! # The number of new Harvested Pods
+  newSopEth: BigDecimal! # The number of new SOP Eth
+  cumulativeFarmableBeansPerLP: BigDecimal! # The cumulative total of Beans per LP minted
+  farmableBeansPerSeason7: BigDecimal! # The 7 day average of Silo Beans per Season normalized to the current LP
+  farmableBeansPerSeason30: BigDecimal! # The 30 day average of Silo Beans per Season normalized to the current LP
+  cumulativeHarvestableBeansPerLP: BigDecimal! # The cumulative total of Beans per LP minted
+  harvestableBeansPerSeason7: BigDecimal! # The 7 day average of Silo Beans per Season normalized to the current LP
+  harvestableBeansPerSeason30: BigDecimal! # The 30 day average of Silo Beans per Season normalized to the current LP
+
+  boughtBeans: BigDecimal! # The total number of bought Beans
+  newBoughtBeans: BigDecimal! # The number of new bought Beans
+  newBoughtBeansETH: BigDecimal! # The number of new bought Beans in ETH
+  newBoughtBeansUSD: BigDecimal! # The number of new bought Beans in USD
+  soldBeans: BigDecimal! # The total number of sold Beans
+  newSoldBeans: BigDecimal! # The number of new sold Beans
+  newSoldBeansETH: BigDecimal! # The number of new sold Beans in ETH
+  newSoldBeansUSD: BigDecimal! # The number of new sold Beans in USD
+}
+
+# An entity representing an account
+type Account @entity {
+  id: ID!
+  plots: [Plot!]! @derivedFrom(field: "account")
+  pods: BigDecimal!
+  beanDeposits: [BeanDeposit!]! @derivedFrom(field: "account")
+  depositedBeans: BigDecimal!
+  lpDeposits: [LPDeposit!]! @derivedFrom(field: "account")
+  depositedLP: BigDecimal!
+  beanWithdrawals: [BeanWithdrawal!]! @derivedFrom(field: "account")
+  withdrawnBeans: BigDecimal!
+  lpWithdrawals: [LPWithdrawal!]! @derivedFrom(field: "account")
+  withdrawnLP: BigDecimal!
+  claimedSopEth: BigDecimal!
+  sown: Boolean!
+}
+
+# An entity representing a transaction
+type Transaction @entity {
+  id: ID!
+  beansToBeanstalk: BigDecimal!
+  beansFromBeanstalk: BigDecimal!
+}
+
+# An entity representing a pair
+type Pair @entity {
+  id: ID!
+  supply: BigDecimal!
+  decimals0: BigInt!
+  decimals1: BigInt!
+  reserve0: BigDecimal!
+  reserve1: BigDecimal!
+}
