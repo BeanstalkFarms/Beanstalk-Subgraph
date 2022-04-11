@@ -320,9 +320,11 @@ export function handleSow(event: Sow): void {
   account.save()
 
   season.sownBeans = season.sownBeans.plus(beans)
+  season.newSownBeans = season.newSownBeans.plus(beans);
   season.numberOfSows += 1
   season.pods = season.pods.plus(pods)
   season.newPods = season.newPods.plus(pods)
+  season.soil = season.soil.minus(beans)
   season.podIndex = season.podIndex.plus(pods)
   season.save()
 }
@@ -366,7 +368,6 @@ export function handleSeasonSnapshot(event: SeasonSnapshot) : void {
     snapshot.save()
     return
   }
-  let price = getBeanPrice()
   lastSnapshot.save()
 
   snapshot.depositedBeans = lastSnapshot.depositedBeans
@@ -396,6 +397,7 @@ export function handleSeasonSnapshot(event: SeasonSnapshot) : void {
   snapshot.numberOfSows = lastSnapshot.numberOfSows
   snapshot.sownBeans = lastSnapshot.sownBeans
   snapshot.podIndex = lastSnapshot.podIndex
+  snapshot.soil = lastSnapshot.soil
   snapshot.soldBeans = lastSnapshot.soldBeans
   snapshot.boughtBeans = lastSnapshot.boughtBeans
 
@@ -423,6 +425,7 @@ function getAccount(address : Address) : Account {
     account.withdrawnLP = ZERO_BD
     account.pods = ZERO_BD
     account.claimedSopEth = ZERO_BD
+    account.beans = ZERO_BD
     account.sown = false
     account.save()
     return account
@@ -531,6 +534,9 @@ function getSeason(s: BigInt): Season {
   season.weather = ZERO_BI
   season.numberOfSows = 0
   season.numberOfSowers = 0
+  season.newSoil = ZERO_BD
+  season.soil = ZERO_BD
+  season.newSownBeans = ZERO_BD
   season.sownBeans = ZERO_BD
   season.newDepositedBeans = ZERO_BD
   season.depositedBeans = ZERO_BD
@@ -623,7 +629,11 @@ export function handleSeasonOfPlenty(event: SeasonOfPlenty): void {
 export function handleSunrise(event: Sunrise): void {}
 
 export function handleSupplyDecrease(event: SupplyDecrease): void {
+  let newSoil = convertIntegerToDecimal(event.params.newSoil, BI_6)
+  
   let snapshot = getSeason(event.params.season)
+  snapshot.newSoil = newSoil
+  snapshot.soil = snapshot.soil.plus(newSoil)
   snapshot = setAverageHistoricalBeans(snapshot)
   snapshot.save()
 }
@@ -632,9 +642,12 @@ export function handleSupplyIncrease(event: SupplyIncrease): void {
   let snapshot = getSeason(event.params.season)
   let newHarvestable = convertIntegerToDecimal(event.params.newHarvestable, BI_6)
   let newFarmable = convertIntegerToDecimal(event.params.newSilo, BI_6)
+  let newSoil = convertIntegerToDecimal(event.params.newSoil, BI_6)
 
   snapshot.depositedBeans = snapshot.depositedBeans.plus(newFarmable)
   snapshot.newFarmableBeans = newFarmable
+  snapshot.newSoil = newSoil
+  snapshot.soil = snapshot.soil.plus(newSoil)
   snapshot.pods = snapshot.pods.minus(newHarvestable)
   snapshot.harvestableBeans = snapshot.harvestableBeans.plus(newHarvestable)
   snapshot.harvestedPods = snapshot.harvestedPods.plus(newHarvestable)
@@ -663,29 +676,34 @@ export function handleTransfer(event: Transfer): void {
 function handleBeanTransfer(event: Transfer) : void {
 
   // Bean flow to Beanstalk
+  let beans = convertIntegerToDecimal(event.params.value, BI_6)
   if (event.params.from.toHexString() == BEANSTALK_ADDRESS.toHexString()) {
     let txn = getTransaction(event.transaction.hash)
-    let beans = convertIntegerToDecimal(event.params.value, BI_6)
     txn.beansFromBeanstalk = txn.beansFromBeanstalk.plus(beans)
     txn.save()
   } else if (event.params.to.toHexString() == BEANSTALK_ADDRESS.toHexString()) {
     let txn = getTransaction(event.transaction.hash)
-    let beans = convertIntegerToDecimal(event.params.value, BI_6)
     txn.beansToBeanstalk = txn.beansToBeanstalk.plus(beans)
     txn.save()
   }
+
+  let fromAccount = getAccount(event.params.from)
+  fromAccount.beans = fromAccount.beans.minus(beans)
+  fromAccount.save()
+
+  let toAccount = getAccount(event.params.to)
+  toAccount.beans = toAccount.beans.plus(beans)
+  toAccount.save()
 
   // Bean flow to/from budgets
   if (event.params.from.toHexString() == DEVELOPMENT_BUDGET_ADDRESS.toHexString() ||
       event.params.from.toHexString() == MARKETING_BUDGET_ADDRESS.toHexString()) {
     let season = getCurrentSeason()
-    let beans = convertIntegerToDecimal(event.params.value, BI_6)
     season.budgetBeans = season.budgetBeans.minus(beans)
     season.save()
   } else if (event.params.to.toHexString() == DEVELOPMENT_BUDGET_ADDRESS.toHexString() ||
              event.params.to.toHexString() == MARKETING_BUDGET_ADDRESS.toHexString()) {
     let season = getCurrentSeason()
-    let beans = convertIntegerToDecimal(event.params.value, BI_6)
     season.budgetBeans = season.budgetBeans.plus(beans)
     season.save()
   }

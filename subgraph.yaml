@@ -163,3 +163,26 @@ dataSources:
       - event: Transfer(indexed address,indexed address,uint256)
         handler: handleTransfer
       file: ./src/mapping.ts
+  - kind: ethereum/contract
+    name: Bean
+    network: mainnet
+    source:
+      address: "0xDC59ac4FeFa32293A95889Dc396682858d52e5Db"
+      abi: Bean
+      startBlock: 12974075
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Approval
+        - Burn
+        - Mint
+        - Transfer
+      abis:
+        - name: Bean
+          file: ./abis/ERC20.json
+      eventHandlers:
+      - event: Transfer(indexed address,indexed address,uint256)
+        handler: handleTransfer
+      file: ./src/mapping.ts

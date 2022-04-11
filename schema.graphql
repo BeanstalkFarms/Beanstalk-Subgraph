@@ -67,7 +67,10 @@ type Season @entity {
   harvestedPods: BigDecimal! # The total number of Harvestable + Harvested Pods
   numberOfSowers: Int! # The total number of unique Sowers
   numberOfSows: Int! # The total number of Sows
+  newSownBeans: BigDecimal! # The number of new Sown Beans
   sownBeans: BigDecimal! # The total number of Sown Beans
+  newSoil: BigDecimal! # The number of new Soil
+  soil: BigDecimal! # The number of Soil
 
   beanDeposits: [BeanDeposit!]! @derivedFrom(field: "season") # The Bean Deposits
   beanWithdrawals: [BeanWithdrawal!]! @derivedFrom(field: "season") # The Bean Withdrawals
@@ -124,6 +127,7 @@ type Season @entity {
 # An entity representing an account
 type Account @entity {
   id: ID!
+  beans: BigDecimal!
   plots: [Plot!]! @derivedFrom(field: "account")
   pods: BigDecimal!
   beanDeposits: [BeanDeposit!]! @derivedFrom(field: "account")
