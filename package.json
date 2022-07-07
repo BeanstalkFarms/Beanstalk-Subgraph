@@ -4,13 +4,16 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
+    "test": "graph test",
     "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ beanstalk",
-    "create-local": "graph create --node http://localhost:8020/ beanstalk",
-    "remove-local": "graph remove --node http://localhost:8020/ beanstalk",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 beanstalk"
+    "create-local": "graph create --node http://graph.playgrounds.academy:8020/ beanstalk",
+    "remove-local": "graph remove --node http://graph.playgrounds.academy:8020/ beanstalk",
+    "deploy-local": "graph deploy --node http://graph.playgrounds.academy:8020/ --ipfs http://graph.playgrounds.academy:5001 beanstalk",
+    "deploy-hosted": "graph deploy --product hosted-service <username>/beanstalk-dev"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "0.21.1",
-    "@graphprotocol/graph-ts": "0.20.0"
+    "@graphprotocol/graph-cli": "^0.30.4",
+    "@graphprotocol/graph-ts": "^0.27.0",
+    "matchstick-as": "^0.5.0"
   }
 }

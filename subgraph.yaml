@@ -1,188 +1,33 @@
-specVersion: 0.0.2
+specVersion: 2.0.0
 schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: Beanstalk
+    name: Silo-Replanted
     network: mainnet
     source:
       address: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5"
       abi: Beanstalk
-      startBlock: 12974075
+      startBlock: 14602789
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - BeanClaim
-        - EtherClaim
-        - Harvest
-        - LPClaim
-        - DiamondCut
-        - PlotTransfer
-        - PodApproval
-        - Sow
-        - Commit
-        - Incentivization
-        - Pause
-        - Proposal
-        - Unpause
-        - Unvote
-        - Vote
-        - SeasonOfPlenty
-        - SeasonSnapshot
-        - Sunrise
-        - SupplyDecrease
-        - SupplyIncrease
-        - SupplyNeutral
-        - WeatherChange
-        - BeanDeposit
-        - BeanRemove
-        - BeanWithdraw
-        - LPDeposit
-        - LPRemove
-        - LPWithdraw
+        - Silo-Replanted
       abis:
         - name: Beanstalk
-          file: ./abis/Beanstalk.json
+          file: ./abis/Beanstalk-Replanted.json
         - name: UniswapV2Pair
           file: ./abis/UniswapV2Pair.json
-      eventHandlers:
-        - event: BeanClaim(indexed address,uint32[],uint256)
-          handler: handleBeanClaim
-        - event: EtherClaim(indexed address,uint256)
-          handler: handleEtherClaim
-        - event: Harvest(indexed address,uint256[],uint256)
-          handler: handleHarvest
-        - event: LPClaim(indexed address,uint32[],uint256)
-          handler: handleLPClaim
-        - event: DiamondCut((address,uint8,bytes4[])[],address,bytes)
-          handler: handleDiamondCut
-        - event: PlotTransfer(indexed address,indexed address,indexed uint256,uint256)
-          handler: handlePlotTransfer
-        - event: PodApproval(indexed address,indexed address,uint256)
-          handler: handlePodApproval
-        - event: Sow(indexed address,uint256,uint256,uint256)
-          handler: handleSow
-        - event: Commit(indexed address,indexed uint32)
-          handler: handleCommit
-        - event: Incentivization(indexed address,uint256)
-          handler: handleIncentivization
-        - event: Pause(address,uint256)
-          handler: handlePause
-        - event: Proposal(indexed address,indexed uint32,indexed uint256,uint256)
-          handler: handleProposal
-        - event: Unpause(address,uint256,uint256)
-          handler: handleUnpause
-        - event: Unvote(indexed address,indexed uint32,uint256)
-          handler: handleUnvote
-        - event: Vote(indexed address,indexed uint32,uint256)
-          handler: handleVote
-        - event: SeasonOfPlenty(indexed uint256,uint256,uint256)
-          handler: handleSeasonOfPlenty
-        - event: SeasonSnapshot(indexed uint32,uint256,uint256,uint256,uint256,uint256,uint256)
-          handler: handleSeasonSnapshot
-        - event: Sunrise(indexed uint256)
-          handler: handleSunrise
-        - event: SupplyDecrease(indexed uint256,uint256,int256)
-          handler: handleSupplyDecrease
-        - event: SupplyIncrease(indexed uint256,uint256,uint256,uint256,int256)
-          handler: handleSupplyIncrease
-        - event: SupplyNeutral(indexed uint256,int256)
-          handler: handleSupplyNeutral
-        - event: WeatherChange(indexed uint256,uint256,int8)
-          handler: handleWeatherChange
-        - event: BeanDeposit(indexed address,uint256,uint256)
-          handler: handleBeanDeposit
-        - event: BeanRemove(indexed address,uint32[],uint256[],uint256)
-          handler: handleBeanRemove
-        - event: BeanWithdraw(indexed address,uint256,uint256)
-          handler: handleBeanWithdraw
-        - event: LPDeposit(indexed address,uint256,uint256,uint256)
-          handler: handleLPDeposit
-        - event: LPRemove(indexed address,uint32[],uint256[],uint256)
-          handler: handleLPRemove
-        - event: LPWithdraw(indexed address,uint256,uint256)
-          handler: handleLPWithdraw
-      file: ./src/mapping.ts
-  - kind: ethereum/contract
-    name: BeanUniswapV2Pair
-    network: mainnet
-    source:
-      address: "0x87898263B6C5BABe34b4ec53F22d98430b91e371"
-      abi: UniswapV2Pair
-      startBlock: 12974075
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.4
-      language: wasm/assemblyscript
-      entities:
-        - Approval
-        - Burn
-        - Mint
-        - Swap
-        - Sync
-        - Transfer
-      abis:
-        - name: UniswapV2Pair
-          file: ./abis/UniswapV2Pair.json
-      eventHandlers:
-        - event: Approval(indexed address,indexed address,uint256)
-          handler: handleApproval
-        - event: Burn(indexed address,uint256,uint256,indexed address)
-          handler: handleBurn
-        - event: Mint(indexed address,uint256,uint256)
-          handler: handleMint
-        - event: Swap(indexed address,uint256,uint256,uint256,uint256,indexed address)
-          handler: handleSwap
-        - event: Sync(uint112,uint112)
-          handler: handleSync
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
-      file: ./src/mapping.ts
-  - kind: ethereum/contract
-    name: Bean
-    network: mainnet
-    source:
-      address: "0xDC59ac4FeFa32293A95889Dc396682858d52e5Db"
-      abi: Bean
-      startBlock: 12974075
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.4
-      language: wasm/assemblyscript
-      entities:
-        - Approval
-        - Burn
-        - Mint
-        - Transfer
-      abis:
-        - name: Bean
+        - name: ERC20
           file: ./abis/ERC20.json
       eventHandlers:
-      - event: Transfer(indexed address,indexed address,uint256)
-        handler: handleTransfer
-      file: ./src/mapping.ts
-  - kind: ethereum/contract
-    name: Bean
-    network: mainnet
-    source:
-      address: "0xDC59ac4FeFa32293A95889Dc396682858d52e5Db"
-      abi: Bean
-      startBlock: 12974075
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.4
-      language: wasm/assemblyscript
-      entities:
-        - Approval
-        - Burn
-        - Mint
-        - Transfer
-      abis:
-        - name: Bean
-          file: ./abis/ERC20.json
-      eventHandlers:
-      - event: Transfer(indexed address,indexed address,uint256)
-        handler: handleTransfer
-      file: ./src/mapping.ts
+        - event: AddDeposit(indexed address,indexed address,uint256,uint256,uint256)
+          handler: handleAddDeposit
+        - event: SeedsBalanceChanged(indexed address,int256)
+          handler: handleSeedsBalanceChanged
+        - event: StalkBalanceChanged(indexed address,int256,int256)
+          handler: handleStalkBalanceChanged
+      file: ./src/SiloHandler.ts
+  
