@@ -1,0 +1,509 @@
+# Some items included in this schema come from the Messari Generic Schema
+# Subgraph Schema: Generic
+# Version: 1.3.0
+# See https://github.com/messari/subgraphs/blob/master/docs/Schema.md for details
+
+enum Network {
+  ARBITRUM_ONE
+  ARWEAVE_MAINNET
+  AURORA
+  AVALANCHE
+  BOBA
+  BSC # aka BNB Chain
+  CELO
+  COSMOS
+  CRONOS
+  MAINNET # Ethereum Mainnet
+  FANTOM
+  FUSE
+  HARMONY
+  JUNO
+  MOONBEAM
+  MOONRIVER
+  NEAR_MAINNET
+  OPTIMISM
+  OSMOSIS
+  MATIC # aka Polygon
+  XDAI # aka Gnosis Chain
+}
+
+enum ProtocolType {
+  EXCHANGE
+  LENDING
+  YIELD
+  BRIDGE
+  GENERIC
+  # Will add more
+}
+
+type Token @entity {
+  " Smart contract address of the token "
+  id: ID!
+
+  " Name of the token, mirrored from the smart contract "
+  name: String!
+
+  " Symbol of the token, mirrored from the smart contract "
+  symbol: String!
+
+  " The number of decimal places this token uses, default to 18 "
+  decimals: Int!
+
+  " Optional field to track the price of a token, mostly for caching purposes "
+  lastPriceUSD: BigDecimal
+
+  " Optional field to track the block number of the last token price "
+  lastPriceBlockNumber: BigInt
+}
+
+enum RewardTokenType {
+  " For reward tokens awarded to LPs/lenders "
+  DEPOSIT
+
+  " For reward tokens awarded to borrowers "
+  BORROW
+}
+
+type RewardToken @entity {
+  " { Reward token type }-{ Smart contract address of the reward token } "
+  id: ID!
+
+  " Reference to the actual token "
+  token: Token!
+
+  " The type of the reward token "
+  type: RewardTokenType!
+}
+
+#############################
+##### Protocol Metadata #####
+#############################
+
+type Beanstalk @entity {
+  " Smart contract address of the protocol's main contract (Factory, Registry, etc) "
+  id: ID!
+
+  " Name of the protocol, including version. e.g. Uniswap v3 "
+  name: String!
+
+  " Slug of protocol, including version. e.g. uniswap-v3 "
+  slug: String!
+
+  " Version of the subgraph schema, in SemVer format (e.g. 1.0.0) "
+  schemaVersion: String!
+
+  " Version of the subgraph implementation, in SemVer format (e.g. 1.0.0) "
+  subgraphVersion: String!
+
+  " Version of the methodology used to compute metrics, loosely based on SemVer format (e.g. 1.0.0) "
+  methodologyVersion: String!
+
+  " The blockchain network this subgraph is indexing on "
+  network: Network!
+
+  " The type of protocol (e.g. DEX, Lending, Yield, etc) "
+  type: ProtocolType!
+
+  " Timestamp of the latest DiamondCut call "
+  lastUpgrade: BigInt!
+  
+  " Season specific data "
+  seasons: [Season!]! @derivedFrom(field: "beanstalk")
+  
+  " Silo level data "
+  silo: Silo! @derivedFrom(field: "beanstalk")
+
+  " Lastest harvestable index for pods"
+  harvestableIndex: BigInt!
+}
+
+# An entity that holds season level data
+type Season @entity {
+  " Season Number" 
+  id: ID!
+  
+  " Beanstalk Contract Address "
+  beanstalk: Beanstalk!
+
+  " Season number in Int form for sorting "
+  season: Int!
+
+  " Block timestamp when sunrise was called "
+  timestamp: BigInt!
+  
+  " TWAP that was used for field processing during sunrise "
+  twap: BigDecimal!
+
+  " Total Bean supply "
+  beans: BigInt!
+
+  " Amount of beans minted for the season "
+  deltaBeans: BigInt!
+
+  " New harvestable index for the season "
+  harvestableIndex: BigInt!
+}
+
+
+
+# An entity that holds field data by season
+type Field @entity {
+  id: ID! # Season number
+  season: Season!
+  seasonInt: Int!
+  weather: Int!
+  # Unique number of sowers for graphing?
+  # Include possibly a field participant total
+  numberOfSowers: Int!
+  numberOfSows: Int!
+  sownBeans: BigDecimal!
+  plotIndexes: [BigInt!]!
+  # Season new items
+  newPods: BigDecimal!
+  totalPods: BigDecimal!
+  newHarvestable: BigDecimal!
+  updatedHarvestable: BigDecimal!
+  harvestablePods: BigDecimal!
+  harvestedPods: BigDecimal!
+  newSoil: BigDecimal!
+  totalSoil: BigDecimal!
+  podRate: BigDecimal!
+}
+
+type Silo @entity {
+  id: ID! # Season number
+  season: Season!
+  seasonInt: Int!
+  assets: [SiloAsset!]! @derivedFrom(field: "silo")
+  newBeans: BigDecimal!
+  depositedBDV: BigDecimal!
+  withdrawnBDV: BigDecimal!
+  claimableBDV: BigDecimal!
+  totalDepositedBDV: BigDecimal!
+  totalStalk: BigDecimal!
+  totalSeeds: BigDecimal!
+  totalRoots: BigDecimal!
+}
+
+type SiloAsset @entity {
+  id: ID! # Token address - Season Number
+  season: Season!
+  seasonInt: Int!
+  silo: Silo!
+  token: String!
+
+  # Season specific totals
+  depositedAmount: BigDecimal!
+  depositedBDV: BigDecimal!
+  withdrawnAmount: BigDecimal!
+  withdrawnBDV: BigDecimal!
+
+  # Life to date totals
+  totalDepositedAmount: BigDecimal!
+  totalDepositedBDV: BigDecimal!
+  totalWithdrawnAmount: BigDecimal!
+  totalWithdrawnBDV: BigDecimal!
+}
+
+# ---===== Farmer Account Entities =====---
+
+type Farmer @entity {
+  id: ID! # Account
+  assets: [FarmerAsset!]! # Add in any circulating information?
+  balances: [FarmerBalance!]!
+  deposits: [SiloDeposit!]! @derivedFrom(field: "farmer")
+  withdraws: [SiloWithdraw!]! @derivedFrom(field: "farmer")
+  field: FarmerField! @derivedFrom(field: "farmer")
+  plots: [Plot!]! @derivedFrom(field: "farmer")
+  listings: [PodListing!]! @derivedFrom(field: "farmer")
+  sown: Boolean!
+}
+
+type FarmerBalance @entity {
+  "Account - Season"
+  id: ID! 
+  farmer: Farmer!
+  season: Season!
+  seasonInt: Int!
+  currentBDV: BigDecimal!
+  currentUSD: BigDecimal!
+  currentStalk: BigDecimal!
+  currentSeeds: BigDecimal!
+  currentRoots: BigDecimal!
+  currentPods: BigDecimal!
+  currentPodsListed: BigDecimal!
+  currentPodsOrdered: BigDecimal!
+}
+
+type FarmerAsset @entity {
+  "Farmer - Token address - Season Number"
+  id: ID! 
+  farmer: Farmer!
+  token: String!
+  season: Season!
+  seasonInt: Int!
+
+  # Season specific totals
+  depositedAmount: BigDecimal!
+  depositedBDV: BigDecimal!
+  withdrawnAmount: BigDecimal!
+  # Possible addition for claims
+  claimableAmount: BigDecimal!
+  withdrawnBDV: BigDecimal!
+
+  # Life to date totals
+  totalDepositedAmount: BigDecimal!
+  totalDepositedBDV: BigDecimal!
+  totalWithdrawnAmount: BigDecimal!
+  totalWithdrawnBDV: BigDecimal!
+}
+
+type SiloDeposit @entity {
+  "Account - Token Address - Season"
+  id: ID! 
+  farmer: Farmer!
+  token: String!
+  season: Season!
+  seasonInt: Int!
+  tokenAmount: BigDecimal!
+  bdv: BigDecimal!
+  stalk: BigDecimal!
+  seeds: BigDecimal!
+  hashes: [String!]!
+  createdAt: BigInt!
+  updatedAt: BigInt!
+}
+
+type SiloWithdraw @entity {
+  "Account - Deposit Token - Deposit Season - Current Season"
+  id: ID!
+  farmer: Farmer!
+  withdrawSeason: Season!
+  claimableSeason: BigInt!
+  claimed: Boolean!
+  amount: BigDecimal!
+  hash: String!
+  createdAt: BigInt!
+}
+
+type FarmerField @entity {
+  id: ID! # Account
+  farmer: Farmer!
+  sownBeans: BigDecimal!
+  totalPods: BigDecimal!
+  harvestablePods: BigDecimal!
+  harvestedPods: BigDecimal!
+}
+
+type Plot @entity {
+  id: ID! # Index of the plot
+  farmer: Farmer!
+  season: Season!
+  seasonInt: Int!
+  hash: String!
+  createdAt: BigInt!
+  updatedAt: BigInt!
+  index: BigDecimal!
+  beans: BigDecimal!
+  pods: BigDecimal!
+  weather: BigInt!
+  placeInLine: BigDecimal!
+  listing: PodListing
+  harvestablePods: BigDecimal!
+  harvestedPods: BigDecimal!
+  fullyHarvested: Boolean!
+}
+
+# ---===== Marketplace Entites =====---
+
+# Current marketplace orders
+type Marketplace @entity {
+  id: ID!
+  season: Season!
+  seasonInt: Int!
+  listings: [PodListing!]!
+  #orders: [PodOrder!]!
+  #fills: [PodFills!]!
+  totalPodsListed: BigDecimal!
+  totalPodsFilled: BigDecimal!
+  totalPodsCancelled: BigDecimal!
+  totalPodsAvailable: BigDecimal!
+  lifetimePodsListed: BigDecimal!
+  lifetimePodsFilled: BigDecimal!
+  lifetimePodsCancelled: BigDecimal!
+}
+
+type PodListing @entity {
+  id: ID! # the account plus index
+  plot: Plot!
+  farmer: Farmer!
+  createdAt: BigInt!
+  updatedAt: BigInt!
+  status: String!
+  index: BigInt!
+  start: BigInt!
+  totalAmount: BigDecimal!
+  remainingAmount: BigDecimal!
+  filledAmount: BigDecimal!
+  pricePerPod: BigDecimal!
+  maxHarvestableIndex: BigDecimal!
+}
+
+type PodOrder @entity {
+  id: ID!
+}
+
+type PodFill @entity {
+  id: ID!
+}
+
+##################################
+##### Event-Level Data #####
+##################################
+"""
+An event is any user action that occurs in a protocol. Generally, they are Ethereum events
+emitted by a function in the smart contracts, stored in transaction receipts as event logs.
+However, some user actions of interest are function calls that don't emit events. For example,
+the deposit and withdraw functions in Yearn do not emit any events. In our subgraphs, we still
+store them as events, although they are not technically Ethereum events emitted by smart
+contracts.
+"""
+type Deposit @entity {
+  " { Transaction hash }-{ Log index } "
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Nonce of the transaction that emitted this event "
+  nonce: BigInt!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+  " Account that deposited tokens "
+  account: Account!
+  " The market tokens are deposited to "
+  market: Market!
+  " The user position changed by this event "
+  position: Position!
+  " Token deposited "
+  asset: Token!
+  " Amount of token deposited in native units "
+  amount: BigInt!
+  " Amount of token deposited in USD "
+  amountUSD: BigDecimal!
+}
+type Withdraw @entity {
+  " { Transaction hash }-{ Log index }"
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Nonce of the transaction that emitted this event "
+  nonce: BigInt!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+  " Account that withdrew tokens "
+  account: Account!
+  " The market tokens are withdrew from "
+  market: Market!
+  " The user position changed by this event "
+  position: Position!
+  " Token withdrawn "
+  asset: Token!
+  # Certain protocols (e.g. MakerDAO) uses a negative amount for withdraws. You
+  # should convert them to positive for consistency.
+  # e.g. Event log 27 in https://etherscan.io/tx/0xe957cf6252c7712c218c842c1ade672bf5ce529f8512f7a5ce7ebc8afa4ec690#eventlog
+  " Amount of token withdrawn in native units "
+  amount: BigInt!
+  " Amount of token withdrawn in USD "
+  amountUSD: BigDecimal!
+}
+# For CDPs, use this for mint events
+type Borrow @entity {
+  " { Transaction hash }-{ Log index } "
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Nonce of the transaction that emitted this event "
+  nonce: BigInt!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+  " Account that borrowed/minted tokens "
+  account: Account!
+  " The market tokens are borrowed/minted from "
+  market: Market!
+  " The user position changed by this event "
+  position: Position!
+  " Token borrowed "
+  asset: Token!
+  " Amount of token borrowed in native units "
+  amount: BigInt!
+  " Amount of token borrowed in USD "
+  amountUSD: BigDecimal!
+}
+# For CDPs, use this for burn events
+type Repay @entity {
+  " { Transaction hash }-{ Log index } "
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Nonce of the transaction that emitted this event "
+  nonce: BigInt!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+  " Account that repaid/burned tokens "
+  account: Account!
+  " The market tokens are repaid/burned to "
+  market: Market!
+  " The user position changed by this event "
+  position: Position!
+  " Token repaid/burned "
+  asset: Token!
+  " Amount of token repaid/burned in native units "
+  amount: BigInt!
+  " Amount of token repaid/burned in USD "
+  amountUSD: BigDecimal!
+}
+type Liquidate @entity {
+  " { Transaction hash }-{ Log index } "
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Nonce of the transaction that emitted this event "
+  nonce: BigInt!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+  " Account that carried out the liquidation "
+  liquidator: Account!
+  " Account that got liquidated "
+  liquidatee: Account!
+  " The market of the collateral being used "
+  market: Market!
+  " The user position changed by this event "
+  position: Position!
+  " Asset repaid (borrowed) "
+  asset: Token!
+  " Amount of collateral liquidated in native units "
+  amount: BigInt!
+  " Amount of collateral liquidated in USD "
+  amountUSD: BigDecimal!
+  " Amount of profit from liquidation in USD "
+  profitUSD: BigDecimal!
+}
