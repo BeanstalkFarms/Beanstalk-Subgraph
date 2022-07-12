@@ -207,11 +207,11 @@ type SiloAsset @entity {
   cumulativeDepositedUSD: BigDecimal!
   totalStalk: BigInt!
   totalSeeds: BigInt!
-  hourlySnapshots: [SiloAssetHourlySnapshots!]! @derivedFrom(field: "siloAsset")
-  dailySnapshots: [SiloAssetDailySnapshots!]! @derivedFrom(field: "siloAsset")
+  hourlySnapshots: [SiloAssetHourlySnapshot!]! @derivedFrom(field: "siloAsset")
+  dailySnapshots: [SiloAssetDailySnapshot!]! @derivedFrom(field: "siloAsset")
 }
 
-type SiloAssetHourlySnapshots @entity {
+type SiloAssetHourlySnapshot @entity {
   id: ID!
   season: Int!
   siloAsset: SiloAsset!
@@ -229,7 +229,7 @@ type SiloAssetHourlySnapshots @entity {
   timestamp: BigInt!
 }
 
-type SiloAssetDailySnapshots @entity {
+type SiloAssetDailySnapshot @entity {
   id: ID!
   season: Int!
   siloAsset: SiloAsset!
