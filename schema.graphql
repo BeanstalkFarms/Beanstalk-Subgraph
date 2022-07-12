@@ -247,6 +247,68 @@ type SiloAssetDailySnapshot @entity {
   timestamp: BigInt!
 }
 
+type Field @entity {
+  " Contract address for this field "
+  id: ID!
+  beanstalk: Beanstalk!
+  weather: Int!
+  totalNumberOfSowers: Int!
+  totalNumberOfSows: Int!
+  totalSownBeans: BigInt!
+  plotIndexes: [BigInt!]!
+  totalPods: BigInt!
+  totalHarvestablePods: BigInt!
+  totalHarvestedPods: BigInt!
+  totalSoil: BigInt!
+  podRate: BigDecimal!
+  hourlySnapshots: [FieldHourlySnapshot!]! @derivedFrom(field: "field")
+  dailySnapshots: [FieldDailySnapshot!]! @derivedFrom(field: "field")
+}
+
+type FieldHourlySnapshot @entity {
+  id: ID!
+  field: Field!
+  season: Int!
+  weather: Int!
+  numberOfSowers: Int!
+  totalNumberOfSowers: Int!
+  numberOfSows: Int!
+  totalNumberOfSows: Int!
+  sownBeans: BigInt!
+  totalSownBeans: BigInt!
+  newPods: BigInt!
+  totalPods: BigInt!
+  newHarvestablePods: BigInt!
+  totalHarvestablePods: BigInt!
+  newSoil: BigInt!
+  totalSoil: BigInt!
+  podRate: BigDecimal!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+}
+
+type FieldDailySnapshot @entity {
+  id: ID!
+  field: Field!
+  season: Int!
+  weather: Int!
+  numberOfSowers: Int!
+  totalNumberOfSowers: Int!
+  numberOfSows: Int!
+  totalNumberOfSows: Int!
+  sownBeans: BigInt!
+  totalSownBeans: BigInt!
+  newPods: BigInt!
+  totalPods: BigInt!
+  newHarvestablePods: BigInt!
+  totalHarvestablePods: BigInt!
+  newSoil: BigInt!
+  totalSoil: BigInt!
+  podRate: BigDecimal!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+}
+
 ##################################
 ##### Event-Level Data #####
 ##################################

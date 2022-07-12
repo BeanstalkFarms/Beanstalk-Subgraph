@@ -1,4 +1,4 @@
-specVersion: 2.0.0
+specVersion: 0.0.4
 schema:
   file: ./schema.graphql
 dataSources:
@@ -30,4 +30,37 @@ dataSources:
         - event: StalkBalanceChanged(indexed address,int256,int256)
           handler: handleStalkBalanceChanged
       file: ./src/SiloHandler.ts
+  # Field - Original
+  - kind: ethereum/contract
+    name: Field
+    network: mainnet
+    source:
+      address: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5"
+      abi: Beanstalk
+      startBlock: 12974075
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Field
+      abis:
+        - name: Beanstalk
+          file: ./abis/Beanstalk.json
+        - name: UniswapV2Pair
+          file: ./abis/UniswapV2Pair.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: WeatherChange(indexed uint256,uint256,int8)
+          handler: handleWeatherChange
+     #   - event: Sow(indexed address,uint256,uint256,uint256)
+     #     handler: handleSow
+     #   - event: Harvest(indexed address,uint256[],uint256)
+     #     handler: handleHarvest
+     #   - event: PlotTransfer(indexed address,indexed address,indexed uint256,uint256)
+     #     handler: handlePlotTransfer
+     #   - event: SupplyIncrease(indexed uint256,uint256,uint256,uint256,int256)
+     #     handler: handleSupplyIncrease
+      file: ./src/FieldHandler.ts
   

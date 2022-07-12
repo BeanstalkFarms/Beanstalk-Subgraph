@@ -971,7 +971,7 @@ export class SiloAsset extends Entity {
   }
 }
 
-export class SiloAssetHourlySnapshots extends Entity {
+export class SiloAssetHourlySnapshot extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
@@ -981,20 +981,20 @@ export class SiloAssetHourlySnapshots extends Entity {
     let id = this.get("id");
     assert(
       id != null,
-      "Cannot save SiloAssetHourlySnapshots entity without an ID"
+      "Cannot save SiloAssetHourlySnapshot entity without an ID"
     );
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type SiloAssetHourlySnapshots must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        `Entities of type SiloAssetHourlySnapshot must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
       );
-      store.set("SiloAssetHourlySnapshots", id.toString(), this);
+      store.set("SiloAssetHourlySnapshot", id.toString(), this);
     }
   }
 
-  static load(id: string): SiloAssetHourlySnapshots | null {
-    return changetype<SiloAssetHourlySnapshots | null>(
-      store.get("SiloAssetHourlySnapshots", id)
+  static load(id: string): SiloAssetHourlySnapshot | null {
+    return changetype<SiloAssetHourlySnapshot | null>(
+      store.get("SiloAssetHourlySnapshot", id)
     );
   }
 
@@ -1134,7 +1134,7 @@ export class SiloAssetHourlySnapshots extends Entity {
   }
 }
 
-export class SiloAssetDailySnapshots extends Entity {
+export class SiloAssetDailySnapshot extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
@@ -1144,20 +1144,20 @@ export class SiloAssetDailySnapshots extends Entity {
     let id = this.get("id");
     assert(
       id != null,
-      "Cannot save SiloAssetDailySnapshots entity without an ID"
+      "Cannot save SiloAssetDailySnapshot entity without an ID"
     );
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type SiloAssetDailySnapshots must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        `Entities of type SiloAssetDailySnapshot must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
       );
-      store.set("SiloAssetDailySnapshots", id.toString(), this);
+      store.set("SiloAssetDailySnapshot", id.toString(), this);
     }
   }
 
-  static load(id: string): SiloAssetDailySnapshots | null {
-    return changetype<SiloAssetDailySnapshots | null>(
-      store.get("SiloAssetDailySnapshots", id)
+  static load(id: string): SiloAssetDailySnapshot | null {
+    return changetype<SiloAssetDailySnapshot | null>(
+      store.get("SiloAssetDailySnapshot", id)
     );
   }
 
@@ -1276,6 +1276,547 @@ export class SiloAssetDailySnapshots extends Entity {
 
   set dailySeedsDelta(value: BigInt) {
     this.set("dailySeedsDelta", Value.fromBigInt(value));
+  }
+
+  get blockNumber(): BigInt {
+    let value = this.get("blockNumber");
+    return value!.toBigInt();
+  }
+
+  set blockNumber(value: BigInt) {
+    this.set("blockNumber", Value.fromBigInt(value));
+  }
+
+  get timestamp(): BigInt {
+    let value = this.get("timestamp");
+    return value!.toBigInt();
+  }
+
+  set timestamp(value: BigInt) {
+    this.set("timestamp", Value.fromBigInt(value));
+  }
+}
+
+export class Field extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save Field entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type Field must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("Field", id.toString(), this);
+    }
+  }
+
+  static load(id: string): Field | null {
+    return changetype<Field | null>(store.get("Field", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get beanstalk(): string {
+    let value = this.get("beanstalk");
+    return value!.toString();
+  }
+
+  set beanstalk(value: string) {
+    this.set("beanstalk", Value.fromString(value));
+  }
+
+  get weather(): i32 {
+    let value = this.get("weather");
+    return value!.toI32();
+  }
+
+  set weather(value: i32) {
+    this.set("weather", Value.fromI32(value));
+  }
+
+  get totalNumberOfSowers(): i32 {
+    let value = this.get("totalNumberOfSowers");
+    return value!.toI32();
+  }
+
+  set totalNumberOfSowers(value: i32) {
+    this.set("totalNumberOfSowers", Value.fromI32(value));
+  }
+
+  get totalNumberOfSows(): i32 {
+    let value = this.get("totalNumberOfSows");
+    return value!.toI32();
+  }
+
+  set totalNumberOfSows(value: i32) {
+    this.set("totalNumberOfSows", Value.fromI32(value));
+  }
+
+  get totalSownBeans(): BigInt {
+    let value = this.get("totalSownBeans");
+    return value!.toBigInt();
+  }
+
+  set totalSownBeans(value: BigInt) {
+    this.set("totalSownBeans", Value.fromBigInt(value));
+  }
+
+  get plotIndexes(): Array<BigInt> {
+    let value = this.get("plotIndexes");
+    return value!.toBigIntArray();
+  }
+
+  set plotIndexes(value: Array<BigInt>) {
+    this.set("plotIndexes", Value.fromBigIntArray(value));
+  }
+
+  get totalPods(): BigInt {
+    let value = this.get("totalPods");
+    return value!.toBigInt();
+  }
+
+  set totalPods(value: BigInt) {
+    this.set("totalPods", Value.fromBigInt(value));
+  }
+
+  get totalHarvestablePods(): BigInt {
+    let value = this.get("totalHarvestablePods");
+    return value!.toBigInt();
+  }
+
+  set totalHarvestablePods(value: BigInt) {
+    this.set("totalHarvestablePods", Value.fromBigInt(value));
+  }
+
+  get totalHarvestedPods(): BigInt {
+    let value = this.get("totalHarvestedPods");
+    return value!.toBigInt();
+  }
+
+  set totalHarvestedPods(value: BigInt) {
+    this.set("totalHarvestedPods", Value.fromBigInt(value));
+  }
+
+  get totalSoil(): BigInt {
+    let value = this.get("totalSoil");
+    return value!.toBigInt();
+  }
+
+  set totalSoil(value: BigInt) {
+    this.set("totalSoil", Value.fromBigInt(value));
+  }
+
+  get podRate(): BigDecimal {
+    let value = this.get("podRate");
+    return value!.toBigDecimal();
+  }
+
+  set podRate(value: BigDecimal) {
+    this.set("podRate", Value.fromBigDecimal(value));
+  }
+
+  get hourlySnapshots(): Array<string> {
+    let value = this.get("hourlySnapshots");
+    return value!.toStringArray();
+  }
+
+  set hourlySnapshots(value: Array<string>) {
+    this.set("hourlySnapshots", Value.fromStringArray(value));
+  }
+
+  get dailySnapshots(): Array<string> {
+    let value = this.get("dailySnapshots");
+    return value!.toStringArray();
+  }
+
+  set dailySnapshots(value: Array<string>) {
+    this.set("dailySnapshots", Value.fromStringArray(value));
+  }
+}
+
+export class FieldHourlySnapshot extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save FieldHourlySnapshot entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type FieldHourlySnapshot must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("FieldHourlySnapshot", id.toString(), this);
+    }
+  }
+
+  static load(id: string): FieldHourlySnapshot | null {
+    return changetype<FieldHourlySnapshot | null>(
+      store.get("FieldHourlySnapshot", id)
+    );
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get field(): string {
+    let value = this.get("field");
+    return value!.toString();
+  }
+
+  set field(value: string) {
+    this.set("field", Value.fromString(value));
+  }
+
+  get season(): i32 {
+    let value = this.get("season");
+    return value!.toI32();
+  }
+
+  set season(value: i32) {
+    this.set("season", Value.fromI32(value));
+  }
+
+  get weather(): i32 {
+    let value = this.get("weather");
+    return value!.toI32();
+  }
+
+  set weather(value: i32) {
+    this.set("weather", Value.fromI32(value));
+  }
+
+  get numberOfSowers(): i32 {
+    let value = this.get("numberOfSowers");
+    return value!.toI32();
+  }
+
+  set numberOfSowers(value: i32) {
+    this.set("numberOfSowers", Value.fromI32(value));
+  }
+
+  get totalNumberOfSowers(): i32 {
+    let value = this.get("totalNumberOfSowers");
+    return value!.toI32();
+  }
+
+  set totalNumberOfSowers(value: i32) {
+    this.set("totalNumberOfSowers", Value.fromI32(value));
+  }
+
+  get numberOfSows(): i32 {
+    let value = this.get("numberOfSows");
+    return value!.toI32();
+  }
+
+  set numberOfSows(value: i32) {
+    this.set("numberOfSows", Value.fromI32(value));
+  }
+
+  get totalNumberOfSows(): i32 {
+    let value = this.get("totalNumberOfSows");
+    return value!.toI32();
+  }
+
+  set totalNumberOfSows(value: i32) {
+    this.set("totalNumberOfSows", Value.fromI32(value));
+  }
+
+  get sownBeans(): BigInt {
+    let value = this.get("sownBeans");
+    return value!.toBigInt();
+  }
+
+  set sownBeans(value: BigInt) {
+    this.set("sownBeans", Value.fromBigInt(value));
+  }
+
+  get totalSownBeans(): BigInt {
+    let value = this.get("totalSownBeans");
+    return value!.toBigInt();
+  }
+
+  set totalSownBeans(value: BigInt) {
+    this.set("totalSownBeans", Value.fromBigInt(value));
+  }
+
+  get newPods(): BigInt {
+    let value = this.get("newPods");
+    return value!.toBigInt();
+  }
+
+  set newPods(value: BigInt) {
+    this.set("newPods", Value.fromBigInt(value));
+  }
+
+  get totalPods(): BigInt {
+    let value = this.get("totalPods");
+    return value!.toBigInt();
+  }
+
+  set totalPods(value: BigInt) {
+    this.set("totalPods", Value.fromBigInt(value));
+  }
+
+  get newHarvestablePods(): BigInt {
+    let value = this.get("newHarvestablePods");
+    return value!.toBigInt();
+  }
+
+  set newHarvestablePods(value: BigInt) {
+    this.set("newHarvestablePods", Value.fromBigInt(value));
+  }
+
+  get totalHarvestablePods(): BigInt {
+    let value = this.get("totalHarvestablePods");
+    return value!.toBigInt();
+  }
+
+  set totalHarvestablePods(value: BigInt) {
+    this.set("totalHarvestablePods", Value.fromBigInt(value));
+  }
+
+  get newSoil(): BigInt {
+    let value = this.get("newSoil");
+    return value!.toBigInt();
+  }
+
+  set newSoil(value: BigInt) {
+    this.set("newSoil", Value.fromBigInt(value));
+  }
+
+  get totalSoil(): BigInt {
+    let value = this.get("totalSoil");
+    return value!.toBigInt();
+  }
+
+  set totalSoil(value: BigInt) {
+    this.set("totalSoil", Value.fromBigInt(value));
+  }
+
+  get podRate(): BigDecimal {
+    let value = this.get("podRate");
+    return value!.toBigDecimal();
+  }
+
+  set podRate(value: BigDecimal) {
+    this.set("podRate", Value.fromBigDecimal(value));
+  }
+
+  get blockNumber(): BigInt {
+    let value = this.get("blockNumber");
+    return value!.toBigInt();
+  }
+
+  set blockNumber(value: BigInt) {
+    this.set("blockNumber", Value.fromBigInt(value));
+  }
+
+  get timestamp(): BigInt {
+    let value = this.get("timestamp");
+    return value!.toBigInt();
+  }
+
+  set timestamp(value: BigInt) {
+    this.set("timestamp", Value.fromBigInt(value));
+  }
+}
+
+export class FieldDailySnapshot extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save FieldDailySnapshot entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type FieldDailySnapshot must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("FieldDailySnapshot", id.toString(), this);
+    }
+  }
+
+  static load(id: string): FieldDailySnapshot | null {
+    return changetype<FieldDailySnapshot | null>(
+      store.get("FieldDailySnapshot", id)
+    );
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get field(): string {
+    let value = this.get("field");
+    return value!.toString();
+  }
+
+  set field(value: string) {
+    this.set("field", Value.fromString(value));
+  }
+
+  get season(): i32 {
+    let value = this.get("season");
+    return value!.toI32();
+  }
+
+  set season(value: i32) {
+    this.set("season", Value.fromI32(value));
+  }
+
+  get weather(): i32 {
+    let value = this.get("weather");
+    return value!.toI32();
+  }
+
+  set weather(value: i32) {
+    this.set("weather", Value.fromI32(value));
+  }
+
+  get numberOfSowers(): i32 {
+    let value = this.get("numberOfSowers");
+    return value!.toI32();
+  }
+
+  set numberOfSowers(value: i32) {
+    this.set("numberOfSowers", Value.fromI32(value));
+  }
+
+  get totalNumberOfSowers(): i32 {
+    let value = this.get("totalNumberOfSowers");
+    return value!.toI32();
+  }
+
+  set totalNumberOfSowers(value: i32) {
+    this.set("totalNumberOfSowers", Value.fromI32(value));
+  }
+
+  get numberOfSows(): i32 {
+    let value = this.get("numberOfSows");
+    return value!.toI32();
+  }
+
+  set numberOfSows(value: i32) {
+    this.set("numberOfSows", Value.fromI32(value));
+  }
+
+  get totalNumberOfSows(): i32 {
+    let value = this.get("totalNumberOfSows");
+    return value!.toI32();
+  }
+
+  set totalNumberOfSows(value: i32) {
+    this.set("totalNumberOfSows", Value.fromI32(value));
+  }
+
+  get sownBeans(): BigInt {
+    let value = this.get("sownBeans");
+    return value!.toBigInt();
+  }
+
+  set sownBeans(value: BigInt) {
+    this.set("sownBeans", Value.fromBigInt(value));
+  }
+
+  get totalSownBeans(): BigInt {
+    let value = this.get("totalSownBeans");
+    return value!.toBigInt();
+  }
+
+  set totalSownBeans(value: BigInt) {
+    this.set("totalSownBeans", Value.fromBigInt(value));
+  }
+
+  get newPods(): BigInt {
+    let value = this.get("newPods");
+    return value!.toBigInt();
+  }
+
+  set newPods(value: BigInt) {
+    this.set("newPods", Value.fromBigInt(value));
+  }
+
+  get totalPods(): BigInt {
+    let value = this.get("totalPods");
+    return value!.toBigInt();
+  }
+
+  set totalPods(value: BigInt) {
+    this.set("totalPods", Value.fromBigInt(value));
+  }
+
+  get newHarvestablePods(): BigInt {
+    let value = this.get("newHarvestablePods");
+    return value!.toBigInt();
+  }
+
+  set newHarvestablePods(value: BigInt) {
+    this.set("newHarvestablePods", Value.fromBigInt(value));
+  }
+
+  get totalHarvestablePods(): BigInt {
+    let value = this.get("totalHarvestablePods");
+    return value!.toBigInt();
+  }
+
+  set totalHarvestablePods(value: BigInt) {
+    this.set("totalHarvestablePods", Value.fromBigInt(value));
+  }
+
+  get newSoil(): BigInt {
+    let value = this.get("newSoil");
+    return value!.toBigInt();
+  }
+
+  set newSoil(value: BigInt) {
+    this.set("newSoil", Value.fromBigInt(value));
+  }
+
+  get totalSoil(): BigInt {
+    let value = this.get("totalSoil");
+    return value!.toBigInt();
+  }
+
+  set totalSoil(value: BigInt) {
+    this.set("totalSoil", Value.fromBigInt(value));
+  }
+
+  get podRate(): BigDecimal {
+    let value = this.get("podRate");
+    return value!.toBigDecimal();
+  }
+
+  set podRate(value: BigDecimal) {
+    this.set("podRate", Value.fromBigDecimal(value));
   }
 
   get blockNumber(): BigInt {

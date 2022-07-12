@@ -1094,16 +1094,16 @@ export class ChangeUnderlying__Params {
   }
 }
 
-export class ClaimUnripe extends ethereum.Event {
-  get params(): ClaimUnripe__Params {
-    return new ClaimUnripe__Params(this);
+export class Pick extends ethereum.Event {
+  get params(): Pick__Params {
+    return new Pick__Params(this);
   }
 }
 
-export class ClaimUnripe__Params {
-  _event: ClaimUnripe;
+export class Pick__Params {
+  _event: Pick;
 
-  constructor(event: ClaimUnripe) {
+  constructor(event: Pick) {
     this._event = event;
   }
 
@@ -1327,7 +1327,7 @@ export class Beanstalk__weatherResultValue0Struct extends ethereum.Tuple {
     return this[4].toBigInt();
   }
 
-  get weatherYield(): BigInt {
+  get yield(): BigInt {
     return this[5].toBigInt();
   }
 
@@ -2506,6 +2506,25 @@ export class Beanstalk extends ethereum.SmartContract {
 
   try_owner(): ethereum.CallResult<Address> {
     let result = super.tryCall("owner", "owner():(address)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  ownerCandidate(): Address {
+    let result = super.call("ownerCandidate", "ownerCandidate():(address)", []);
+
+    return result[0].toAddress();
+  }
+
+  try_ownerCandidate(): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "ownerCandidate",
+      "ownerCandidate():(address)",
+      []
+    );
     if (result.reverted) {
       return new ethereum.CallResult();
     }
@@ -3750,6 +3769,27 @@ export class Beanstalk extends ethereum.SmartContract {
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBoolean());
   }
+
+  picked(account: Address, token: Address): boolean {
+    let result = super.call("picked", "picked(address,address):(bool)", [
+      ethereum.Value.fromAddress(account),
+      ethereum.Value.fromAddress(token)
+    ]);
+
+    return result[0].toBoolean();
+  }
+
+  try_picked(account: Address, token: Address): ethereum.CallResult<boolean> {
+    let result = super.tryCall("picked", "picked(address,address):(bool)", [
+      ethereum.Value.fromAddress(account),
+      ethereum.Value.fromAddress(token)
+    ]);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
 }
 
 export class ConvertCall extends ethereum.Call {
@@ -3811,16 +3851,16 @@ export class AddLiquidityCall__Inputs {
     return this._call.inputValues[0].value.toAddress();
   }
 
+  get registry(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+
   get amounts(): Array<BigInt> {
-    return this._call.inputValues[1].value.toBigIntArray();
+    return this._call.inputValues[2].value.toBigIntArray();
   }
 
   get minAmountOut(): BigInt {
-    return this._call.inputValues[2].value.toBigInt();
-  }
-
-  get stable(): boolean {
-    return this._call.inputValues[3].value.toBoolean();
+    return this._call.inputValues[3].value.toBigInt();
   }
 
   get fromMode(): i32 {
@@ -3861,24 +3901,24 @@ export class ExchangeCall__Inputs {
     return this._call.inputValues[0].value.toAddress();
   }
 
-  get fromToken(): Address {
+  get registry(): Address {
     return this._call.inputValues[1].value.toAddress();
   }
 
-  get toToken(): Address {
+  get fromToken(): Address {
     return this._call.inputValues[2].value.toAddress();
   }
 
-  get amountIn(): BigInt {
-    return this._call.inputValues[3].value.toBigInt();
+  get toToken(): Address {
+    return this._call.inputValues[3].value.toAddress();
   }
 
-  get minAmountOut(): BigInt {
+  get amountIn(): BigInt {
     return this._call.inputValues[4].value.toBigInt();
   }
 
-  get stable(): boolean {
-    return this._call.inputValues[5].value.toBoolean();
+  get minAmountOut(): BigInt {
+    return this._call.inputValues[5].value.toBigInt();
   }
 
   get fromMode(): i32 {
@@ -3973,16 +4013,16 @@ export class RemoveLiquidityCall__Inputs {
     return this._call.inputValues[0].value.toAddress();
   }
 
+  get registry(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+
   get amountIn(): BigInt {
-    return this._call.inputValues[1].value.toBigInt();
+    return this._call.inputValues[2].value.toBigInt();
   }
 
   get minAmountsOut(): Array<BigInt> {
-    return this._call.inputValues[2].value.toBigIntArray();
-  }
-
-  get stable(): boolean {
-    return this._call.inputValues[3].value.toBoolean();
+    return this._call.inputValues[3].value.toBigIntArray();
   }
 
   get fromMode(): i32 {
@@ -4023,16 +4063,16 @@ export class RemoveLiquidityImbalanceCall__Inputs {
     return this._call.inputValues[0].value.toAddress();
   }
 
+  get registry(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+
   get amountsOut(): Array<BigInt> {
-    return this._call.inputValues[1].value.toBigIntArray();
+    return this._call.inputValues[2].value.toBigIntArray();
   }
 
   get maxAmountIn(): BigInt {
-    return this._call.inputValues[2].value.toBigInt();
-  }
-
-  get stable(): boolean {
-    return this._call.inputValues[3].value.toBoolean();
+    return this._call.inputValues[3].value.toBigInt();
   }
 
   get fromMode(): i32 {
@@ -4073,20 +4113,20 @@ export class RemoveLiquidityOneTokenCall__Inputs {
     return this._call.inputValues[0].value.toAddress();
   }
 
-  get toToken(): Address {
+  get registry(): Address {
     return this._call.inputValues[1].value.toAddress();
   }
 
-  get amountIn(): BigInt {
-    return this._call.inputValues[2].value.toBigInt();
+  get toToken(): Address {
+    return this._call.inputValues[2].value.toAddress();
   }
 
-  get minAmountOut(): BigInt {
+  get amountIn(): BigInt {
     return this._call.inputValues[3].value.toBigInt();
   }
 
-  get stable(): boolean {
-    return this._call.inputValues[4].value.toBoolean();
+  get minAmountOut(): BigInt {
+    return this._call.inputValues[4].value.toBigInt();
   }
 
   get fromMode(): i32 {
@@ -4904,6 +4944,32 @@ export class TransferPlotCall__Outputs {
   }
 }
 
+export class ClaimOwnershipCall extends ethereum.Call {
+  get inputs(): ClaimOwnershipCall__Inputs {
+    return new ClaimOwnershipCall__Inputs(this);
+  }
+
+  get outputs(): ClaimOwnershipCall__Outputs {
+    return new ClaimOwnershipCall__Outputs(this);
+  }
+}
+
+export class ClaimOwnershipCall__Inputs {
+  _call: ClaimOwnershipCall;
+
+  constructor(call: ClaimOwnershipCall) {
+    this._call = call;
+  }
+}
+
+export class ClaimOwnershipCall__Outputs {
+  _call: ClaimOwnershipCall;
+
+  constructor(call: ClaimOwnershipCall) {
+    this._call = call;
+  }
+}
+
 export class TransferOwnershipCall extends ethereum.Call {
   get inputs(): TransferOwnershipCall__Inputs {
     return new TransferOwnershipCall__Inputs(this);
@@ -5608,20 +5674,20 @@ export class AddUnripeTokenCall__Outputs {
   }
 }
 
-export class ClaimUnripeCall extends ethereum.Call {
-  get inputs(): ClaimUnripeCall__Inputs {
-    return new ClaimUnripeCall__Inputs(this);
+export class PickCall extends ethereum.Call {
+  get inputs(): PickCall__Inputs {
+    return new PickCall__Inputs(this);
   }
 
-  get outputs(): ClaimUnripeCall__Outputs {
-    return new ClaimUnripeCall__Outputs(this);
+  get outputs(): PickCall__Outputs {
+    return new PickCall__Outputs(this);
   }
 }
 
-export class ClaimUnripeCall__Inputs {
-  _call: ClaimUnripeCall;
+export class PickCall__Inputs {
+  _call: PickCall;
 
-  constructor(call: ClaimUnripeCall) {
+  constructor(call: PickCall) {
     this._call = call;
   }
 
@@ -5636,12 +5702,16 @@ export class ClaimUnripeCall__Inputs {
   get proof(): Array<Bytes> {
     return this._call.inputValues[2].value.toBytesArray();
   }
+
+  get mode(): i32 {
+    return this._call.inputValues[3].value.toI32();
+  }
 }
 
-export class ClaimUnripeCall__Outputs {
-  _call: ClaimUnripeCall;
+export class PickCall__Outputs {
+  _call: PickCall;
 
-  constructor(call: ClaimUnripeCall) {
+  constructor(call: PickCall) {
     this._call = call;
   }
 }
