@@ -23,7 +23,7 @@ dataSources:
         - name: ERC20
           file: ./abis/ERC20.json
       eventHandlers:
-        - event: AddDeposit(indexed address,indexed address,uint256,uint256,uint256)
+        - event: AddDeposit(indexed address,indexed address,uint32,uint256,uint256)
           handler: handleAddDeposit
         - event: SeedsBalanceChanged(indexed address,int256)
           handler: handleSeedsBalanceChanged
