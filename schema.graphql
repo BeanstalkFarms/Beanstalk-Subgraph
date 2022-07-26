@@ -465,6 +465,7 @@ type PodListing @entity {
   originalIndex: BigInt!
   index: BigInt!
   start: BigInt!
+  amount: BigInt!
   totalAmount: BigInt!
   remainingAmount: BigInt!
   filledAmount: BigInt!

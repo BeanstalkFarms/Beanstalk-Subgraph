@@ -5,7 +5,7 @@ import { ZERO_BI } from "./utils/Decimals";
 import { loadFarmer } from "./utils/Farmer";
 import { loadPlot } from "./utils/Plot";
 import { loadPodFill } from "./utils/PodFill";
-import { loadPodListing } from "./utils/PodListing";
+import { createHistoricalPodListing, loadPodListing } from "./utils/PodListing";
 import { loadPodMarketplace, loadPodMarketplaceDailySnapshot, loadPodMarketplaceHourlySnapshot } from "./utils/PodMarketplace";
 import { createHistoricalPodOrder, loadPodOrder } from "./utils/PodOrder";
 import { loadTransaction } from "./utils/Transaction";
@@ -21,11 +21,17 @@ export function handlePodListingCreated(event: PodListingCreated): void {
     // Farmer Balances
     let listing = loadPodListing(event.params.account, event.params.index)
 
+    if (listing.createdAt !== ZERO_BI) {
+        createHistoricalPodListing(listing)
+        listing.createdAt = ZERO_BI
+    }
+
     listing.plot = plot.id
     listing.createdAt = listing.createdAt == ZERO_BI ? event.block.timestamp : listing.createdAt
     listing.updatedAt = event.block.timestamp
     listing.originalIndex = event.params.index
     listing.start = event.params.start
+    listing.amount = event.params.amount
     listing.totalAmount = event.params.amount
     listing.remainingAmount = listing.totalAmount
     listing.pricePerPod = event.params.pricePerPod
@@ -145,6 +151,7 @@ export function handlePodListingFilled(event: PodListingFilled): void {
         remainingListing.updatedAt = event.block.timestamp
         remainingListing.originalIndex = listing.originalIndex
         remainingListing.start = ZERO_BI
+        remainingListing.amount = listing.remainingAmount
         remainingListing.totalAmount = listing.totalAmount
         remainingListing.totalFilled = listing.totalFilled
         remainingListing.remainingAmount = listing.remainingAmount

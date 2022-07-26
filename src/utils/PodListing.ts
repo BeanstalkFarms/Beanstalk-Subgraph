@@ -17,6 +17,7 @@ export function loadPodListing(account: Address, index: BigInt): PodListing {
         listing.originalIndex = index
         listing.index = index
         listing.start = ZERO_BI
+        listing.amount = ZERO_BI
         listing.totalAmount = ZERO_BI
         listing.remainingAmount = ZERO_BI
         listing.filledAmount = ZERO_BI
@@ -59,4 +60,35 @@ export function expirePodListing(diamondAddress: Address, timestamp: BigInt, lis
     listing.status = 'expired'
     listing.remainingAmount = ZERO_BI
     listing.save()
+}
+
+export function createHistoricalPodListing(listing: PodListing): void {
+    let created = false
+    let id = listing.id
+    for (let i = 0; !created; i++) {
+        id = id + '-' + i.toString()
+        let newListing = PodListing.load(id)
+        if (newListing == null) {
+            newListing = new PodListing(id)
+            newListing.plot = listing.plot
+            newListing.farmer = listing.farmer
+            newListing.createdAt = listing.createdAt
+            newListing.updatedAt = listing.updatedAt
+            newListing.status = listing.status
+            newListing.originalIndex = listing.originalIndex
+            newListing.index = listing.index
+            newListing.start = listing.start
+            newListing.amount = listing.amount
+            newListing.totalAmount = listing.totalAmount
+            newListing.remainingAmount = listing.remainingAmount
+            newListing.filledAmount = listing.filledAmount
+            newListing.totalFilled = listing.totalFilled
+            newListing.cancelledAmount = listing.cancelledAmount
+            newListing.pricePerPod = listing.pricePerPod
+            newListing.maxHarvestableIndex = listing.maxHarvestableIndex
+            newListing.mode = listing.mode
+            newListing.save()
+            created = true
+        }
+    }
 }
