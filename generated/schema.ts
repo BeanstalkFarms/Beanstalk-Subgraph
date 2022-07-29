@@ -239,15 +239,6 @@ export class Beanstalk extends Entity {
     this.set("network", Value.fromString(value));
   }
 
-  get type(): string {
-    let value = this.get("type");
-    return value!.toString();
-  }
-
-  set type(value: string) {
-    this.set("type", Value.fromString(value));
-  }
-
   get lastUpgrade(): BigInt {
     let value = this.get("lastUpgrade");
     return value!.toBigInt();
@@ -275,13 +266,13 @@ export class Beanstalk extends Entity {
     this.set("silo", Value.fromString(value));
   }
 
-  get harvestableIndex(): BigInt {
-    let value = this.get("harvestableIndex");
-    return value!.toBigInt();
+  get field(): string {
+    let value = this.get("field");
+    return value!.toString();
   }
 
-  set harvestableIndex(value: BigInt) {
-    this.set("harvestableIndex", Value.fromBigInt(value));
+  set field(value: string) {
+    this.set("field", Value.fromString(value));
   }
 }
 
@@ -482,6 +473,15 @@ export class Silo extends Entity {
     this.set("totalSeeds", Value.fromBigInt(value));
   }
 
+  get totalRoots(): BigInt {
+    let value = this.get("totalRoots");
+    return value!.toBigInt();
+  }
+
+  set totalRoots(value: BigInt) {
+    this.set("totalRoots", Value.fromBigInt(value));
+  }
+
   get totalBeanMints(): BigInt {
     let value = this.get("totalBeanMints");
     return value!.toBigInt();
@@ -510,7 +510,7 @@ export class Silo extends Entity {
   }
 }
 
-export class SiloHourlySnapshots extends Entity {
+export class SiloHourlySnapshot extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
@@ -518,19 +518,19 @@ export class SiloHourlySnapshots extends Entity {
 
   save(): void {
     let id = this.get("id");
-    assert(id != null, "Cannot save SiloHourlySnapshots entity without an ID");
+    assert(id != null, "Cannot save SiloHourlySnapshot entity without an ID");
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type SiloHourlySnapshots must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        `Entities of type SiloHourlySnapshot must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
       );
-      store.set("SiloHourlySnapshots", id.toString(), this);
+      store.set("SiloHourlySnapshot", id.toString(), this);
     }
   }
 
-  static load(id: string): SiloHourlySnapshots | null {
-    return changetype<SiloHourlySnapshots | null>(
-      store.get("SiloHourlySnapshots", id)
+  static load(id: string): SiloHourlySnapshot | null {
+    return changetype<SiloHourlySnapshot | null>(
+      store.get("SiloHourlySnapshot", id)
     );
   }
 
@@ -697,7 +697,7 @@ export class SiloHourlySnapshots extends Entity {
   }
 }
 
-export class SiloDailySnapshots extends Entity {
+export class SiloDailySnapshot extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
@@ -705,19 +705,19 @@ export class SiloDailySnapshots extends Entity {
 
   save(): void {
     let id = this.get("id");
-    assert(id != null, "Cannot save SiloDailySnapshots entity without an ID");
+    assert(id != null, "Cannot save SiloDailySnapshot entity without an ID");
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type SiloDailySnapshots must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        `Entities of type SiloDailySnapshot must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
       );
-      store.set("SiloDailySnapshots", id.toString(), this);
+      store.set("SiloDailySnapshot", id.toString(), this);
     }
   }
 
-  static load(id: string): SiloDailySnapshots | null {
-    return changetype<SiloDailySnapshots | null>(
-      store.get("SiloDailySnapshots", id)
+  static load(id: string): SiloDailySnapshot | null {
+    return changetype<SiloDailySnapshot | null>(
+      store.get("SiloDailySnapshot", id)
     );
   }
 
@@ -1470,6 +1470,15 @@ export class Field extends Entity {
     this.set("totalSoil", Value.fromBigInt(value));
   }
 
+  get podIndex(): BigInt {
+    let value = this.get("podIndex");
+    return value!.toBigInt();
+  }
+
+  set podIndex(value: BigInt) {
+    this.set("podIndex", Value.fromBigInt(value));
+  }
+
   get podRate(): BigDecimal {
     let value = this.get("podRate");
     return value!.toBigDecimal();
@@ -1556,6 +1565,15 @@ export class FieldHourlySnapshot extends Entity {
 
   set weather(value: i32) {
     this.set("weather", Value.fromI32(value));
+  }
+
+  get podIndex(): BigInt {
+    let value = this.get("podIndex");
+    return value!.toBigInt();
+  }
+
+  set podIndex(value: BigInt) {
+    this.set("podIndex", Value.fromBigInt(value));
   }
 
   get numberOfSowers(): i32 {
@@ -1710,6 +1728,24 @@ export class FieldHourlySnapshot extends Entity {
   set timestamp(value: BigInt) {
     this.set("timestamp", Value.fromBigInt(value));
   }
+
+  get snapshotIndex(): BigInt {
+    let value = this.get("snapshotIndex");
+    return value!.toBigInt();
+  }
+
+  set snapshotIndex(value: BigInt) {
+    this.set("snapshotIndex", Value.fromBigInt(value));
+  }
+
+  get snapshotHarvestable(): BigInt {
+    let value = this.get("snapshotHarvestable");
+    return value!.toBigInt();
+  }
+
+  set snapshotHarvestable(value: BigInt) {
+    this.set("snapshotHarvestable", Value.fromBigInt(value));
+  }
 }
 
 export class FieldDailySnapshot extends Entity {
@@ -1770,6 +1806,15 @@ export class FieldDailySnapshot extends Entity {
 
   set weather(value: i32) {
     this.set("weather", Value.fromI32(value));
+  }
+
+  get podIndex(): BigInt {
+    let value = this.get("podIndex");
+    return value!.toBigInt();
+  }
+
+  set podIndex(value: BigInt) {
+    this.set("podIndex", Value.fromBigInt(value));
   }
 
   get numberOfSowers(): i32 {
@@ -1957,13 +2002,21 @@ export class Farmer extends Entity {
     this.set("id", Value.fromString(value));
   }
 
-  get silo(): string {
+  get silo(): string | null {
     let value = this.get("silo");
-    return value!.toString();
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
   }
 
-  set silo(value: string) {
-    this.set("silo", Value.fromString(value));
+  set silo(value: string | null) {
+    if (!value) {
+      this.unset("silo");
+    } else {
+      this.set("silo", Value.fromString(<string>value));
+    }
   }
 
   get deposits(): Array<string> {
@@ -1984,13 +2037,21 @@ export class Farmer extends Entity {
     this.set("withdraws", Value.fromStringArray(value));
   }
 
-  get field(): string {
+  get field(): string | null {
     let value = this.get("field");
-    return value!.toString();
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
   }
 
-  set field(value: string) {
-    this.set("field", Value.fromString(value));
+  set field(value: string | null) {
+    if (!value) {
+      this.unset("field");
+    } else {
+      this.set("field", Value.fromString(<string>value));
+    }
   }
 
   get plots(): Array<string> {
@@ -3278,13 +3339,13 @@ export class PodListing extends Entity {
     this.set("maxHarvestableIndex", Value.fromBigInt(value));
   }
 
-  get mode(): boolean {
+  get mode(): i32 {
     let value = this.get("mode");
-    return value!.toBoolean();
+    return value!.toI32();
   }
 
-  set mode(value: boolean) {
-    this.set("mode", Value.fromBoolean(value));
+  set mode(value: i32) {
+    this.set("mode", Value.fromI32(value));
   }
 
   get transaction(): string | null {

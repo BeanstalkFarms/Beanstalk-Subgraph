@@ -25,7 +25,7 @@ export function loadPodListing(account: Address, index: BigInt): PodListing {
         listing.cancelledAmount = ZERO_BI
         listing.pricePerPod = 0
         listing.maxHarvestableIndex = ZERO_BI
-        listing.mode = false
+        listing.mode = 0
         listing.save()
     }
     return listing
@@ -33,7 +33,7 @@ export function loadPodListing(account: Address, index: BigInt): PodListing {
 
 export function expirePodListing(diamondAddress: Address, timestamp: BigInt, listingIndex: BigInt): void {
     let market = loadPodMarketplace(diamondAddress)
-    let marketHourly = loadPodMarketplaceHourlySnapshot(diamondAddress, timestamp)
+    let marketHourly = loadPodMarketplaceHourlySnapshot(diamondAddress, market.season, timestamp)
     let marketDaily = loadPodMarketplaceDailySnapshot(diamondAddress, timestamp)
     //farmer info
     let plot = loadPlot(diamondAddress, listingIndex)

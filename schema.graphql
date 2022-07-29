@@ -101,9 +101,6 @@ type Beanstalk @entity {
   " The blockchain network this subgraph is indexing on "
   network: Network!
 
-  " The type of protocol (e.g. DEX, Lending, Yield, etc) "
-  type: ProtocolType!
-
   " Timestamp of the latest DiamondCut call "
   lastUpgrade: BigInt!
   
@@ -113,8 +110,8 @@ type Beanstalk @entity {
   " Silo level data "
   silo: Silo! @derivedFrom(field: "beanstalk")
 
-  " Lastest harvestable index for pods"
-  harvestableIndex: BigInt!
+  " Field level data "
+  field: Field! @derivedFrom(field: "beanstalk")
 }
 
 # An entity that holds season level data
@@ -153,12 +150,13 @@ type Silo @entity {
   totalDepositedBDV: BigInt!
   totalStalk: BigInt!
   totalSeeds: BigInt!
+  totalRoots: BigInt!
   totalBeanMints: BigInt!
-  hourlySnapshots: [SiloHourlySnapshots!]! @derivedFrom(field: "silo")
-  dailySnapshots: [SiloDailySnapshots!]! @derivedFrom(field: "silo")
+  hourlySnapshots: [SiloHourlySnapshot!]! @derivedFrom(field: "silo")
+  dailySnapshots: [SiloDailySnapshot!]! @derivedFrom(field: "silo")
 }
 
-type SiloHourlySnapshots @entity {
+type SiloHourlySnapshot @entity {
   id: ID!
   season: Int!
   silo: Silo!
@@ -179,7 +177,7 @@ type SiloHourlySnapshots @entity {
   timestamp: BigInt!
 }
 
-type SiloDailySnapshots @entity {
+type SiloDailySnapshot @entity {
   id: ID!
   season: Int!
   silo: Silo!
@@ -264,6 +262,7 @@ type Field @entity {
   totalHarvestablePods: BigInt!
   totalHarvestedPods: BigInt!
   totalSoil: BigInt!
+  podIndex: BigInt!
   podRate: BigDecimal!
   hourlySnapshots: [FieldHourlySnapshot!]! @derivedFrom(field: "field")
   dailySnapshots: [FieldDailySnapshot!]! @derivedFrom(field: "field")
@@ -274,6 +273,7 @@ type FieldHourlySnapshot @entity {
   field: Field!
   season: Int!
   weather: Int!
+  podIndex: BigInt!
   numberOfSowers: Int!
   totalNumberOfSowers: Int!
   numberOfSows: Int!
@@ -291,6 +291,8 @@ type FieldHourlySnapshot @entity {
   podRate: BigDecimal!
   blockNumber: BigInt!
   timestamp: BigInt!
+  snapshotIndex: BigInt!
+  snapshotHarvestable: BigInt!
 }
 
 type FieldDailySnapshot @entity {
@@ -298,6 +300,7 @@ type FieldDailySnapshot @entity {
   field: Field!
   season: Int!
   weather: Int!
+  podIndex: BigInt!
   numberOfSowers: Int!
   totalNumberOfSowers: Int!
   numberOfSows: Int!
@@ -321,12 +324,12 @@ type FieldDailySnapshot @entity {
 
 type Farmer @entity {
   id: ID! # Account
-  silo: Silo! @derivedFrom(field: "farmer")
+  silo: Silo @derivedFrom(field: "farmer")
   #assets: [FarmerAsset!]! # Add in any circulating information?
   #balances: [FarmerBalance!]!
   deposits: [SiloDeposit!]! @derivedFrom(field: "farmer")
   withdraws: [SiloWithdraw!]! @derivedFrom(field: "farmer")
-  field: Field! @derivedFrom(field: "farmer")
+  field: Field @derivedFrom(field: "farmer")
   plots: [Plot!]! @derivedFrom(field: "farmer")
   listings: [PodListing!]! @derivedFrom(field: "farmer")
   sown: Boolean!
@@ -473,7 +476,7 @@ type PodListing @entity {
   cancelledAmount: BigInt!
   pricePerPod: Int!
   maxHarvestableIndex: BigInt!
-  mode: Boolean!
+  mode: Int!
   transaction: Transaction
 }
 

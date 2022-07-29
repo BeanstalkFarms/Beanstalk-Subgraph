@@ -27,9 +27,10 @@ export function loadPodMarketplace(diamondAddress: Address): PodMarketplace {
     return marketplace
 }
 
-export function loadPodMarketplaceHourlySnapshot(diamondAddress: Address, timestamp: BigInt): PodMarketplaceHourlySnapshot {
-    let hour = hourFromTimestamp(timestamp)
-    let id = diamondAddress.toHexString() + '-' + hour.toString()
+export function loadPodMarketplaceHourlySnapshot(diamondAddress: Address, season: i32, timestamp: BigInt): PodMarketplaceHourlySnapshot {
+    // Hourly for Beanstalk is assumed to be by season. To keep other data correctly divided
+    // by season, we elect to use the season number for the hour number.
+    let id = diamondAddress.toHexString() + '-' + season.toString()
     let marketplace = loadPodMarketplace(diamondAddress)
     let snapshot = PodMarketplaceHourlySnapshot.load(id)
     if (snapshot == null) {

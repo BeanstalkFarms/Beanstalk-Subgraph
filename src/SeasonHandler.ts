@@ -1,7 +1,5 @@
-import { Beanstalk, SeasonSnapshot, Sunrise } from "../generated/Field/Beanstalk";
-import { ERC20 } from "../generated/Field/ERC20"
-import { BEAN_ERC20 } from "./utils/Constants";
-import { toDecimal, ZERO_BI } from "./utils/Decimals";
+import { SeasonSnapshot, Sunrise } from "../generated/Field/Beanstalk";
+import { toDecimal, ZERO_BD, ZERO_BI } from "./utils/Decimals";
 import { loadField, loadFieldDaily, loadFieldHourly } from "./utils/Field";
 import { loadPlot } from "./utils/Plot";
 import { expirePodListing, loadPodListing } from "./utils/PodListing";
@@ -11,23 +9,20 @@ import { loadSeason } from "./utils/Season";
 export function handleSunrise(event: Sunrise): void {
     let currentSeason = event.params.season.toI32()
     let season = loadSeason(event.address, event.params.season)
-    let beanstalkContract = Beanstalk.bind(event.address)
-    let beanERC20 = ERC20.bind(BEAN_ERC20)
 
     // Update season metrics
-    season.harvestableIndex = beanstalkContract.harvestableIndex()
-    season.beans = beanERC20.totalSupply()
+    //season.harvestableIndex = beanstalkContract.harvestableIndex()
     season.timestamp = event.block.timestamp
     season.save()
 
     // Update field metrics
     let field = loadField(event.address)
-    let fieldHourly = loadFieldHourly(event.address, event.block.timestamp)
+    let fieldHourly = loadFieldHourly(event.address, field.season, event.block.timestamp)
     let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)
 
     // -- Field level totals
     field.season = currentSeason
-    field.podRate = toDecimal(field.totalPods, 6).div(toDecimal(season.beans, 6))
+    field.podRate = season.beans == ZERO_BI ? ZERO_BD : toDecimal(field.totalPods, 6).div(toDecimal(season.beans, 6))
     fieldHourly.season = currentSeason
     fieldHourly.podRate = field.podRate
     fieldDaily.season = currentSeason
@@ -75,7 +70,7 @@ export function handleSunrise(event: Sunrise): void {
     // Marketplace Season Update
 
     let market = loadPodMarketplace(event.address)
-    let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, event.block.timestamp)
+    let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, market.season, event.block.timestamp)
     let marketDaily = loadPodMarketplaceDailySnapshot(event.address, event.block.timestamp)
     market.season = currentSeason
     marketHourly.season = currentSeason
@@ -107,6 +102,13 @@ export function handleSunrise(event: Sunrise): void {
 
 export function handleSeasonSnapshot(event: SeasonSnapshot): void {
     let season = loadSeason(event.address, event.params.season)
+    season.harvestableIndex = event.params.harvestableIndex
     season.twap = toDecimal(event.params.price, 18)
     season.save()
+
+
+    let fieldHourly = loadFieldHourly(event.address, event.params.season.toI32(), event.block.timestamp)
+    fieldHourly.snapshotIndex = event.params.podIndex
+    fieldHourly.snapshotHarvestable = event.params.harvestableIndex
+    fieldHourly.save()
 }

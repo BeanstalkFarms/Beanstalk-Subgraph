@@ -18,15 +18,17 @@ export function loadField(diamondAddress: Address): Field {
         field.totalHarvestablePods = ZERO_BI
         field.totalHarvestedPods = ZERO_BI
         field.totalSoil = ZERO_BI
+        field.podIndex = ZERO_BI
         field.podRate = ZERO_BD
         field.save()
     }
     return field
 }
 
-export function loadFieldHourly(diamondAddress: Address, timestamp: BigInt): FieldHourlySnapshot {
-    let hour = hourFromTimestamp(timestamp)
-    let id = diamondAddress.toHexString() + '-' + hour.toString()
+export function loadFieldHourly(diamondAddress: Address, season: i32, timestamp: BigInt): FieldHourlySnapshot {
+    // Hourly for Beanstalk is assumed to be by season. To keep other data correctly divided
+    // by season, we elect to use the season number for the hour number.
+    let id = diamondAddress.toHexString() + '-' + season.toString()
     let hourly = FieldHourlySnapshot.load(id)
     if (hourly == null) {
         let field = loadField(diamondAddress)
@@ -34,6 +36,7 @@ export function loadFieldHourly(diamondAddress: Address, timestamp: BigInt): Fie
         hourly.field = field.id
         hourly.season = field.season
         hourly.weather = field.weather
+        hourly.podIndex = field.podIndex
         hourly.numberOfSowers = 0
         hourly.totalNumberOfSowers = field.totalNumberOfSowers
         hourly.numberOfSows = 0
@@ -51,6 +54,8 @@ export function loadFieldHourly(diamondAddress: Address, timestamp: BigInt): Fie
         hourly.podRate = field.podRate
         hourly.blockNumber = ZERO_BI
         hourly.timestamp = timestamp
+        hourly.snapshotIndex = ZERO_BI
+        hourly.snapshotHarvestable = ZERO_BI
         hourly.save()
     }
     return hourly
@@ -66,6 +71,7 @@ export function loadFieldDaily(diamondAddress: Address, timestamp: BigInt): Fiel
         daily.field = field.id
         daily.season = field.season
         daily.weather = field.weather
+        daily.podIndex = field.podIndex
         daily.numberOfSowers = 0
         daily.totalNumberOfSowers = field.totalNumberOfSowers
         daily.numberOfSows = 0

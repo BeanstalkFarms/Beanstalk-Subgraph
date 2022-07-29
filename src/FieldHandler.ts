@@ -10,7 +10,7 @@ import { loadSeason } from './utils/Season'
 
 export function handleWeatherChange(event: WeatherChange): void {
     let field = loadField(event.address)
-    let fieldHourly = loadFieldHourly(event.address, event.block.timestamp)
+    let fieldHourly = loadFieldHourly(event.address, field.season, event.block.timestamp)
     let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)
 
     field.weather += event.params.change
@@ -24,11 +24,11 @@ export function handleWeatherChange(event: WeatherChange): void {
 
 export function handleSow(event: Sow): void {
     let field = loadField(event.address)
-    let fieldHourly = loadFieldHourly(event.address, event.block.timestamp)
+    let fieldHourly = loadFieldHourly(event.address, field.season, event.block.timestamp)
     let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)
     let farmer = loadFarmer(event.params.account)
     let farmerField = loadField(event.params.account)
-    let farmerFieldHourly = loadFieldHourly(event.params.account, event.block.timestamp)
+    let farmerFieldHourly = loadFieldHourly(event.params.account, field.season, event.block.timestamp)
     let farmerFieldDaily = loadFieldDaily(event.params.account, event.block.timestamp)
     let plot = loadPlot(event.address, event.params.index)
 
@@ -50,6 +50,7 @@ export function handleSow(event: Sow): void {
         farmer.save()
     }
 
+    if (farmerField.beanstalk !== event.address.toHexString()) { farmerField.beanstalk = event.address.toHexString() }
     farmerField.totalPods = farmerField.totalPods.plus(event.params.pods)
     farmerField.totalNumberOfSows += 1
     farmerField.totalSownBeans = farmerField.totalSownBeans.plus(event.params.beans)
@@ -68,12 +69,14 @@ export function handleSow(event: Sow): void {
     farmerFieldDaily.save()
 
     field.plotIndexes.push(event.params.index)
+    field.podIndex = field.podIndex.plus(event.params.pods)
     field.totalPods = field.totalPods.plus(event.params.pods)
     field.totalNumberOfSows += 1
     field.totalNumberOfSowers += newSowers
     field.totalSownBeans = field.totalSownBeans.plus(event.params.beans)
     field.save()
 
+    fieldHourly.podIndex = fieldHourly.podIndex.plus(event.params.pods)
     fieldHourly.newPods = fieldHourly.newPods.plus(event.params.pods)
     fieldHourly.totalPods = field.totalPods
     fieldHourly.numberOfSows += 1
@@ -82,6 +85,7 @@ export function handleSow(event: Sow): void {
     fieldHourly.totalNumberOfSows = field.totalNumberOfSows
     fieldHourly.save()
 
+    fieldDaily.podIndex = fieldDaily.podIndex.plus(event.params.pods)
     fieldDaily.newPods = fieldDaily.newPods.plus(event.params.pods)
     fieldDaily.totalPods = field.totalPods
     fieldDaily.numberOfSows += 1
@@ -93,7 +97,7 @@ export function handleSow(event: Sow): void {
 
 export function handleHarvest(event: Harvest): void {
     let field = loadField(event.address)
-    let fieldHourly = loadFieldHourly(event.address, event.block.timestamp)
+    let fieldHourly = loadFieldHourly(event.address, field.season, event.block.timestamp)
     let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)
 
     // Update field totals
@@ -128,12 +132,12 @@ export function handlePlotTransfer(event: PlotTransfer): void {
 
     let fromFarmer = loadFarmer(event.params.from)
     let fromFarmerField = loadField(event.params.from)
-    let fromFarmerFieldHourly = loadFieldHourly(event.params.from, event.block.timestamp)
+    let fromFarmerFieldHourly = loadFieldHourly(event.params.from, field.season, event.block.timestamp)
     let fromFarmerFieldDaily = loadFieldDaily(event.params.from, event.block.timestamp)
 
     let toFarmer = loadFarmer(event.params.to)
     let toFarmerField = loadField(event.params.to)
-    let toFarmerFieldHourly = loadFieldHourly(event.params.to, event.block.timestamp)
+    let toFarmerFieldHourly = loadFieldHourly(event.params.to, field.season, event.block.timestamp)
     let toFarmerFieldDaily = loadFieldDaily(event.params.to, event.block.timestamp)
 
     // Update overall pod totals
@@ -248,7 +252,7 @@ export function handlePlotTransfer(event: PlotTransfer): void {
 
 export function handleSupplyIncrease(event: SupplyIncrease): void {
     let field = loadField(event.address)
-    let fieldHourly = loadFieldHourly(event.address, event.block.timestamp)
+    let fieldHourly = loadFieldHourly(event.address, field.season, event.block.timestamp)
     let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)
     //let silo = loadSilo(event.params.season)
 
@@ -276,5 +280,10 @@ export function handleSupplyIncrease(event: SupplyIncrease): void {
 
     //silo.newBeans = toDecimal(event.params.newSilo, BEAN_DECIMALS)
     //silo.save()
+
+    let season = loadSeason(event.address, event.params.season)
+    season.deltaBeans = event.params.newHarvestable.plus(event.params.newSilo)
+    season.beans = season.beans.plus(season.deltaBeans)
+    season.save()
 
 }

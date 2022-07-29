@@ -13,7 +13,7 @@ import { loadTransaction } from "./utils/Transaction";
 export function handlePodListingCreated(event: PodListingCreated): void {
     let transaction = loadTransaction(event.transaction, event.block)
     let market = loadPodMarketplace(event.address)
-    let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, event.block.timestamp)
+    let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, market.season, event.block.timestamp)
     let marketDaily = loadPodMarketplaceDailySnapshot(event.address, event.block.timestamp)
     let plotCheck = Plot.load(event.params.index.toString())
     if (plotCheck == null) { return }
@@ -36,7 +36,7 @@ export function handlePodListingCreated(event: PodListingCreated): void {
     listing.remainingAmount = listing.totalAmount
     listing.pricePerPod = event.params.pricePerPod
     listing.maxHarvestableIndex = event.params.maxHarvestableIndex
-    listing.mode = event.params.toWallet
+    listing.mode = event.params.toWallet === true ? 0 : 1
     listing.transaction = transaction.id
     listing.save()
 
@@ -72,7 +72,7 @@ export function handlePodListingCreated(event: PodListingCreated): void {
 
 export function handlePodListingCancelled(event: PodListingCancelled): void {
     let market = loadPodMarketplace(event.address)
-    let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, event.block.timestamp)
+    let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, market.season, event.block.timestamp)
     let marketDaily = loadPodMarketplaceDailySnapshot(event.address, event.block.timestamp)
     //farmer info
     let listing = loadPodListing(event.params.account, event.params.index)
@@ -108,7 +108,7 @@ export function handlePodListingCancelled(event: PodListingCancelled): void {
 export function handlePodListingFilled(event: PodListingFilled): void {
     let transaction = loadTransaction(event.transaction, event.block)
     let market = loadPodMarketplace(event.address)
-    let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, event.block.timestamp)
+    let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, market.season, event.block.timestamp)
     let marketDaily = loadPodMarketplaceDailySnapshot(event.address, event.block.timestamp)
     let listing = loadPodListing(event.params.from, event.params.index)
 
@@ -141,9 +141,9 @@ export function handlePodListingFilled(event: PodListingFilled): void {
     let listingIndex = market.listingIndexes.indexOf(listing.index)
     market.listingIndexes.splice(listingIndex, 1)
     if (listing.remainingAmount == ZERO_BI) {
-        listing.status = 'filled'
+        listing.status = 'filled-full'
     } else {
-        listing.status = 'partial'
+        listing.status = 'filled-partial'
         let remainingListing = loadPodListing(Address.fromString(listing.farmer), listing.index.plus(event.params.amount).plus(listing.start))
 
         remainingListing.plot = listing.index.plus(event.params.amount).plus(listing.start).toString()
@@ -178,7 +178,7 @@ export function handlePodListingFilled(event: PodListingFilled): void {
 export function handlePodOrderCreated(event: PodOrderCreated): void {
 
     let market = loadPodMarketplace(event.address)
-    let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, event.block.timestamp)
+    let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, market.season, event.block.timestamp)
     let marketDaily = loadPodMarketplaceDailySnapshot(event.address, event.block.timestamp)
     let order = loadPodOrder(event.params.id)
     let farmer = loadFarmer(event.params.account)
@@ -210,7 +210,7 @@ export function handlePodOrderCreated(event: PodOrderCreated): void {
 
 export function handlePodOrderFilled(event: PodOrderFilled): void {
     let market = loadPodMarketplace(event.address)
-    let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, event.block.timestamp)
+    let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, market.season, event.block.timestamp)
     let marketDaily = loadPodMarketplaceDailySnapshot(event.address, event.block.timestamp)
     let order = loadPodOrder(event.params.id)
     let fill = loadPodFill(event.address, event.params.index, event.transaction.hash.toHexString())
@@ -249,7 +249,7 @@ export function handlePodOrderFilled(event: PodOrderFilled): void {
 
 export function handlePodOrderCancelled(event: PodOrderCancelled): void {
     let market = loadPodMarketplace(event.address)
-    let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, event.block.timestamp)
+    let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, market.season, event.block.timestamp)
     let marketDaily = loadPodMarketplaceDailySnapshot(event.address, event.block.timestamp)
     let order = loadPodOrder(event.params.id)
 
