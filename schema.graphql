@@ -101,9 +101,6 @@ type Beanstalk @entity {
   " The blockchain network this subgraph is indexing on "
   network: Network!
 
-  " The type of protocol (e.g. DEX, Lending, Yield, etc) "
-  type: ProtocolType!
-
   " Timestamp of the latest DiamondCut call "
   lastUpgrade: BigInt!
   
@@ -113,8 +110,8 @@ type Beanstalk @entity {
   " Silo level data "
   silo: Silo! @derivedFrom(field: "beanstalk")
 
-  " Lastest harvestable index for pods"
-  harvestableIndex: BigInt!
+  " Field level data "
+  field: Field! @derivedFrom(field: "beanstalk")
 }
 
 # An entity that holds season level data
@@ -147,16 +144,19 @@ type Season @entity {
 type Silo @entity {
   id: ID!
   beanstalk: Beanstalk!
+  farmer: Farmer
+  assets: [SiloAsset!]! @derivedFrom(field: "silo")
   totalValueLockedUSD: BigDecimal!
   totalDepositedBDV: BigInt!
   totalStalk: BigInt!
   totalSeeds: BigInt!
+  totalRoots: BigInt!
   totalBeanMints: BigInt!
-  hourlySnapshots: [SiloHourlySnapshots!]! @derivedFrom(field: "silo")
-  dailySnapshots: [SiloDailySnapshots!]! @derivedFrom(field: "silo")
+  hourlySnapshots: [SiloHourlySnapshot!]! @derivedFrom(field: "silo")
+  dailySnapshots: [SiloDailySnapshot!]! @derivedFrom(field: "silo")
 }
 
-type SiloHourlySnapshots @entity {
+type SiloHourlySnapshot @entity {
   id: ID!
   season: Int!
   silo: Silo!
@@ -177,7 +177,7 @@ type SiloHourlySnapshots @entity {
   timestamp: BigInt!
 }
 
-type SiloDailySnapshots @entity {
+type SiloDailySnapshot @entity {
   id: ID!
   season: Int!
   silo: Silo!
@@ -247,16 +247,324 @@ type SiloAssetDailySnapshot @entity {
   timestamp: BigInt!
 }
 
+type Field @entity {
+  " Contract address for this field or farmer "
+  id: ID!
+  beanstalk: Beanstalk!
+  farmer: Farmer
+  season: Int!
+  weather: Int!
+  totalNumberOfSowers: Int!
+  totalNumberOfSows: Int!
+  totalSownBeans: BigInt!
+  plotIndexes: [BigInt!]!
+  totalPods: BigInt!
+  totalHarvestablePods: BigInt!
+  totalHarvestedPods: BigInt!
+  totalSoil: BigInt!
+  podIndex: BigInt!
+  podRate: BigDecimal!
+  hourlySnapshots: [FieldHourlySnapshot!]! @derivedFrom(field: "field")
+  dailySnapshots: [FieldDailySnapshot!]! @derivedFrom(field: "field")
+}
+
+type FieldHourlySnapshot @entity {
+  id: ID!
+  field: Field!
+  season: Int!
+  weather: Int!
+  podIndex: BigInt!
+  numberOfSowers: Int!
+  totalNumberOfSowers: Int!
+  numberOfSows: Int!
+  totalNumberOfSows: Int!
+  sownBeans: BigInt!
+  totalSownBeans: BigInt!
+  newPods: BigInt!
+  totalPods: BigInt!
+  newHarvestablePods: BigInt!
+  totalHarvestablePods: BigInt!
+  newHarvestedPods: BigInt!
+  totalHarvestedPods: BigInt!
+  newSoil: BigInt!
+  totalSoil: BigInt!
+  podRate: BigDecimal!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  snapshotIndex: BigInt!
+  snapshotHarvestable: BigInt!
+}
+
+type FieldDailySnapshot @entity {
+  id: ID!
+  field: Field!
+  season: Int!
+  weather: Int!
+  podIndex: BigInt!
+  numberOfSowers: Int!
+  totalNumberOfSowers: Int!
+  numberOfSows: Int!
+  totalNumberOfSows: Int!
+  sownBeans: BigInt!
+  totalSownBeans: BigInt!
+  newPods: BigInt!
+  totalPods: BigInt!
+  newHarvestablePods: BigInt!
+  totalHarvestablePods: BigInt!
+  newHarvestedPods: BigInt!
+  totalHarvestedPods: BigInt!
+  newSoil: BigInt!
+  totalSoil: BigInt!
+  podRate: BigDecimal!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+}
+
+# ---===== Farmer Account Entities =====---
+
+type Farmer @entity {
+  id: ID! # Account
+  silo: Silo @derivedFrom(field: "farmer")
+  #assets: [FarmerAsset!]! # Add in any circulating information?
+  #balances: [FarmerBalance!]!
+  deposits: [SiloDeposit!]! @derivedFrom(field: "farmer")
+  withdraws: [SiloWithdraw!]! @derivedFrom(field: "farmer")
+  field: Field @derivedFrom(field: "farmer")
+  plots: [Plot!]! @derivedFrom(field: "farmer")
+  listings: [PodListing!]! @derivedFrom(field: "farmer")
+  sown: Boolean!
+}
+
+type SiloDeposit @entity {
+  "Account - Token Address - Season"
+  id: ID! 
+  farmer: Farmer!
+  token: String!
+  season: Int!
+  tokenAmount: BigInt!
+  bdv: BigInt!
+  stalk: BigInt!
+  seeds: BigInt!
+  hashes: [String!]!
+  createdAt: BigInt!
+  updatedAt: BigInt!
+}
+
+type SiloWithdraw @entity {
+  "Account - Deposit Token - Current Season"
+  id: ID!
+  farmer: Farmer!
+  withdrawSeason: Season!
+  claimableSeason: BigInt!
+  claimed: Boolean!
+  amount: BigInt!
+  hash: String!
+  createdAt: BigInt!
+}
+
+type Plot @entity {
+  id: ID! # Index of the plot
+  field: Field!
+  farmer: Farmer!
+  listing: PodListing
+  season: Int!
+  creationHash: String!
+  createdAt: BigInt!
+  updatedAt: BigInt!
+  index: BigInt!
+  beans: BigInt!
+  pods: BigInt!
+  weather: Int!
+  harvestablePods: BigInt!
+  harvestedPods: BigInt!
+  fullyHarvested: Boolean!
+}
+
+type PodMarketplace @entity {
+  " Contract address of beanstalk or farmer "
+  id: ID!
+  season: Int!
+  listingIndexes: [BigInt!]!
+  orders: [PodOrder!]!
+  fills: [PodFill!]! @derivedFrom(field: "podMarketplace")
+  totalPodsListed: BigInt!
+  totalPodsFilled: BigInt!
+  totalPodsExpired: BigInt!
+  totalPodsCancelled: BigInt!
+  totalPodsAvailable: BigInt!
+  totalOrdersCreated: BigInt!
+  totalOrdersFilled: BigInt!
+  totalOrdersCancelled: BigInt!
+  totalPodVolume: BigInt!
+  totalBeanVolume: BigInt!
+  hourlySnapshots: [PodMarketplaceHourlySnapshot!]! @derivedFrom(field: "podMarketplace")
+  dailySnapshots: [PodMarketplaceDailySnapshot!]! @derivedFrom(field: "podMarketplace")
+}
+
+type PodMarketplaceHourlySnapshot @entity {
+  id: ID!
+  season: Int!
+  podMarketplace: PodMarketplace!
+  newPodsListed: BigInt!
+  totalPodsListed: BigInt!
+  newPodsFilled: BigInt!
+  totalPodsFilled: BigInt!
+  newPodsExpired: BigInt!
+  totalPodsExpired: BigInt!
+  newPodsCancelled: BigInt!
+  totalPodsCancelled: BigInt!
+  newPodsAvailable: BigInt!
+  totalPodsAvailable: BigInt!
+  newOrdersCreated: BigInt!
+  totalOrdersCreated: BigInt!
+  newOrdersFilled: BigInt!
+  totalOrdersFilled: BigInt!
+  newOrdersCancelled: BigInt!
+  totalOrdersCancelled: BigInt!
+  newPodVolume: BigInt!
+  totalPodVolume: BigInt!
+  newBeanVolume: BigInt!
+  totalBeanVolume: BigInt!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+}
+
+type PodMarketplaceDailySnapshot @entity {
+  id: ID!
+  season: Int!
+  podMarketplace: PodMarketplace!
+  newPodsListed: BigInt!
+  totalPodsListed: BigInt!
+  newPodsFilled: BigInt!
+  totalPodsFilled: BigInt!
+  newPodsExpired: BigInt!
+  totalPodsExpired: BigInt!
+  newPodsCancelled: BigInt!
+  totalPodsCancelled: BigInt!
+  newPodsAvailable: BigInt!
+  totalPodsAvailable: BigInt!
+  newOrdersCreated: BigInt!
+  totalOrdersCreated: BigInt!
+  newOrdersFilled: BigInt!
+  totalOrdersFilled: BigInt!
+  newOrdersCancelled: BigInt!
+  totalOrdersCancelled: BigInt!
+  newPodVolume: BigInt!
+  totalPodVolume: BigInt!
+  newBeanVolume: BigInt!
+  totalBeanVolume: BigInt!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+}
+
+type PodListing @entity {
+  id: ID! # the account plus index
+  plot: Plot!
+  farmer: Farmer!
+  createdAt: BigInt!
+  updatedAt: BigInt!
+  status: String!
+  fill: PodFill
+  originalIndex: BigInt!
+  index: BigInt!
+  start: BigInt!
+  amount: BigInt!
+  totalAmount: BigInt!
+  remainingAmount: BigInt!
+  filledAmount: BigInt!
+  totalFilled: BigInt!
+  cancelledAmount: BigInt!
+  pricePerPod: Int!
+  maxHarvestableIndex: BigInt!
+  mode: Int!
+  transaction: Transaction
+}
+
+type PodOrder @entity {
+  id: ID!
+  farmer: Farmer!
+  createdAt: BigInt!
+  updatedAt: BigInt!
+  status: String!
+  amount: BigInt!
+  filledAmount: BigInt!
+  maxPlaceInLine: BigInt!
+  pricePerPod: Int!
+  transaction: Transaction
+}
+
+type PodFill @entity {
+  id: ID!
+  podMarketplace: PodMarketplace!
+  listing: PodListing
+  order: PodOrder
+  from: String!
+  to: String!
+  amount: BigInt!
+  index: BigInt!
+  start: BigInt!
+  transaction: Transaction
+}
+
+type Transaction @entity {
+  id: ID!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  from: Bytes!
+  to: Bytes
+}
+
 ##################################
 ##### Event-Level Data #####
 ##################################
 
 ### We need to add these in
 
+"""
+An event is any user action that occurs in a protocol. Generally, they are Ethereum events
+emitted by a function in the smart contracts, stored in transaction receipts as event logs.
+However, some user actions of interest are function calls that don't emit events. For example,
+the deposit and withdraw functions in Yearn do not emit any events. In our subgraphs, we still
+store them as events, although they are not technically Ethereum events emitted by smart
+contracts.
+"""
 
-#An event is any user action that occurs in a protocol. Generally, they are Ethereum events
-#emitted by a function in the smart contracts, stored in transaction receipts as event logs.
-#However, some user actions of interest are function calls that don't emit events. For example,
-#the deposit and withdraw functions in Yearn do not emit any events. In our subgraphs, we still
-#store them as events, although they are not technically Ethereum events emitted by smart
-#contracts.
+interface Event {
+  " { Event type }-{ Transaction hash }-{ Log index } "
+  id: ID!
+
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " The protocol this transaction belongs to "
+  protocol: Beanstalk!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+}
+
+type PodTransfer implements Event @entity {
+  " podtransfer-{ Transaction hash }-{ Log index } "
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " The protocol this transaction belongs to "
+  protocol: Beanstalk!
+  " Address that received the pods "
+  to: String!
+  " Address that sent the pods "
+  from: String!
+  " Index of the pods sent"
+  index: BigInt!
+  " Total pods being sent"
+  pods: BigInt!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+}

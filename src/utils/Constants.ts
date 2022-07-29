@@ -7,6 +7,7 @@ export const ADDRESS_ZERO = Address.fromString('0x000000000000000000000000000000
 export const BEAN_ERC20 = Address.fromString('0xDC59ac4FeFa32293A95889Dc396682858d52e5Db')
 
 // Protocol Addresses
+export const BEANSTALK = Address.fromString('0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5')
 
 // LP Addresses
 
