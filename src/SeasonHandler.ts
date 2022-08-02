@@ -1,4 +1,6 @@
+import { Incentivization } from "../generated/Field/Beanstalk";
 import { SeasonSnapshot, Sunrise } from "../generated/Field/Beanstalk";
+import { Incentive } from "../generated/schema";
 import { toDecimal, ZERO_BD, ZERO_BI } from "./utils/Decimals";
 import { loadField, loadFieldDaily, loadFieldHourly } from "./utils/Field";
 import { loadPlot } from "./utils/Plot";
@@ -23,7 +25,6 @@ export function handleSunrise(event: Sunrise): void {
     // -- Field level totals
     field.season = currentSeason
     field.podRate = season.beans == ZERO_BI ? ZERO_BD : toDecimal(field.totalPods, 6).div(toDecimal(season.beans, 6))
-    fieldHourly.season = currentSeason
     fieldHourly.podRate = field.podRate
     fieldDaily.season = currentSeason
     fieldDaily.podRate = field.podRate
@@ -111,4 +112,17 @@ export function handleSeasonSnapshot(event: SeasonSnapshot): void {
     fieldHourly.snapshotIndex = event.params.podIndex
     fieldHourly.snapshotHarvestable = event.params.harvestableIndex
     fieldHourly.save()
+}
+
+export function handleIncentive(event: Incentivization): void {
+    let id = 'incentive-' + event.transaction.hash.toHexString() + '-' + event.transactionLogIndex.toString()
+    let incentive = new Incentive(id)
+    incentive.hash = event.transaction.hash.toHexString()
+    incentive.logIndex = event.transactionLogIndex.toI32()
+    incentive.protocol = event.address.toHexString()
+    incentive.caller = event.params.account.toHexString()
+    incentive.amount = event.params.beans
+    incentive.blockNumber = event.block.number
+    incentive.timestamp = event.block.timestamp
+    incentive.save()
 }

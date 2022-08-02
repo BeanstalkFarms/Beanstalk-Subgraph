@@ -1,7 +1,10 @@
+import { BigDecimal, log } from '@graphprotocol/graph-ts'
 import { Harvest, PlotTransfer, Sow, SupplyIncrease, WeatherChange } from '../generated/Field/Beanstalk'
-import { Plot } from '../generated/schema'
-import { BEAN_DECIMALS } from './utils/Constants'
-import { ONE_BI, toDecimal, ZERO_BI } from './utils/Decimals'
+import { Beanstalk, MetapoolOracle, Reward, Soil } from '../generated/Field-Replanted/Beanstalk'
+import { CurvePrice } from '../generated/Field-Replanted/CurvePrice'
+import { Plot, Harvest as HarvestEntity, Reward as RewardEntity, MetapoolOracle as MetapoolOracleEntity } from '../generated/schema'
+import { BEANSTALK, BEAN_DECIMALS, CURVE_PRICE } from './utils/Constants'
+import { ONE_BD, ONE_BI, toDecimal, ZERO_BD, ZERO_BI } from './utils/Decimals'
 import { loadFarmer } from './utils/Farmer'
 import { loadField, loadFieldDaily, loadFieldHourly } from './utils/Field'
 import { loadPlot } from './utils/Plot'
@@ -13,9 +16,24 @@ export function handleWeatherChange(event: WeatherChange): void {
     let fieldHourly = loadFieldHourly(event.address, field.season, event.block.timestamp)
     let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)
 
+    log.debug('\nWeatherChanged: Prior Weather - {}\n', [field.weather.toString()])
+
     field.weather += event.params.change
     fieldHourly.weather += event.params.change
     fieldDaily.weather += event.params.change
+
+    log.debug('\nWeatherChanged: Change - {}\n', [event.params.change.toString()])
+    log.debug('\nWeatherChanged: New Weather - {}\n', [field.weather.toString()])
+
+    // Real Rate of Return
+
+    let season = loadSeason(event.address, event.params.season)
+    let curvePrice = CurvePrice.bind(CURVE_PRICE)
+    let currentPrice = season.twap == ZERO_BD ? toDecimal(curvePrice.getCurve().price, 6) : season.twap
+
+    field.realRateOfReturn = (ONE_BD.plus(BigDecimal.fromString((field.weather / 100).toString()))).div(currentPrice)
+    fieldHourly.realRateOfReturn = field.realRateOfReturn
+    fieldHourly.realRateOfReturn = field.realRateOfReturn
 
     field.save()
     fieldHourly.save()
@@ -125,6 +143,18 @@ export function handleHarvest(event: Harvest): void {
             plot.save()
         }
     }
+
+    // Save the low level details for the event.
+    let harvest = new HarvestEntity('harvest-' + event.transaction.hash.toHexString() + '-' + event.transactionLogIndex.toString())
+    harvest.hash = event.transaction.hash.toHexString()
+    harvest.logIndex = event.transactionLogIndex.toI32()
+    harvest.protocol = event.address.toHexString()
+    harvest.farmer = event.params.account.toHexString()
+    harvest.plots = event.params.plots
+    harvest.beans = event.params.beans
+    harvest.blockNumber = event.block.number
+    harvest.timestamp = event.block.timestamp
+    harvest.save()
 }
 
 export function handlePlotTransfer(event: PlotTransfer): void {
@@ -285,5 +315,80 @@ export function handleSupplyIncrease(event: SupplyIncrease): void {
     season.deltaBeans = event.params.newHarvestable.plus(event.params.newSilo)
     season.beans = season.beans.plus(season.deltaBeans)
     season.save()
+
+}
+
+export function handleReward(event: Reward): void {
+    let id = 'reward-' + event.transaction.hash.toHexString() + '-' + event.transactionLogIndex.toString()
+    let reward = new RewardEntity(id)
+    reward.hash = event.transaction.hash.toHexString()
+    reward.logIndex = event.transactionLogIndex.toI32()
+    reward.protocol = event.address.toHexString()
+    reward.season = event.params.season.toI32()
+    reward.toField = event.params.toField
+    reward.toSilo = event.params.toSilo
+    reward.toFertilizer = event.params.toFertilizer
+    reward.blockNumber = event.block.number
+    reward.timestamp = event.block.timestamp
+    reward.save()
+
+    let field = loadField(event.address)
+    let fieldHourly = loadFieldHourly(event.address, event.params.season.toI32(), event.block.timestamp)
+    let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)
+
+    field.totalHarvestablePods = field.totalHarvestablePods.plus(event.params.toField)
+    field.totalPods = field.totalPods.minus(event.params.toField)
+    field.save()
+
+    fieldHourly.newHarvestablePods = fieldHourly.newHarvestablePods.plus(event.params.toField)
+    fieldHourly.totalHarvestablePods = field.totalHarvestablePods
+    fieldHourly.newPods = fieldHourly.newPods.minus(event.params.toField)
+    fieldHourly.totalPods = field.totalPods
+    fieldHourly.save()
+
+    fieldDaily.newHarvestablePods = fieldDaily.newHarvestablePods.plus(event.params.toField)
+    fieldDaily.totalHarvestablePods = field.totalHarvestablePods
+    fieldDaily.newPods = fieldDaily.newPods.minus(event.params.toField)
+    fieldDaily.totalPods = field.totalPods
+    fieldDaily.save()
+
+}
+
+export function handleMetapoolOracle(event: MetapoolOracle): void {
+    let id = 'metapoolOracle-' + event.transaction.hash.toHexString() + '-' + event.transactionLogIndex.toString()
+    let oracle = new MetapoolOracleEntity(id)
+    oracle.hash = event.transaction.hash.toHexString()
+    oracle.logIndex = event.transactionLogIndex.toI32()
+    oracle.protocol = event.address.toHexString()
+    oracle.season = event.params.season.toI32()
+    oracle.deltaB = event.params.deltaB
+    oracle.balanceA = event.params.balances[0]
+    oracle.balanceB = event.params.balances[1]
+    oracle.blockNumber = event.block.number
+    oracle.timestamp = event.block.timestamp
+    oracle.save()
+
+    let curvePrice = CurvePrice.bind(CURVE_PRICE)
+    let season = loadSeason(event.address, event.params.season)
+    season.twap = toDecimal(curvePrice.getCurve().price, 6)
+    season.save()
+}
+
+export function handleSoil(event: Soil): void {
+    let field = loadField(event.address)
+    let fieldHourly = loadFieldHourly(event.address, event.params.season.toI32(), event.block.timestamp)
+    let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)
+
+    field.totalSoil = field.totalSoil.plus(event.params.soil)
+
+    fieldHourly.newSoil = fieldHourly.newSoil.plus(event.params.soil)
+    fieldHourly.totalSoil = field.totalSoil
+
+    fieldDaily.newSoil = fieldDaily.newSoil.plus(event.params.soil)
+    fieldDaily.totalSoil = field.totalSoil
+
+    field.save()
+    fieldHourly.save()
+    fieldDaily.save()
 
 }

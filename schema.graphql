@@ -254,6 +254,7 @@ type Field @entity {
   farmer: Farmer
   season: Int!
   weather: Int!
+  realRateOfReturn: BigDecimal!
   totalNumberOfSowers: Int!
   totalNumberOfSows: Int!
   totalSownBeans: BigInt!
@@ -273,6 +274,7 @@ type FieldHourlySnapshot @entity {
   field: Field!
   season: Int!
   weather: Int!
+  realRateOfReturn: BigDecimal!
   podIndex: BigInt!
   numberOfSowers: Int!
   totalNumberOfSowers: Int!
@@ -300,6 +302,7 @@ type FieldDailySnapshot @entity {
   field: Field!
   season: Int!
   weather: Int!
+  realRateOfReturn: BigDecimal!
   podIndex: BigInt!
   numberOfSowers: Int!
   totalNumberOfSowers: Int!
@@ -532,10 +535,8 @@ contracts.
 interface Event {
   " { Event type }-{ Transaction hash }-{ Log index } "
   id: ID!
-
   " Transaction hash of the transaction that emitted this event "
   hash: String!
-
   " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
   logIndex: Int!
   " The protocol this transaction belongs to "
@@ -568,3 +569,114 @@ type PodTransfer implements Event @entity {
   " Timestamp of this event "
   timestamp: BigInt!
 }
+
+type Harvest implements Event @entity {
+  "harvest-{ Transaction hash }-{ Log index } "
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " The protocol this transaction belongs to "
+  protocol: Beanstalk!
+  " Address harvesting beans "
+  farmer: String!
+  " Plots being harvested "
+  plots: [BigInt!]!
+  " Total beans harvested "
+  beans: BigInt!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+  
+}
+
+type Chop implements Event @entity {
+  "chop-{ Transaction hash }-{ Log index }"
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " The protocol this transaction belongs to "
+  protocol: Beanstalk!
+  " Address chopping "
+  farmer: String!
+  " Unripe token being chopped "
+  unripe: Token!
+  " Amount being chopped"
+  amount: BigInt!
+  " Underlying token "
+  underlying: Token!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+}
+
+type Incentive implements Event @entity {
+  "incentive-{ Transaction hash }-{ Log index }"
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " The protocol this transaction belongs to "
+  protocol: Beanstalk!
+  " Address incentivized "
+  caller: String!
+  " Amount minted as incentive"
+  amount: BigInt!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+}
+
+type Reward implements Event @entity {
+  "reward-{ Transaction hash }-{ Log index }"
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " The protocol this transaction belongs to "
+  protocol: Beanstalk!
+  " Season of reward "
+  season: Int!
+  " Amount minted to pod line"
+  toField: BigInt!
+  " Amount minted to silo"
+  toSilo: BigInt!
+  " Amount minted to fertilizer"
+  toFertilizer: BigInt!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+}
+
+type MetapoolOracle implements Event @entity {
+  "metapoolOracle-{ Transaction hash }-{ Log index }"
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " The protocol this transaction belongs to "
+  protocol: Beanstalk!
+  " Season of oracle "
+  season: Int!
+  " DeltaB for season"
+  deltaB: BigInt!
+  " Cumulative balance A"
+  balanceA: BigInt!
+  " Cumulative balance B"
+  balanceB: BigInt!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+}
+
