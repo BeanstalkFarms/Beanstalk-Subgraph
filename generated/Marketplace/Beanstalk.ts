@@ -2014,6 +2014,29 @@ export class Beanstalk extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
+  beansPerFertilizer(): BigInt {
+    let result = super.call(
+      "beansPerFertilizer",
+      "beansPerFertilizer():(uint128)",
+      []
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_beansPerFertilizer(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "beansPerFertilizer",
+      "beansPerFertilizer():(uint128)",
+      []
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
   unwrapBeans(amount: BigInt): BigInt {
     let result = super.call("unwrapBeans", "unwrapBeans(uint256):(uint256)", [
       ethereum.Value.fromUnsignedBigInt(amount)

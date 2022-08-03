@@ -332,6 +332,7 @@ type Farmer @entity {
   field: Field @derivedFrom(field: "farmer")
   plots: [Plot!]! @derivedFrom(field: "farmer")
   listings: [PodListing!]! @derivedFrom(field: "farmer")
+  fertilizers: [FertilizerBalance!]! @derivedFrom(field: "farmer")
   sown: Boolean!
 }
 
@@ -512,6 +513,40 @@ type Transaction @entity {
   blockNumber: BigInt!
   from: Bytes!
   to: Bytes
+}
+
+##################################
+##### Fertilizer Entities #####
+##################################
+
+# Global Fertilizer state for tracking
+type Fertilizer @entity {
+  id: ID!
+  totalSupply: BigInt!
+  season: Int!
+  humidity: BigDecimal!
+  bpf: BigInt!
+  tokens: [FertilizerToken!]! @derivedFrom(field: "fertilizer")
+}
+
+# Id-level Fertilizer entity
+type FertilizerToken @entity {
+  id: ID!
+  fertilizer: Fertilizer!
+  supply: BigInt!
+  humidity: BigDecimal!
+  endBpf: BigInt!
+  startBpf: BigInt!
+  season: Int!
+  balances: [FertilizerBalance!]! @derivedFrom(field: "fertilizerToken")
+}
+
+# 
+type FertilizerBalance @entity {
+  id: ID!
+  fertilizerToken: FertilizerToken!
+  farmer: Farmer!
+  amount: BigInt!
 }
 
 ##################################

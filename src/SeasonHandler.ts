@@ -1,4 +1,7 @@
+import { Beanstalk } from "../generated/Diamond/Beanstalk";
 import { SeasonSnapshot, Sunrise } from "../generated/Field/Beanstalk";
+import { Fertilizer } from "../generated/schema";
+import { BEANSTALK, DELTA_HUMIDITY, FERTILIZER, MIN_HUMIDITY } from "./utils/Constants";
 import { toDecimal, ZERO_BD, ZERO_BI } from "./utils/Decimals";
 import { loadField, loadFieldDaily, loadFieldHourly } from "./utils/Field";
 import { loadPlot } from "./utils/Plot";
@@ -98,6 +101,17 @@ export function handleSunrise(event: Sunrise): void {
 
     market.listingIndexes = remainingListings
     market.save()
+
+    // Fertilizer
+    let fertilizer = Fertilizer.load(FERTILIZER.toHexString())
+    // Check if the diamond cut reduces Humidity to 250%
+    if (fertilizer != null) {
+        if (fertilizer.humidity.gt(MIN_HUMIDITY)) 
+            fertilizer.humidity = fertilizer.humidity.minus(DELTA_HUMIDITY)
+        fertilizer.season = currentSeason
+        fertilizer.bpf = Beanstalk.bind(BEANSTALK).beansPerFertilizer()
+        fertilizer.save()
+    }
 }
 
 export function handleSeasonSnapshot(event: SeasonSnapshot): void {

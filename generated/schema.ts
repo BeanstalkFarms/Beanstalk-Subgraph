@@ -2072,6 +2072,15 @@ export class Farmer extends Entity {
     this.set("listings", Value.fromStringArray(value));
   }
 
+  get fertilizers(): Array<string> {
+    let value = this.get("fertilizers");
+    return value!.toStringArray();
+  }
+
+  set fertilizers(value: Array<string>) {
+    this.set("fertilizers", Value.fromStringArray(value));
+  }
+
   get sown(): boolean {
     let value = this.get("sown");
     return value!.toBoolean();
@@ -3697,6 +3706,239 @@ export class Transaction extends Entity {
     } else {
       this.set("to", Value.fromBytes(<Bytes>value));
     }
+  }
+}
+
+export class Fertilizer extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save Fertilizer entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type Fertilizer must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("Fertilizer", id.toString(), this);
+    }
+  }
+
+  static load(id: string): Fertilizer | null {
+    return changetype<Fertilizer | null>(store.get("Fertilizer", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get totalSupply(): BigInt {
+    let value = this.get("totalSupply");
+    return value!.toBigInt();
+  }
+
+  set totalSupply(value: BigInt) {
+    this.set("totalSupply", Value.fromBigInt(value));
+  }
+
+  get season(): i32 {
+    let value = this.get("season");
+    return value!.toI32();
+  }
+
+  set season(value: i32) {
+    this.set("season", Value.fromI32(value));
+  }
+
+  get humidity(): BigDecimal {
+    let value = this.get("humidity");
+    return value!.toBigDecimal();
+  }
+
+  set humidity(value: BigDecimal) {
+    this.set("humidity", Value.fromBigDecimal(value));
+  }
+
+  get bpf(): BigInt {
+    let value = this.get("bpf");
+    return value!.toBigInt();
+  }
+
+  set bpf(value: BigInt) {
+    this.set("bpf", Value.fromBigInt(value));
+  }
+
+  get tokens(): Array<string> {
+    let value = this.get("tokens");
+    return value!.toStringArray();
+  }
+
+  set tokens(value: Array<string>) {
+    this.set("tokens", Value.fromStringArray(value));
+  }
+}
+
+export class FertilizerToken extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save FertilizerToken entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type FertilizerToken must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("FertilizerToken", id.toString(), this);
+    }
+  }
+
+  static load(id: string): FertilizerToken | null {
+    return changetype<FertilizerToken | null>(store.get("FertilizerToken", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get fertilizer(): string {
+    let value = this.get("fertilizer");
+    return value!.toString();
+  }
+
+  set fertilizer(value: string) {
+    this.set("fertilizer", Value.fromString(value));
+  }
+
+  get supply(): BigInt {
+    let value = this.get("supply");
+    return value!.toBigInt();
+  }
+
+  set supply(value: BigInt) {
+    this.set("supply", Value.fromBigInt(value));
+  }
+
+  get humidity(): BigDecimal {
+    let value = this.get("humidity");
+    return value!.toBigDecimal();
+  }
+
+  set humidity(value: BigDecimal) {
+    this.set("humidity", Value.fromBigDecimal(value));
+  }
+
+  get endBpf(): BigInt {
+    let value = this.get("endBpf");
+    return value!.toBigInt();
+  }
+
+  set endBpf(value: BigInt) {
+    this.set("endBpf", Value.fromBigInt(value));
+  }
+
+  get startBpf(): BigInt {
+    let value = this.get("startBpf");
+    return value!.toBigInt();
+  }
+
+  set startBpf(value: BigInt) {
+    this.set("startBpf", Value.fromBigInt(value));
+  }
+
+  get season(): i32 {
+    let value = this.get("season");
+    return value!.toI32();
+  }
+
+  set season(value: i32) {
+    this.set("season", Value.fromI32(value));
+  }
+
+  get balances(): Array<string> {
+    let value = this.get("balances");
+    return value!.toStringArray();
+  }
+
+  set balances(value: Array<string>) {
+    this.set("balances", Value.fromStringArray(value));
+  }
+}
+
+export class FertilizerBalance extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save FertilizerBalance entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type FertilizerBalance must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("FertilizerBalance", id.toString(), this);
+    }
+  }
+
+  static load(id: string): FertilizerBalance | null {
+    return changetype<FertilizerBalance | null>(
+      store.get("FertilizerBalance", id)
+    );
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value!.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get fertilizerToken(): string {
+    let value = this.get("fertilizerToken");
+    return value!.toString();
+  }
+
+  set fertilizerToken(value: string) {
+    this.set("fertilizerToken", Value.fromString(value));
+  }
+
+  get farmer(): string {
+    let value = this.get("farmer");
+    return value!.toString();
+  }
+
+  set farmer(value: string) {
+    this.set("farmer", Value.fromString(value));
+  }
+
+  get amount(): BigInt {
+    let value = this.get("amount");
+    return value!.toBigInt();
+  }
+
+  set amount(value: BigInt) {
+    this.set("amount", Value.fromBigInt(value));
   }
 }
 

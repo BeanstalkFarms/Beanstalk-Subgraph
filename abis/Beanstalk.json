@@ -63,6 +63,19 @@
     "type": "event"
   },
   {
+    "inputs": [],
+    "name": "beansPerFertilizer",
+    "outputs": [
+        {
+            "internalType": "uint128",
+            "name": "bpf",
+            "type": "uint128"
+        }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
