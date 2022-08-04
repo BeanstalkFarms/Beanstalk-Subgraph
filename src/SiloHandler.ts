@@ -1,10 +1,13 @@
 import { Address, BigInt } from '@graphprotocol/graph-ts'
-import { AddDeposit } from '../generated/Silo-Replanted/Beanstalk'
+import { AddDeposit, StalkBalanceChanged, AddWithdrawal, RemoveDeposit } from '../generated/Silo-Replanted/Beanstalk'
 import { ZERO_BI } from './utils/Decimals'
 import { loadFarmer } from './utils/Farmer'
+import { loadField } from './utils/Field'
 import { loadSilo, loadSiloDailySnapshot, loadSiloHourlySnapshot } from './utils/Silo'
 import { loadSiloAsset, loadSiloAssetDailySnapshot, loadSiloAssetHourlySnapshot } from './utils/SiloAsset'
 import { loadSiloDeposit } from './utils/SiloDeposit'
+import { loadSiloWithdraw } from './utils/SiloWithdraw'
+import { RemoveDeposit as RemoveDepositEntity } from '../generated/schema'
 
 export function handleAddDeposit(event: AddDeposit): void {
 
@@ -32,6 +35,66 @@ export function handleAddDeposit(event: AddDeposit): void {
 
 }
 
+export function handleRemoveDeposit(event: RemoveDeposit): void {
+
+    let field = loadField(event.address) // get current season
+    let deposit = loadSiloDeposit(event.params.account, event.params.token, event.params.season)
+    let remainingTokenAmount = deposit.tokenAmount.minus(deposit.removedTokenAmount)
+    let remainingBDV = deposit.bdv.minus(deposit.removedBDV)
+
+    let removedBDV = event.params.amount.div(remainingTokenAmount).times(remainingBDV)
+
+    // Update deposit
+    deposit.removedBDV = deposit.removedBDV.plus(removedBDV)
+    deposit.removedTokenAmount = deposit.removedTokenAmount.plus(event.params.amount)
+    deposit.save()
+
+    // Update protocol totals
+    removeDepositFromSilo(event.address, field.season, removedBDV, event.block.timestamp, event.block.number)
+    removeDepositFromSiloAsset(event.address, event.params.token, field.season, removedBDV, event.params.amount, event.block.timestamp, event.block.number)
+
+    // Update farmer totals
+    removeDepositFromSilo(event.address, field.season, removedBDV, event.block.timestamp, event.block.number)
+    removeDepositFromSiloAsset(event.address, event.params.token, field.season, removedBDV, event.params.amount, event.block.timestamp, event.block.number)
+
+    let id = 'removeDeposit-' + event.transaction.hash.toHexString() + '-' + event.transactionLogIndex.toString()
+    let removal = new RemoveDepositEntity(id)
+    removal.hash = event.transaction.hash.toHexString()
+    removal.logIndex = event.transactionLogIndex.toI32()
+    removal.protocol = event.address.toHexString()
+    removal.account = event.params.account.toHexString()
+    removal.token = event.params.token.toHexString()
+    removal.season = event.params.season.toI32()
+    removal.amount = event.params.amount
+    removal.blockNumber = event.block.number
+    removal.timestamp = event.block.timestamp
+    removal.save()
+
+}
+
+export function handleAddWithdrawal(event: AddWithdrawal): void {
+    let withdraw = loadSiloWithdraw(event.params.account, event.params.token, event.params.season.toI32())
+    withdraw.amount = event.params.amount
+    withdraw.hash = event.transaction.hash.toHexString()
+    withdraw.createdAt = event.block.timestamp
+}
+
+export function handleStalkBalanceChanged(event: StalkBalanceChanged): void {
+
+    let field = loadField(event.address)
+    updateStalkBalances(event.address, field.season, event.params.delta, event.block.timestamp, event.block.number)
+    updateStalkBalances(event.params.account, field.season, event.params.delta, event.block.timestamp, event.block.number)
+
+}
+
+export function handleSeedsBalanceChanged(event: StalkBalanceChanged): void {
+
+    let field = loadField(event.address)
+    updateSeedsBalances(event.address, field.season, event.params.delta, event.block.timestamp, event.block.number)
+    updateSeedsBalances(event.params.account, field.season, event.params.delta, event.block.timestamp, event.block.number)
+
+}
+
 function addDepositToSilo(account: Address, season: i32, bdv: BigInt, timestamp: BigInt, blockNumber: BigInt): void {
     let silo = loadSilo(account)
     let siloHourly = loadSiloHourlySnapshot(account, season, timestamp)
@@ -40,7 +103,6 @@ function addDepositToSilo(account: Address, season: i32, bdv: BigInt, timestamp:
     silo.totalDepositedBDV = silo.totalDepositedBDV.plus(bdv)
     silo.save()
 
-    siloHourly.season = season
     siloHourly.hourlyDepositedBDV = siloHourly.hourlyDepositedBDV.plus(bdv)
     siloHourly.totalDepositedBDV = silo.totalDepositedBDV
     siloHourly.blockNumber = blockNumber
@@ -49,6 +111,28 @@ function addDepositToSilo(account: Address, season: i32, bdv: BigInt, timestamp:
 
     siloDaily.season = season
     siloDaily.dailyDepositedBDV = siloDaily.dailyDepositedBDV.plus(bdv)
+    siloDaily.totalDepositedBDV = silo.totalDepositedBDV
+    siloDaily.blockNumber = blockNumber
+    siloDaily.timestamp = timestamp
+    siloDaily.save()
+}
+
+function removeDepositFromSilo(account: Address, season: i32, bdv: BigInt, timestamp: BigInt, blockNumber: BigInt): void {
+    let silo = loadSilo(account)
+    let siloHourly = loadSiloHourlySnapshot(account, season, timestamp)
+    let siloDaily = loadSiloDailySnapshot(account, timestamp)
+
+    silo.totalDepositedBDV = silo.totalDepositedBDV.minus(bdv)
+    silo.save()
+
+    siloHourly.hourlyDepositedBDV = siloHourly.hourlyDepositedBDV.minus(bdv)
+    siloHourly.totalDepositedBDV = silo.totalDepositedBDV
+    siloHourly.blockNumber = blockNumber
+    siloHourly.timestamp = timestamp
+    siloHourly.save()
+
+    siloDaily.season = season
+    siloDaily.dailyDepositedBDV = siloDaily.dailyDepositedBDV.minus(bdv)
     siloDaily.totalDepositedBDV = silo.totalDepositedBDV
     siloDaily.blockNumber = blockNumber
     siloDaily.timestamp = timestamp
@@ -64,11 +148,12 @@ function addDepositToSiloAsset(account: Address, token: Address, season: i32, bd
     asset.totalDepositedAmount = asset.totalDepositedAmount.plus(tokenAmount)
     asset.save()
 
-    assetHourly.season = season
     assetHourly.hourlyDepositedBDV = assetHourly.hourlyDepositedBDV.plus(bdv)
     assetHourly.totalDepositedBDV = asset.totalDepositedBDV.plus(bdv)
     assetHourly.hourlyDepositedAmount = assetHourly.hourlyDepositedAmount.plus(tokenAmount)
     assetHourly.totalDepositedAmount = asset.totalDepositedAmount.plus(tokenAmount)
+    assetHourly.blockNumber = blockNumber
+    assetHourly.timestamp = timestamp
     assetHourly.save()
 
     assetDaily.season = season
@@ -76,5 +161,78 @@ function addDepositToSiloAsset(account: Address, token: Address, season: i32, bd
     assetDaily.totalDepositedBDV = asset.totalDepositedBDV.plus(bdv)
     assetDaily.dailyDepositedAmount = assetDaily.dailyDepositedAmount.plus(tokenAmount)
     assetDaily.totalDepositedAmount = asset.totalDepositedAmount.plus(tokenAmount)
+    assetDaily.blockNumber = blockNumber
+    assetDaily.timestamp = timestamp
     assetDaily.save()
+}
+
+function removeDepositFromSiloAsset(account: Address, token: Address, season: i32, bdv: BigInt, tokenAmount: BigInt, timestamp: BigInt, blockNumber: BigInt): void {
+    let asset = loadSiloAsset(account, token)
+    let assetHourly = loadSiloAssetHourlySnapshot(account, token, season)
+    let assetDaily = loadSiloAssetDailySnapshot(account, token, timestamp)
+
+    asset.totalDepositedBDV = asset.totalDepositedBDV.minus(bdv)
+    asset.totalDepositedAmount = asset.totalDepositedAmount.minus(tokenAmount)
+    asset.save()
+
+    assetHourly.hourlyDepositedBDV = assetHourly.hourlyDepositedBDV.minus(bdv)
+    assetHourly.totalDepositedBDV = asset.totalDepositedBDV.minus(bdv)
+    assetHourly.hourlyDepositedAmount = assetHourly.hourlyDepositedAmount.minus(tokenAmount)
+    assetHourly.totalDepositedAmount = asset.totalDepositedAmount.minus(tokenAmount)
+    assetHourly.blockNumber = blockNumber
+    assetHourly.timestamp = timestamp
+    assetHourly.save()
+
+    assetDaily.season = season
+    assetDaily.dailyDepositedBDV = assetDaily.dailyDepositedBDV.minus(bdv)
+    assetDaily.totalDepositedBDV = asset.totalDepositedBDV.minus(bdv)
+    assetDaily.dailyDepositedAmount = assetDaily.dailyDepositedAmount.minus(tokenAmount)
+    assetDaily.totalDepositedAmount = asset.totalDepositedAmount.minus(tokenAmount)
+    assetDaily.blockNumber = blockNumber
+    assetDaily.timestamp = timestamp
+    assetDaily.save()
+}
+
+function updateStalkBalances(account: Address, season: i32, stalk: BigInt, timestamp: BigInt, blockNumber: BigInt): void {
+    let silo = loadSilo(account)
+    let siloHourly = loadSiloHourlySnapshot(account, season, timestamp)
+    let siloDaily = loadSiloDailySnapshot(account, timestamp)
+
+    silo.totalStalk = stalk > ZERO_BI ? silo.totalStalk.plus(stalk) : silo.totalStalk.minus(stalk)
+    silo.save()
+
+    siloHourly.hourlyStalkDelta = stalk > ZERO_BI ? siloHourly.hourlyStalkDelta.plus(stalk) : siloHourly.hourlyStalkDelta.minus(stalk)
+    siloHourly.totalStalk = silo.totalStalk
+    siloHourly.blockNumber = blockNumber
+    siloHourly.timestamp = timestamp
+    siloHourly.save()
+
+    siloDaily.season = season
+    siloDaily.dailyStalkDelta = stalk > ZERO_BI ? siloDaily.dailyStalkDelta.plus(stalk) : siloDaily.dailyStalkDelta.minus(stalk)
+    siloDaily.totalStalk = silo.totalStalk
+    siloDaily.blockNumber = blockNumber
+    siloDaily.timestamp = timestamp
+    siloDaily.save()
+}
+
+function updateSeedsBalances(account: Address, season: i32, seeds: BigInt, timestamp: BigInt, blockNumber: BigInt): void {
+    let silo = loadSilo(account)
+    let siloHourly = loadSiloHourlySnapshot(account, season, timestamp)
+    let siloDaily = loadSiloDailySnapshot(account, timestamp)
+
+    silo.totalSeeds = seeds > ZERO_BI ? silo.totalSeeds.plus(seeds) : silo.totalSeeds.minus(seeds)
+    silo.save()
+
+    siloHourly.hourlySeedsDelta = seeds > ZERO_BI ? siloHourly.hourlySeedsDelta.plus(seeds) : siloHourly.hourlySeedsDelta.minus(seeds)
+    siloHourly.totalSeeds = silo.totalSeeds
+    siloHourly.blockNumber = blockNumber
+    siloHourly.timestamp = timestamp
+    siloHourly.save()
+
+    siloDaily.season = season
+    siloDaily.dailySeedsDelta = seeds > ZERO_BI ? siloDaily.dailySeedsDelta.plus(seeds) : siloDaily.dailySeedsDelta.minus(seeds)
+    siloDaily.totalSeeds = silo.totalSeeds
+    siloDaily.blockNumber = blockNumber
+    siloDaily.timestamp = timestamp
+    siloDaily.save()
 }

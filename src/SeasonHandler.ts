@@ -104,7 +104,7 @@ export function handleSunrise(event: Sunrise): void {
 export function handleSeasonSnapshot(event: SeasonSnapshot): void {
     let season = loadSeason(event.address, event.params.season)
     season.harvestableIndex = event.params.harvestableIndex
-    season.twap = toDecimal(event.params.price, 18)
+    season.price = toDecimal(event.params.price, 18)
     season.save()
 
 

@@ -128,8 +128,8 @@ type Season @entity {
   " Block timestamp when sunrise was called "
   timestamp: BigInt!
   
-  " TWAP that was used for field processing during sunrise "
-  twap: BigDecimal!
+  " Price of BEAN during sunrise "
+  price: BigDecimal!
 
   " Total Bean supply "
   beans: BigInt!
@@ -201,7 +201,7 @@ type SiloDailySnapshot @entity {
 type SiloAsset @entity {
   id: ID!
   silo: Silo!
-  token: Token!
+  token: String!
   totalValueLockedUSD: BigDecimal!
   totalDepositedBDV: BigInt!
   totalDepositedAmount: BigInt!
@@ -350,7 +350,9 @@ type SiloDeposit @entity {
   token: String!
   season: Int!
   tokenAmount: BigInt!
+  removedTokenAmount: BigInt!
   bdv: BigInt!
+  removedBDV: BigInt!
   stalk: BigInt!
   seeds: BigInt!
   hashes: [String!]!
@@ -362,8 +364,8 @@ type SiloWithdraw @entity {
   "Account - Deposit Token - Current Season"
   id: ID!
   farmer: Farmer!
-  withdrawSeason: Season!
-  claimableSeason: BigInt!
+  withdrawSeason: Int!
+  claimableSeason: Int!
   claimed: Boolean!
   amount: BigInt!
   hash: String!
@@ -685,3 +687,25 @@ type MetapoolOracle implements Event @entity {
   timestamp: BigInt!
 }
 
+type RemoveDeposit implements Event @entity {
+  "removeDeposit-{ Transaction hash }-{ Log index }"
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " The protocol this transaction belongs to "
+  protocol: Beanstalk!
+  " Account removing deposit"
+  account: String!
+  " Token removed"
+  token: String!
+  " Season of deposit removed "
+  season: Int!
+  " Amount of token removed "
+  amount: BigInt!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+}

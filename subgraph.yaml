@@ -25,10 +25,14 @@ dataSources:
       eventHandlers:
         - event: AddDeposit(indexed address,indexed address,uint32,uint256,uint256)
           handler: handleAddDeposit
-   #     - event: SeedsBalanceChanged(indexed address,int256)
-   #       handler: handleSeedsBalanceChanged
-   #     - event: StalkBalanceChanged(indexed address,int256,int256)
-   #       handler: handleStalkBalanceChanged
+        - event: RemoveDeposit(indexed address,indexed address,uint32,uint256)
+          handler: handleRemoveDeposit
+        - event: AddWithdrawal(indexed address,indexed address,uint32,uint256)
+          handler: handleAddWithdrawal
+        - event: SeedsBalanceChanged(indexed address,int256)
+          handler: handleSeedsBalanceChanged
+        - event: StalkBalanceChanged(indexed address,int256,int256)
+          handler: handleStalkBalanceChanged
       file: ./src/SiloHandler.ts
   # Field - Original
   - kind: ethereum/contract

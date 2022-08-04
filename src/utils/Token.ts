@@ -10,20 +10,30 @@ export function loadToken(token: Address): Token {
         tokenEntity = new Token(token.toHexString())
 
         // Assign replant token info manually since deposits are emitted prior to token deployment
-        if (tokenEntity.id == '0x1BEA0050E63e05FBb5D8BA2f10cf5800B6224449') {
+        if (token.toHexString() == '0x1BEA0050E63e05FBb5D8BA2f10cf5800B6224449') {
             // Unripe Bean
             tokenEntity.name = 'Unripe Bean'
             tokenEntity.symbol = 'urBEAN'
             tokenEntity.decimals = 6
-        } else if (tokenEntity.id == '0x1BEA3CcD22F4EBd3d37d731BA31Eeca95713716D') {
+        } else if (token.toHexString() == '0x1BEA3CcD22F4EBd3d37d731BA31Eeca95713716D') {
             // Unripe Bean:3CRV
             tokenEntity.name = 'Unripe BEAN3CRV'
             tokenEntity.symbol = 'urBEAN3CRV'
             tokenEntity.decimals = 6
+        } else if (token.toHexString() == '0xBEA0000029AD1c77D3d5D23Ba2D8893dB9d1Efab') {
+            // Unripe Bean:3CRV
+            tokenEntity.name = 'BEAN'
+            tokenEntity.symbol = 'BEAN'
+            tokenEntity.decimals = 6
+        } else if (token.toHexString() == '0x1BEA3CcD22F4EBd3d37d731BA31Eeca95713716D') {
+            // Unripe Bean:3CRV
+            tokenEntity.name = 'BEAN3CRV'
+            tokenEntity.symbol = 'BEAN3CRV'
+            tokenEntity.decimals = 18
         } else {
-            tokenEntity.name = tokenERC20.name()
-            tokenEntity.symbol = tokenERC20.symbol()
-            tokenEntity.decimals = tokenERC20.decimals()
+            tokenEntity.name = 'Unknown'
+            tokenEntity.symbol = 'Unknown'
+            tokenEntity.decimals = 18
         }
 
         tokenEntity.lastPriceUSD = ZERO_BD

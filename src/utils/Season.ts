@@ -9,7 +9,7 @@ export function loadSeason(diamondAddress: Address, id: BigInt): Season {
         season.beanstalk = diamondAddress.toHexString()
         season.season = id.toI32()
         season.timestamp = ZERO_BI
-        season.twap = ZERO_BD
+        season.price = ZERO_BD
         season.beans = ZERO_BI
         season.deltaBeans = ZERO_BI
         season.harvestableIndex = ZERO_BI

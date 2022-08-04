@@ -29,7 +29,7 @@ export function handleWeatherChange(event: WeatherChange): void {
 
     let season = loadSeason(event.address, event.params.season)
     let curvePrice = CurvePrice.bind(CURVE_PRICE)
-    let currentPrice = season.twap == ZERO_BD ? toDecimal(curvePrice.getCurve().price, 6) : season.twap
+    let currentPrice = season.price == ZERO_BD ? toDecimal(curvePrice.getCurve().price, 6) : season.price
 
     field.realRateOfReturn = (ONE_BD.plus(BigDecimal.fromString((field.weather / 100).toString()))).div(currentPrice)
     fieldHourly.realRateOfReturn = field.realRateOfReturn
@@ -370,7 +370,7 @@ export function handleMetapoolOracle(event: MetapoolOracle): void {
 
     let curvePrice = CurvePrice.bind(CURVE_PRICE)
     let season = loadSeason(event.address, event.params.season)
-    season.twap = toDecimal(curvePrice.getCurve().price, 6)
+    season.price = toDecimal(curvePrice.getCurve().price, 6)
     season.save()
 }
 

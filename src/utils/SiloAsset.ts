@@ -9,10 +9,10 @@ export function loadSiloAsset(account: Address, token: Address): SiloAsset {
     let asset = SiloAsset.load(id)
 
     if (asset == null) {
-        let tokenEntity = loadToken(token)
+        //let tokenEntity = loadToken(token)
         asset = new SiloAsset(id)
         asset.silo = account.toHexString()
-        asset.token = tokenEntity.id
+        asset.token = token.toHexString()
         asset.totalValueLockedUSD = ZERO_BD
         asset.totalDepositedBDV = ZERO_BI
         asset.totalDepositedAmount = ZERO_BI

@@ -9,7 +9,7 @@
     "create-local": "graph create --node http://graph.playgrounds.academy:8020/ beanstalk",
     "remove-local": "graph remove --node http://graph.playgrounds.academy:8020/ beanstalk",
     "deploy-local": "graph deploy --node http://graph.playgrounds.academy:8020/ --ipfs http://graph.playgrounds.academy:5001 beanstalk",
-    "deploy-hosted": "graph deploy --product hosted-service <username>/beanstalk-dev"
+    "deploy-hosted": "graph deploy --product hosted-service cujowolf/beanstalk"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "^0.30.4",
