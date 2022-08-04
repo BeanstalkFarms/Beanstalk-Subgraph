@@ -203,6 +203,7 @@ type SiloAsset @entity {
   silo: Silo!
   token: Token!
   totalValueLockedUSD: BigDecimal!
+  totalDepositedBDV: BigInt!
   totalDepositedAmount: BigInt!
   cumulativeDepositedUSD: BigDecimal!
   totalStalk: BigInt!
@@ -216,11 +217,13 @@ type SiloAssetHourlySnapshot @entity {
   season: Int!
   siloAsset: SiloAsset!
   totalValueLockedUSD: BigDecimal!
+  totalDepositedBDV: BigInt!
   totalDepositedAmount: BigInt!
   totalStalk: BigInt!
   totalSeeds: BigInt!
   cumulativeDepositedUSD: BigDecimal!
   hourlyDepositedUSD: BigDecimal!
+  hourlyDepositedBDV: BigInt!
   hourlyDepositedAmount: BigInt!
   hourlyWithdrawnAmount: BigInt!
   hourlyStalkDelta: BigInt!
@@ -234,11 +237,13 @@ type SiloAssetDailySnapshot @entity {
   season: Int!
   siloAsset: SiloAsset!
   totalValueLockedUSD: BigDecimal!
+  totalDepositedBDV: BigInt!
   totalDepositedAmount: BigInt!
   totalStalk: BigInt!
   totalSeeds: BigInt!
   cumulativeDepositedUSD: BigDecimal!
   dailyDepositedUSD: BigDecimal!
+  dailyDepositedBDV: BigInt!
   dailyDepositedAmount: BigInt!
   dailyWithdrawnAmount: BigInt!
   dailyStalkDelta: BigInt!
