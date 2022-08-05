@@ -4,11 +4,11 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: Silo-Replanted
-    network: cujo
+    network: mainnet
     source:
       address: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5"
       abi: Beanstalk
-      startBlock: 15128715
+      startBlock: 15278963
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -27,6 +27,8 @@ dataSources:
           handler: handleAddDeposit
         - event: RemoveDeposit(indexed address,indexed address,uint32,uint256)
           handler: handleRemoveDeposit
+        - event: RemoveDeposits(indexed address,indexed address,uint32[],uint256[],uint256)
+          handler: handleRemoveDeposits
         - event: AddWithdrawal(indexed address,indexed address,uint32,uint256)
           handler: handleAddWithdrawal
         - event: SeedsBalanceChanged(indexed address,int256)
@@ -37,12 +39,11 @@ dataSources:
   # Field - Original
   - kind: ethereum/contract
     name: Field
-    network: cujo
+    network: mainnet
     source:
       address: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5"
       abi: Beanstalk
       startBlock: 12974075
-      #startBlock: 14602789
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -72,12 +73,11 @@ dataSources:
       file: ./src/FieldHandler.ts
   - kind: ethereum/contract
     name: Season
-    network: cujo
+    network: mainnet
     source:
       address: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5"
       abi: Beanstalk
       startBlock: 12974075
-      #startBlock: 14602789
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -99,12 +99,11 @@ dataSources:
       file: ./src/SeasonHandler.ts
   - kind: ethereum/contract
     name: Marketplace
-    network: cujo
+    network: mainnet
     source:
       address: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5"
       abi: Beanstalk
       startBlock: 12974075
-      #startBlock: 14602789
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -134,12 +133,11 @@ dataSources:
       file: ./src/MarketplaceHandler.ts
   - kind: ethereum/contract
     name: Marketplace-Replanted
-    network: cujo
+    network: mainnet
     source:
       address: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5"
       abi: Beanstalk
-      startBlock: 15128715
-      #startBlock: 14602789
+      startBlock: 15278963
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -159,12 +157,11 @@ dataSources:
       file: ./src/MarketplaceReplantedHandler.ts
   - kind: ethereum/contract
     name: Diamond
-    network: cujo
+    network: mainnet
     source:
       address: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5"
       abi: Beanstalk
       startBlock: 12974075
-      #startBlock: 14602789
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -180,7 +177,7 @@ dataSources:
       file: ./src/DiamondHandler.ts
   - kind: ethereum/contract
     name: Bean
-    network: cujo
+    network: mainnet
     source:
       address: "0xDC59ac4FeFa32293A95889Dc396682858d52e5Db"
       abi: ERC20
@@ -200,11 +197,11 @@ dataSources:
       file: ./src/BeanHandler.ts
   - kind: ethereum/contract
     name: Bean-Replanted
-    network: cujo
+    network: mainnet
     source:
       address: "0xbea0000029ad1c77d3d5d23ba2d8893db9d1efab"
       abi: ERC20
-      startBlock: 15128715
+      startBlock: 15278963
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -220,12 +217,11 @@ dataSources:
       file: ./src/BeanHandler.ts
   - kind: ethereum/contract
     name: Replant
-    network: cujo
+    network: mainnet
     source:
       address: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5"
       abi: Beanstalk
-      startBlock: 15128715
-      #startBlock: 14602789
+      startBlock: 15278963
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -245,12 +241,11 @@ dataSources:
       file: ./src/ReplantHandler.ts
   - kind: ethereum/contract
     name: Field-Replanted
-    network: cujo
+    network: mainnet
     source:
       address: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5"
       abi: Beanstalk
-      startBlock: 15128715
-      #startBlock: 14602789
+      startBlock: 15278963
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
