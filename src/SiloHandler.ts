@@ -42,7 +42,7 @@ export function handleRemoveDeposit(event: RemoveDeposit): void {
     let remainingTokenAmount = deposit.tokenAmount.minus(deposit.removedTokenAmount)
     let remainingBDV = deposit.bdv.minus(deposit.removedBDV)
 
-    let removedBDV = (event.params.amount.div(remainingTokenAmount)).times(remainingBDV)
+    let removedBDV = remainingTokenAmount == ZERO_BI ? ZERO_BI : (event.params.amount.div(remainingTokenAmount)).times(remainingBDV)
 
     // Update deposit
     deposit.removedBDV = deposit.removedBDV.plus(removedBDV)
