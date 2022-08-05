@@ -217,7 +217,7 @@ export function handlePodOrderFilled(event: PodOrderFilled): void {
 
     order.updatedAt = event.block.timestamp
     order.filledAmount = order.filledAmount.plus(event.params.amount)
-    order.status = order.amount == order.filledAmount ? 'filled' : 'partial-filled'
+    order.status = order.amount == order.filledAmount ? 'filled' : 'active'
     order.save()
 
     fill.order = order.id
@@ -230,7 +230,7 @@ export function handlePodOrderFilled(event: PodOrderFilled): void {
     if (order.filledAmount = order.amount) {
         let orderIndex = market.orders.indexOf(order.id)
         if (orderIndex !== -1) {
-            market.listingIndexes.splice(orderIndex, 1)
+            market.orders.splice(orderIndex, 1)
         }
     }
 
