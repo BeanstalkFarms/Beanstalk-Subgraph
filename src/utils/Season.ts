@@ -1,5 +1,6 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { Season } from "../../generated/schema";
+import { loadBeanstalk } from "./Beanstalk";
 import { ONE_BI, ZERO_BD, ZERO_BI } from "./Decimals";
 
 export function loadSeason(diamondAddress: Address, id: BigInt): Season {
@@ -11,6 +12,7 @@ export function loadSeason(diamondAddress: Address, id: BigInt): Season {
         season.timestamp = ZERO_BI
         season.price = ZERO_BD
         season.beans = ZERO_BI
+        season.marketCap = ZERO_BD
         season.deltaBeans = ZERO_BI
         season.harvestableIndex = ZERO_BI
         season.save()
@@ -20,6 +22,11 @@ export function loadSeason(diamondAddress: Address, id: BigInt): Season {
             season.harvestableIndex = lastSeason.harvestableIndex
             season.save()
         }
+
+        // Update beanstalk season
+        let beanstalk = loadBeanstalk(diamondAddress)
+        beanstalk.lastSeason = season.season
+        beanstalk.save()
     }
     return season
 }

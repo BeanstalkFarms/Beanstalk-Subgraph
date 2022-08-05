@@ -191,8 +191,11 @@ export function handlePlotTransfer(event: PlotTransfer): void {
 
     // Find source plot ID in the current plot list
     for (let i = 0; i < field.plotIndexes.length; i++) {
-        if (priorPlot <= event.params.id && event.params.id < field.plotIndexes[i]) {
-            sourceIndex = priorPlot == ZERO_BI ? field.plotIndexes[i] : priorPlot
+        if (field.plotIndexes[i] == event.params.id) {
+            sourceIndex = event.params.id
+            break
+        } else if (priorPlot <= event.params.id && event.params.id < field.plotIndexes[i]) {
+            sourceIndex = priorPlot
             break
         } else { priorPlot = field.plotIndexes[i] }
     }
@@ -200,6 +203,15 @@ export function handlePlotTransfer(event: PlotTransfer): void {
     let sourcePlot = loadPlot(event.address, sourceIndex)
     let sourceEndIndex = sourceIndex.plus(sourcePlot.pods)
     let transferEndIndex = transferIndex.plus(event.params.pods)
+
+    log.debug("\nPodTransfer: ===================\n", [])
+    log.debug("\nPodTransfer: Transfer Season - {}\n", [field.season.toString()])
+    log.debug("\nPodTransfer: Transfer Index - {}\n", [transferIndex.toString()])
+    log.debug("\nPodTransfer: Transfer Pods - {}\n", [event.params.pods.toString()])
+    log.debug("\nPodTransfer: Transfer Ending Index - {}\n", [transferEndIndex.toString()])
+    log.debug("\nPodTransfer: Source Index - {}\n", [sourceIndex.toString()])
+    log.debug("\nPodTransfer: Source Ending Index - {}\n", [sourceEndIndex.toString()])
+    log.debug("\nPodTransfer: Source Pods - {}\n", [sourcePlot.pods.toString()])
 
     if (sourceIndex == transferIndex && sourceEndIndex == transferEndIndex) {
         // Sending full plot
@@ -225,6 +237,9 @@ export function handlePlotTransfer(event: PlotTransfer): void {
         remainderPlot.weather = sourcePlot.weather
         remainderPlot.save()
 
+        log.debug("\nPodTransfer: sourceIndex == transferIndex\n", [])
+        log.debug("\nPodTransfer: Source Pods - {}\n", [sourcePlot.pods.toString()])
+
     } else if (sourceEndIndex == transferEndIndex) {
         // We are only needing to split this plot once to send
         let toPlot = loadPlot(event.address, transferIndex)
@@ -243,6 +258,9 @@ export function handlePlotTransfer(event: PlotTransfer): void {
         toPlot.pods = event.params.pods
         toPlot.weather = sourcePlot.weather
         toPlot.save()
+
+        log.debug("\nPodTransfer: sourceEndIndex == transferEndIndex\n", [])
+        log.debug("\nPodTransfer: Source Pods - {}\n", [sourcePlot.pods.toString()])
     } else {
         // We have to split this plot twice to send
         let remainderIndex = transferIndex.plus(event.params.pods)
@@ -275,6 +293,9 @@ export function handlePlotTransfer(event: PlotTransfer): void {
         remainderPlot.pods = sourceEndIndex.minus(transferEndIndex)
         remainderPlot.weather = sourcePlot.weather
         remainderPlot.save()
+
+        log.debug("\nPodTransfer: split source twice\n", [])
+        log.debug("\nPodTransfer: Source Pods - {}\n", [sourcePlot.pods.toString()])
     }
     newPlotIndexes.sort()
     field.plotIndexes = newPlotIndexes
@@ -315,10 +336,10 @@ export function handleSupplyIncrease(event: SupplyIncrease): void {
     //silo.newBeans = toDecimal(event.params.newSilo, BEAN_DECIMALS)
     //silo.save()
 
-    let season = loadSeason(event.address, event.params.season)
-    season.deltaBeans = event.params.newHarvestable.plus(event.params.newSilo)
-    season.beans = season.beans.plus(season.deltaBeans)
-    season.save()
+    //let season = loadSeason(event.address, event.params.season)
+    //season.deltaBeans = event.params.newHarvestable.plus(event.params.newSilo)
+    //season.beans = season.beans.plus(season.deltaBeans)
+    //season.save()
 
 }
 

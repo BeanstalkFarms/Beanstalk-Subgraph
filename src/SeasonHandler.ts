@@ -1,6 +1,9 @@
+import { BigInt } from "@graphprotocol/graph-ts";
 import { Incentivization } from "../generated/Field/Beanstalk";
-import { SeasonSnapshot, Sunrise } from "../generated/Field/Beanstalk";
-import { Incentive } from "../generated/schema";
+import { SeasonSnapshot, Sunrise, Beanstalk } from "../generated/Field/Beanstalk";
+import { Incentive, Beanstalk as BeanstalkEntity } from "../generated/schema";
+import { loadBeanstalk } from "./utils/Beanstalk";
+import { BEANSTALK } from "./utils/Constants";
 import { toDecimal, ZERO_BD, ZERO_BI } from "./utils/Decimals";
 import { loadField, loadFieldDaily, loadFieldHourly } from "./utils/Field";
 import { loadPlot } from "./utils/Plot";
@@ -125,4 +128,11 @@ export function handleIncentive(event: Incentivization): void {
     incentive.blockNumber = event.block.number
     incentive.timestamp = event.block.timestamp
     incentive.save()
+
+    // Update market cap for season
+    let beanstalk = loadBeanstalk(event.address)
+    let season = loadSeason(event.address, BigInt.fromI32(beanstalk.lastSeason))
+
+    season.marketCap = season.price.times(toDecimal(season.beans))
+    season.save()
 }

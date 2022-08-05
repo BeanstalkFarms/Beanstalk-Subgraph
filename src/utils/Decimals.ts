@@ -1,6 +1,6 @@
 import { BigDecimal, BigInt } from '@graphprotocol/graph-ts';
 
-export const DEFAULT_DECIMALS = 18;
+export const DEFAULT_DECIMALS = 6;
 
 export const ZERO_BI = BigInt.fromI32(0)
 export const ONE_BI = BigInt.fromI32(1)

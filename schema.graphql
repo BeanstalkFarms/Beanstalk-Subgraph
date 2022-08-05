@@ -112,6 +112,9 @@ type Beanstalk @entity {
 
   " Field level data "
   field: Field! @derivedFrom(field: "beanstalk")
+
+  " Last season called "
+  lastSeason: Int!
 }
 
 # An entity that holds season level data
@@ -133,6 +136,9 @@ type Season @entity {
 
   " Total Bean supply "
   beans: BigInt!
+
+  " Bean Market Cap "
+  marketCap: BigDecimal!
 
   " Amount of beans minted for the season "
   deltaBeans: BigInt!
