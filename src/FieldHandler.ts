@@ -101,6 +101,8 @@ export function handleSow(event: Sow): void {
     fieldHourly.numberOfSowers += newSowers
     fieldHourly.totalNumberOfSowers = field.totalNumberOfSowers
     fieldHourly.totalNumberOfSows = field.totalNumberOfSows
+    fieldHourly.sownBeans = fieldHourly.sownBeans.plus(event.params.beans)
+    fieldHourly.totalSownBeans = field.totalSownBeans
     fieldHourly.save()
 
     fieldDaily.podIndex = fieldDaily.podIndex.plus(event.params.pods)
@@ -110,6 +112,8 @@ export function handleSow(event: Sow): void {
     fieldDaily.numberOfSowers += newSowers
     fieldDaily.totalNumberOfSowers = field.totalNumberOfSowers
     fieldDaily.totalNumberOfSows = field.totalNumberOfSows
+    fieldDaily.sownBeans = fieldDaily.sownBeans.plus(event.params.beans)
+    fieldDaily.totalSownBeans = field.totalSownBeans
     fieldDaily.save()
 }
 
