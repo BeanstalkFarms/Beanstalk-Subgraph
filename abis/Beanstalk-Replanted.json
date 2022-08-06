@@ -4565,5 +4565,18 @@
         "outputs": [],
         "stateMutability": "payable",
         "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "beansPerFertilizer",
+        "outputs": [
+            {
+                "internalType": "uint128",
+                "name": "bpf",
+                "type": "uint128"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
     }
 ]
