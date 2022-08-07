@@ -732,7 +732,7 @@ type MetapoolOracle implements Event @entity {
 }
 
 type AddDeposit implements Event @entity {
-  "removeDeposit-{ Transaction hash }-{ Log index }"
+  "addDeposit-{ Transaction hash }-{ Log index }"
   id: ID!
   " Transaction hash of the transaction that emitted this event "
   hash: String!

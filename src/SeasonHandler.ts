@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import { BigDecimal, BigInt } from "@graphprotocol/graph-ts";
 import { Incentivization } from "../generated/Field/Beanstalk";
 import { SeasonSnapshot, Sunrise, Beanstalk } from "../generated/Field/Beanstalk";
 import { Incentive, Beanstalk as BeanstalkEntity } from "../generated/schema";
@@ -17,6 +17,7 @@ export function handleSunrise(event: Sunrise): void {
 
     // Update season metrics
     //season.harvestableIndex = beanstalkContract.harvestableIndex()
+    if (event.params.season == BigInt.fromI32(6075)) { season.price = BigDecimal.fromString('1.07') } // Replant oracle initialization
     season.timestamp = event.block.timestamp
     season.save()
 
