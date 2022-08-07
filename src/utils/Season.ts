@@ -14,6 +14,8 @@ export function loadSeason(diamondAddress: Address, id: BigInt): Season {
         season.beans = ZERO_BI
         season.marketCap = ZERO_BD
         season.deltaBeans = ZERO_BI
+        season.rewardBeans = ZERO_BI
+        season.incentiveBeans = ZERO_BI
         season.harvestableIndex = ZERO_BI
         season.save()
         if (id > ZERO_BI) {

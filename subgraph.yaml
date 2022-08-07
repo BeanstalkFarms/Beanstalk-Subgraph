@@ -8,7 +8,7 @@ dataSources:
     source:
       address: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5"
       abi: Beanstalk
-      startBlock: 15278963
+      startBlock: 15277986
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -139,7 +139,7 @@ dataSources:
     source:
       address: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5"
       abi: Beanstalk
-      startBlock: 15278963
+      startBlock: 15277986
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -205,7 +205,7 @@ dataSources:
     source:
       address: "0xbea0000029ad1c77d3d5d23ba2d8893db9d1efab"
       abi: ERC20
-      startBlock: 15278963
+      startBlock: 15277986
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -227,7 +227,7 @@ dataSources:
     source:
       address: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5"
       abi: Beanstalk
-      startBlock: 15278963
+      startBlock: 15277986
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -251,7 +251,7 @@ dataSources:
     source:
       address: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5"
       abi: Beanstalk
-      startBlock: 15278963
+      startBlock: 15277986
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6

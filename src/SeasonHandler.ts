@@ -134,5 +134,6 @@ export function handleIncentive(event: Incentivization): void {
     let season = loadSeason(event.address, BigInt.fromI32(beanstalk.lastSeason))
 
     season.marketCap = season.price.times(toDecimal(season.beans))
+    season.incentiveBeans = event.params.beans
     season.save()
 }

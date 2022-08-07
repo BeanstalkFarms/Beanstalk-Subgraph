@@ -357,6 +357,10 @@ export function handleReward(event: Reward): void {
     reward.timestamp = event.block.timestamp
     reward.save()
 
+    let season = loadSeason(event.address, event.params.season)
+    season.rewardBeans = reward.toField.plus(reward.toSilo).plus(reward.toFertilizer)
+    season.save()
+
     let field = loadField(event.address)
     let fieldHourly = loadFieldHourly(event.address, event.params.season.toI32(), event.block.timestamp)
     let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)

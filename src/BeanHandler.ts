@@ -1,4 +1,4 @@
-import { BigInt, log } from "@graphprotocol/graph-ts";
+import { BigDecimal, BigInt, log } from "@graphprotocol/graph-ts";
 import { Transfer as LegacyTransfer } from "../generated/Bean/ERC20";
 import { Transfer } from "../generated/Bean-Replanted/ERC20";
 import { Beanstalk } from "../generated/schema";
@@ -17,6 +17,7 @@ export function handleLegacyTransfer(event: LegacyTransfer): void {
         let season = loadSeason(BEANSTALK, BigInt.fromI32(beanstalk.lastSeason))
         season.deltaBeans = ZERO_BI
         season.beans = ZERO_BI
+        season.price = BigDecimal.fromString('1.022')
         season.save()
         return
     }

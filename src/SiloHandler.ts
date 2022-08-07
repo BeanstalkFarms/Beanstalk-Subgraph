@@ -2,12 +2,12 @@ import { Address, BigInt, log } from '@graphprotocol/graph-ts'
 import { AddDeposit, StalkBalanceChanged, AddWithdrawal, RemoveDeposit, RemoveDeposits } from '../generated/Silo-Replanted/Beanstalk'
 import { ZERO_BI } from './utils/Decimals'
 import { loadFarmer } from './utils/Farmer'
-import { loadField } from './utils/Field'
 import { loadSilo, loadSiloDailySnapshot, loadSiloHourlySnapshot } from './utils/Silo'
 import { loadSiloAsset, loadSiloAssetDailySnapshot, loadSiloAssetHourlySnapshot } from './utils/SiloAsset'
 import { loadSiloDeposit } from './utils/SiloDeposit'
 import { loadSiloWithdraw } from './utils/SiloWithdraw'
-import { RemoveDeposit as RemoveDepositEntity } from '../generated/schema'
+import { AddDeposit as AddDepositEntity, RemoveDeposit as RemoveDepositEntity } from '../generated/schema'
+import { loadBeanstalk } from './utils/Beanstalk'
 
 export function handleAddDeposit(event: AddDeposit): void {
 
@@ -33,11 +33,24 @@ export function handleAddDeposit(event: AddDeposit): void {
     addDepositToSilo(event.params.account, season, event.params.bdv, event.block.timestamp, event.block.number)
     addDepositToSiloAsset(event.params.account, event.params.token, season, event.params.bdv, event.params.amount, event.block.timestamp, event.block.number)
 
+    let id = 'addDeposit-' + event.transaction.hash.toHexString() + '-' + event.transactionLogIndex.toString()
+    let add = new AddDepositEntity(id)
+    add.hash = event.transaction.hash.toHexString()
+    add.logIndex = event.transactionLogIndex.toI32()
+    add.protocol = event.address.toHexString()
+    add.account = event.params.account.toHexString()
+    add.token = event.params.token.toHexString()
+    add.season = event.params.season.toI32()
+    add.amount = event.params.amount
+    add.bdv = event.params.bdv
+    add.blockNumber = event.block.number
+    add.timestamp = event.block.timestamp
+    add.save()
 }
 
 export function handleRemoveDeposit(event: RemoveDeposit): void {
 
-    let field = loadField(event.address) // get current season
+    let beanstalk = loadBeanstalk(event.address) // get current season
     let deposit = loadSiloDeposit(event.params.account, event.params.token, event.params.season)
     let remainingTokenAmount = deposit.tokenAmount.minus(deposit.removedTokenAmount)
     let remainingBDV = deposit.bdv.minus(deposit.removedBDV)
@@ -50,12 +63,12 @@ export function handleRemoveDeposit(event: RemoveDeposit): void {
     deposit.save()
 
     // Update protocol totals
-    removeDepositFromSilo(event.address, field.season, removedBDV, event.block.timestamp, event.block.number)
-    removeDepositFromSiloAsset(event.address, event.params.token, field.season, removedBDV, event.params.amount, event.block.timestamp, event.block.number)
+    removeDepositFromSilo(event.address, beanstalk.lastSeason, removedBDV, event.block.timestamp, event.block.number)
+    removeDepositFromSiloAsset(event.address, event.params.token, beanstalk.lastSeason, removedBDV, event.params.amount, event.block.timestamp, event.block.number)
 
     // Update farmer totals
-    removeDepositFromSilo(event.address, field.season, removedBDV, event.block.timestamp, event.block.number)
-    removeDepositFromSiloAsset(event.address, event.params.token, field.season, removedBDV, event.params.amount, event.block.timestamp, event.block.number)
+    removeDepositFromSilo(event.params.account, beanstalk.lastSeason, removedBDV, event.block.timestamp, event.block.number)
+    removeDepositFromSiloAsset(event.params.account, event.params.token, beanstalk.lastSeason, removedBDV, event.params.amount, event.block.timestamp, event.block.number)
 
     let id = 'removeDeposit-' + event.transaction.hash.toHexString() + '-' + event.transactionLogIndex.toString()
     let removal = new RemoveDepositEntity(id)
@@ -73,7 +86,7 @@ export function handleRemoveDeposit(event: RemoveDeposit): void {
 }
 
 export function handleRemoveDeposits(event: RemoveDeposits): void {
-    let field = loadField(event.address) // get current season
+    let beanstalk = loadBeanstalk(event.address) // get current season
 
     for (let i = 0; i < event.params.seasons.length; i++) {
 
@@ -89,12 +102,12 @@ export function handleRemoveDeposits(event: RemoveDeposits): void {
         deposit.save()
 
         // Update protocol totals
-        removeDepositFromSilo(event.address, field.season, removedBDV, event.block.timestamp, event.block.number)
-        removeDepositFromSiloAsset(event.address, event.params.token, field.season, removedBDV, event.params.amounts[i], event.block.timestamp, event.block.number)
+        removeDepositFromSilo(event.address, beanstalk.lastSeason, removedBDV, event.block.timestamp, event.block.number)
+        removeDepositFromSiloAsset(event.address, event.params.token, beanstalk.lastSeason, removedBDV, event.params.amounts[i], event.block.timestamp, event.block.number)
 
         // Update farmer totals
-        removeDepositFromSilo(event.address, field.season, removedBDV, event.block.timestamp, event.block.number)
-        removeDepositFromSiloAsset(event.address, event.params.token, field.season, removedBDV, event.params.amounts[i], event.block.timestamp, event.block.number)
+        removeDepositFromSilo(event.params.account, beanstalk.lastSeason, removedBDV, event.block.timestamp, event.block.number)
+        removeDepositFromSiloAsset(event.params.account, event.params.token, beanstalk.lastSeason, removedBDV, event.params.amounts[i], event.block.timestamp, event.block.number)
 
         let id = 'removeDeposit-' + event.transaction.hash.toHexString() + '-' + event.transactionLogIndex.toString()
         let removal = new RemoveDepositEntity(id)
@@ -124,17 +137,17 @@ export function handleAddWithdrawal(event: AddWithdrawal): void {
 
 export function handleStalkBalanceChanged(event: StalkBalanceChanged): void {
 
-    let field = loadField(event.address)
-    updateStalkBalances(event.address, field.season, event.params.delta, event.block.timestamp, event.block.number)
-    updateStalkBalances(event.params.account, field.season, event.params.delta, event.block.timestamp, event.block.number)
+    let beanstalk = loadBeanstalk(event.address) // get current season
+    updateStalkBalances(event.address, beanstalk.lastSeason, event.params.delta, event.block.timestamp, event.block.number)
+    updateStalkBalances(event.params.account, beanstalk.lastSeason, event.params.delta, event.block.timestamp, event.block.number)
 
 }
 
 export function handleSeedsBalanceChanged(event: StalkBalanceChanged): void {
 
-    let field = loadField(event.address)
-    updateSeedsBalances(event.address, field.season, event.params.delta, event.block.timestamp, event.block.number)
-    updateSeedsBalances(event.params.account, field.season, event.params.delta, event.block.timestamp, event.block.number)
+    let beanstalk = loadBeanstalk(event.address) // get current season
+    updateSeedsBalances(event.address, beanstalk.lastSeason, event.params.delta, event.block.timestamp, event.block.number)
+    updateSeedsBalances(event.params.account, beanstalk.lastSeason, event.params.delta, event.block.timestamp, event.block.number)
 
 }
 
@@ -194,7 +207,7 @@ function addDepositToSiloAsset(account: Address, token: Address, season: i32, bd
     assetHourly.hourlyDepositedBDV = assetHourly.hourlyDepositedBDV.plus(bdv)
     assetHourly.totalDepositedBDV = asset.totalDepositedBDV.plus(bdv)
     assetHourly.hourlyDepositedAmount = assetHourly.hourlyDepositedAmount.plus(tokenAmount)
-    assetHourly.totalDepositedAmount = asset.totalDepositedAmount.plus(tokenAmount)
+    assetHourly.totalDepositedAmount = asset.totalDepositedAmount
     assetHourly.blockNumber = blockNumber
     assetHourly.timestamp = timestamp
     assetHourly.save()
@@ -203,7 +216,7 @@ function addDepositToSiloAsset(account: Address, token: Address, season: i32, bd
     assetDaily.dailyDepositedBDV = assetDaily.dailyDepositedBDV.plus(bdv)
     assetDaily.totalDepositedBDV = asset.totalDepositedBDV.plus(bdv)
     assetDaily.dailyDepositedAmount = assetDaily.dailyDepositedAmount.plus(tokenAmount)
-    assetDaily.totalDepositedAmount = asset.totalDepositedAmount.plus(tokenAmount)
+    assetDaily.totalDepositedAmount = asset.totalDepositedAmount
     assetDaily.blockNumber = blockNumber
     assetDaily.timestamp = timestamp
     assetDaily.save()
@@ -219,18 +232,18 @@ function removeDepositFromSiloAsset(account: Address, token: Address, season: i3
     asset.save()
 
     assetHourly.hourlyDepositedBDV = assetHourly.hourlyDepositedBDV.minus(bdv)
-    assetHourly.totalDepositedBDV = asset.totalDepositedBDV.minus(bdv)
+    assetHourly.totalDepositedBDV = asset.totalDepositedBDV
     assetHourly.hourlyDepositedAmount = assetHourly.hourlyDepositedAmount.minus(tokenAmount)
-    assetHourly.totalDepositedAmount = asset.totalDepositedAmount.minus(tokenAmount)
+    assetHourly.totalDepositedAmount = asset.totalDepositedAmount
     assetHourly.blockNumber = blockNumber
     assetHourly.timestamp = timestamp
     assetHourly.save()
 
     assetDaily.season = season
     assetDaily.dailyDepositedBDV = assetDaily.dailyDepositedBDV.minus(bdv)
-    assetDaily.totalDepositedBDV = asset.totalDepositedBDV.minus(bdv)
+    assetDaily.totalDepositedBDV = asset.totalDepositedBDV
     assetDaily.dailyDepositedAmount = assetDaily.dailyDepositedAmount.minus(tokenAmount)
-    assetDaily.totalDepositedAmount = asset.totalDepositedAmount.minus(tokenAmount)
+    assetDaily.totalDepositedAmount = asset.totalDepositedAmount
     assetDaily.blockNumber = blockNumber
     assetDaily.timestamp = timestamp
     assetDaily.save()

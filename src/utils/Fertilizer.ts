@@ -21,7 +21,7 @@ export function loadFertilizerToken(fertilizer: Fertilizer, id: BigInt, blockNum
         fertilizerToken = new FertilizerToken(id.toString())
         fertilizerToken.fertilizer = fertilizer.id
         if (blockNumber.gt(BigInt.fromString('15278963'))) {
-            fertilizerToken.humidity = BigDecimal.fromString(beanstalk.getCurrentHumidity().toString()).div(BigDecimal.fromString('1000'))
+            fertilizerToken.humidity = BigDecimal.fromString(beanstalk.getCurrentHumidity().toString()).div(BigDecimal.fromString('10'))
             fertilizerToken.season = beanstalk.season().toI32()
             fertilizerToken.startBpf = beanstalk.beansPerFertilizer()
         } else {

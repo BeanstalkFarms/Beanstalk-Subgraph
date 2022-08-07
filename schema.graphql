@@ -140,8 +140,14 @@ type Season @entity {
   " Bean Market Cap "
   marketCap: BigDecimal!
 
-  " Amount of beans minted for the season "
+  " Change in Bean supply "
   deltaBeans: BigInt!
+
+  " Amount of Beans minted during sunrise "
+  rewardBeans: BigInt!
+
+  " Amount of Beans paid to sunrise caller "
+  incentiveBeans: BigInt!
 
   " New harvestable index for the season "
   harvestableIndex: BigInt!
@@ -719,6 +725,31 @@ type MetapoolOracle implements Event @entity {
   balanceA: BigInt!
   " Cumulative balance B"
   balanceB: BigInt!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+}
+
+type AddDeposit implements Event @entity {
+  "removeDeposit-{ Transaction hash }-{ Log index }"
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " The protocol this transaction belongs to "
+  protocol: Beanstalk!
+  " Account removing deposit"
+  account: String!
+  " Token removed"
+  token: String!
+  " Season of deposit removed "
+  season: Int!
+  " Amount of token removed "
+  amount: BigInt!
+  " BDV of the deposit "
+  bdv: BigInt!
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
