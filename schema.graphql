@@ -140,6 +140,9 @@ type Season @entity {
   " Bean Market Cap "
   marketCap: BigDecimal!
 
+  " Time weighted deltaB "
+  deltaB: BigInt!
+
   " Change in Bean supply "
   deltaBeans: BigInt!
 

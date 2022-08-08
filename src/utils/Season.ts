@@ -13,6 +13,7 @@ export function loadSeason(diamondAddress: Address, id: BigInt): Season {
         season.price = ZERO_BD
         season.beans = ZERO_BI
         season.marketCap = ZERO_BD
+        season.deltaB = ZERO_BI
         season.deltaBeans = ZERO_BI
         season.rewardBeans = ZERO_BI
         season.incentiveBeans = ZERO_BI

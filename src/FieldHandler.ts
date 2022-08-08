@@ -400,6 +400,7 @@ export function handleMetapoolOracle(event: MetapoolOracle): void {
     let curvePrice = CurvePrice.bind(CURVE_PRICE)
     let season = loadSeason(event.address, event.params.season)
     season.price = toDecimal(curvePrice.getCurve().price, 6)
+    season.deltaB = event.params.deltaB
     season.save()
 }
 
