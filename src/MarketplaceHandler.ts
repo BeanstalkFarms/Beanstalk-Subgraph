@@ -1,7 +1,7 @@
-import { Address } from "@graphprotocol/graph-ts";
+import { Address, BigDecimal, BigInt } from "@graphprotocol/graph-ts";
 import { PodListingCancelled, PodListingCreated, PodListingFilled, PodOrderCancelled, PodOrderCreated, PodOrderFilled } from "../generated/Field/Beanstalk";
 import { Plot } from "../generated/schema";
-import { ZERO_BI } from "./utils/Decimals";
+import { toDecimal, ZERO_BI } from "./utils/Decimals";
 import { loadFarmer } from "./utils/Farmer";
 import { loadPlot } from "./utils/Plot";
 import { loadPodFill } from "./utils/PodFill";
@@ -112,8 +112,12 @@ export function handlePodListingFilled(event: PodListingFilled): void {
     let marketDaily = loadPodMarketplaceDailySnapshot(event.address, event.block.timestamp)
     let listing = loadPodListing(event.params.from, event.params.index)
 
+    let beanAmount = BigInt.fromI32(listing.pricePerPod).times(event.params.amount).div(BigInt.fromI32(1000000))
+
     market.totalPodsFilled = market.totalPodsFilled.plus(event.params.amount)
     market.totalPodsAvailable = market.totalPodsAvailable.minus(event.params.amount)
+    market.totalPodVolume = market.totalPodVolume.plus(event.params.amount)
+    market.totalBeanVolume = market.totalBeanVolume.plus(beanAmount)
     market.save()
 
     marketHourly.season = market.season
@@ -121,6 +125,10 @@ export function handlePodListingFilled(event: PodListingFilled): void {
     marketHourly.totalPodsFilled = market.totalPodsFilled
     marketHourly.newPodsAvailable = marketHourly.newPodsAvailable.minus(event.params.amount)
     marketHourly.totalPodsAvailable = market.totalPodsAvailable
+    marketHourly.newPodVolume = marketHourly.newPodVolume.plus(event.params.amount)
+    marketHourly.totalPodVolume = market.totalPodVolume
+    marketHourly.newBeanVolume = marketHourly.newBeanVolume.plus(beanAmount)
+    marketHourly.totalBeanVolume = market.totalBeanVolume
     marketHourly.blockNumber = event.block.number
     marketHourly.timestamp = event.block.timestamp
     marketHourly.save()
@@ -130,6 +138,10 @@ export function handlePodListingFilled(event: PodListingFilled): void {
     marketDaily.totalPodsFilled = market.totalPodsFilled
     marketDaily.newPodsAvailable = marketDaily.newPodsAvailable.minus(event.params.amount)
     marketDaily.totalPodsAvailable = market.totalPodsAvailable
+    marketDaily.newPodVolume = marketDaily.newPodVolume.plus(event.params.amount)
+    marketDaily.totalPodVolume = market.totalPodVolume
+    marketDaily.newBeanVolume = marketDaily.newBeanVolume.plus(beanAmount)
+    marketDaily.totalBeanVolume = market.totalBeanVolume
     marketDaily.blockNumber = event.block.number
     marketDaily.timestamp = event.block.timestamp
     marketDaily.save()
@@ -172,10 +184,12 @@ export function handlePodListingFilled(event: PodListingFilled): void {
     fill.amount = event.params.amount
     fill.index = event.params.index
     fill.start = event.params.start
+    fill.transaction = transaction.id
     fill.save()
 }
 
 export function handlePodOrderCreated(event: PodOrderCreated): void {
+    let transaction = loadTransaction(event.transaction, event.block)
 
     let market = loadPodMarketplace(event.address)
     let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, market.season, event.block.timestamp)
@@ -193,6 +207,7 @@ export function handlePodOrderCreated(event: PodOrderCreated): void {
     order.filledAmount = ZERO_BI
     order.maxPlaceInLine = event.params.maxPlaceInLine
     order.pricePerPod = event.params.pricePerPod
+    order.transaction = transaction.id
     order.save()
 
     market.totalOrdersCreated = market.totalOrdersCreated.plus(event.params.amount)
@@ -209,11 +224,15 @@ export function handlePodOrderCreated(event: PodOrderCreated): void {
 }
 
 export function handlePodOrderFilled(event: PodOrderFilled): void {
+    let transaction = loadTransaction(event.transaction, event.block)
+
     let market = loadPodMarketplace(event.address)
     let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, market.season, event.block.timestamp)
     let marketDaily = loadPodMarketplaceDailySnapshot(event.address, event.block.timestamp)
     let order = loadPodOrder(event.params.id)
     let fill = loadPodFill(event.address, event.params.index, event.transaction.hash.toHexString())
+
+    let beanAmount = BigInt.fromI32(order.pricePerPod).times(event.params.amount).div(BigInt.fromI32(1000000))
 
     order.updatedAt = event.block.timestamp
     order.filledAmount = order.filledAmount.plus(event.params.amount)
@@ -226,6 +245,8 @@ export function handlePodOrderFilled(event: PodOrderFilled): void {
     fill.amount = event.params.amount
     fill.index = event.params.index
     fill.start = event.params.start
+    fill.transaction = transaction.id
+    fill.save()
 
     if (order.filledAmount = order.amount) {
         let orderIndex = market.orders.indexOf(order.id)
@@ -236,14 +257,24 @@ export function handlePodOrderFilled(event: PodOrderFilled): void {
 
 
     market.totalOrdersFilled = market.totalOrdersFilled.plus(event.params.amount)
+    market.totalPodVolume = market.totalPodVolume.plus(event.params.amount)
+    market.totalBeanVolume = market.totalBeanVolume.plus(beanAmount)
     market.save()
 
     marketHourly.newOrdersFilled = marketHourly.newOrdersFilled.plus(event.params.amount)
     marketHourly.totalOrdersFilled = market.totalOrdersFilled
+    marketHourly.newPodVolume = marketHourly.newPodVolume.plus(event.params.amount)
+    marketHourly.totalPodVolume = market.totalPodVolume
+    marketHourly.newBeanVolume = marketHourly.newBeanVolume.plus(beanAmount)
+    marketHourly.totalBeanVolume = market.totalBeanVolume
     marketHourly.save()
 
     marketDaily.newOrdersFilled = marketDaily.newOrdersFilled.plus(event.params.amount)
     marketDaily.totalOrdersFilled = market.totalOrdersFilled
+    marketDaily.newPodVolume = marketDaily.newPodVolume.plus(event.params.amount)
+    marketDaily.totalPodVolume = market.totalPodVolume
+    marketDaily.newBeanVolume = marketDaily.newBeanVolume.plus(beanAmount)
+    marketDaily.totalBeanVolume = market.totalBeanVolume
     marketDaily.save()
 }
 

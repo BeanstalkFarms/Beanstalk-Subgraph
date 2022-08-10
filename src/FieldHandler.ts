@@ -13,17 +13,23 @@ import { loadSeason } from './utils/Season'
 
 export function handleWeatherChange(event: WeatherChange): void {
     let field = loadField(event.address)
-    let fieldHourly = loadFieldHourly(event.address, field.season, event.block.timestamp)
+    let fieldHourly = loadFieldHourly(event.address, event.params.season.toI32(), event.block.timestamp)
     let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)
 
-    log.debug('\nWeatherChanged: Prior Weather - {}\n', [field.weather.toString()])
+    log.debug('\nWeatherChanged: =============\nWeatherChanged: Season - {}\nWeatherChanged: Prior Weather - {}\n', [event.params.season.toString(), field.weather.toString()])
 
     field.weather += event.params.change
     fieldHourly.weather += event.params.change
     fieldDaily.weather += event.params.change
 
+    let beanstalk = Beanstalk.bind(BEANSTALK)
+    //let try_weather = beanstalk.try_weather()
+    //let contractWeather = ZERO_BI
+    //if (!try_weather.reverted) { contractWeather = try_weather.value.weatherYield }
+
     log.debug('\nWeatherChanged: Change - {}\n', [event.params.change.toString()])
     log.debug('\nWeatherChanged: New Weather - {}\n', [field.weather.toString()])
+    //log.debug('\nWeatherChanged: Contract call weather - {}\n', [contractWeather.toString()])
 
     // Real Rate of Return
 

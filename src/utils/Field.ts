@@ -8,8 +8,8 @@ export function loadField(diamondAddress: Address): Field {
     if (field == null) {
         field = new Field(diamondAddress.toHexString())
         field.beanstalk = diamondAddress.toHexString()
-        field.season = 0
-        field.weather = 0
+        field.season = 1
+        field.weather = 1
         field.realRateOfReturn = ZERO_BD
         field.totalNumberOfSowers = 0
         field.totalNumberOfSows = 0

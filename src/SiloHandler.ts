@@ -306,6 +306,10 @@ function updateSeedsBalances(account: Address, season: i32, seeds: BigInt, times
         silo.totalSeeds = silo.totalSeeds.plus(seeds)
         siloHourly.hourlySeedsDelta = siloHourly.hourlySeedsDelta.plus(seeds)
         siloDaily.dailySeedsDelta = siloDaily.dailySeedsDelta.plus(seeds)
+    } else {
+        silo.totalSeeds = silo.totalSeeds.minus(seeds)
+        siloHourly.hourlySeedsDelta = siloHourly.hourlySeedsDelta.minus(seeds)
+        siloDaily.dailySeedsDelta = siloDaily.dailySeedsDelta.minus(seeds)
     }
 
     silo.save()

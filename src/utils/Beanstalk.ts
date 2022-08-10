@@ -13,7 +13,7 @@ export function loadBeanstalk(protocol: Address): Beanstalk {
         beanstalk.methodologyVersion = '2.0.0'
         beanstalk.network = 'MAINNET'
         beanstalk.lastUpgrade = ZERO_BI
-        beanstalk.lastSeason = 0
+        beanstalk.lastSeason = 1
         beanstalk.save()
     }
     return beanstalk as Beanstalk
