@@ -23,6 +23,7 @@ function handleTransfer(from: Address, to: Address, id: BigInt, amount: BigInt, 
     if (from != ADDRESS_ZERO) {
         let fromFarmer = loadFarmer(from)
         let fromFertilizerBalance = loadFertilizerBalance(fertilizerToken, fromFarmer)
+        fromFertilizerBalance.amount = fromFertilizerBalance.amount.minus(amount)
         fromFertilizerBalance.save()
     } else {
         fertilizerToken.supply = fertilizerToken.supply.plus(amount)
