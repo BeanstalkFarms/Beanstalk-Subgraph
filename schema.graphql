@@ -380,6 +380,7 @@ type SiloWithdraw @entity {
   "Account - Deposit Token - Current Season"
   id: ID!
   farmer: Farmer!
+  token: String!
   withdrawSeason: Int!
   claimableSeason: Int!
   claimed: Boolean!
@@ -776,6 +777,48 @@ type RemoveDeposit implements Event @entity {
   season: Int!
   " Amount of token removed "
   amount: BigInt!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+}
+
+type StalkChange implements Event @entity {
+  "stalkChange-{ Transaction hash }-{ Log index }"
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " The protocol this transaction belongs to "
+  protocol: Beanstalk!
+  " Account removing deposit"
+  account: String!
+  " Token removed"
+  delta: BigInt!
+  " Season when the change happened "
+  season: Int!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+}
+
+type SeedChange implements Event @entity {
+  "seedChange-{ Transaction hash }-{ Log index }"
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " The protocol this transaction belongs to "
+  protocol: Beanstalk!
+  " Account removing deposit"
+  account: String!
+  " Token removed"
+  delta: BigInt!
+  " Season when the change happened "
+  season: Int!
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "

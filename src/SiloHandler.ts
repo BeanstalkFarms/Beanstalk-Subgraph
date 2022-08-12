@@ -6,7 +6,7 @@ import { loadSilo, loadSiloDailySnapshot, loadSiloHourlySnapshot } from './utils
 import { loadSiloAsset, loadSiloAssetDailySnapshot, loadSiloAssetHourlySnapshot } from './utils/SiloAsset'
 import { loadSiloDeposit } from './utils/SiloDeposit'
 import { loadSiloWithdraw } from './utils/SiloWithdraw'
-import { AddDeposit as AddDepositEntity, RemoveDeposit as RemoveDepositEntity } from '../generated/schema'
+import { AddDeposit as AddDepositEntity, RemoveDeposit as RemoveDepositEntity, SeedChange, StalkChange } from '../generated/schema'
 import { loadBeanstalk } from './utils/Beanstalk'
 
 export function handleAddDeposit(event: AddDeposit): void {
@@ -141,6 +141,17 @@ export function handleStalkBalanceChanged(event: StalkBalanceChanged): void {
     updateStalkBalances(event.address, beanstalk.lastSeason, event.params.delta, event.block.timestamp, event.block.number)
     updateStalkBalances(event.params.account, beanstalk.lastSeason, event.params.delta, event.block.timestamp, event.block.number)
 
+    let id = 'stalkChange-' + event.transaction.hash.toHexString() + '-' + event.transactionLogIndex.toString()
+    let removal = new StalkChange(id)
+    removal.hash = event.transaction.hash.toHexString()
+    removal.logIndex = event.transactionLogIndex.toI32()
+    removal.protocol = event.address.toHexString()
+    removal.account = event.params.account.toHexString()
+    removal.delta = event.params.delta
+    removal.season = beanstalk.lastSeason
+    removal.blockNumber = event.block.number
+    removal.timestamp = event.block.timestamp
+    removal.save()
 }
 
 export function handleSeedsBalanceChanged(event: StalkBalanceChanged): void {
@@ -149,6 +160,17 @@ export function handleSeedsBalanceChanged(event: StalkBalanceChanged): void {
     updateSeedsBalances(event.address, beanstalk.lastSeason, event.params.delta, event.block.timestamp, event.block.number)
     updateSeedsBalances(event.params.account, beanstalk.lastSeason, event.params.delta, event.block.timestamp, event.block.number)
 
+    let id = 'seedChange-' + event.transaction.hash.toHexString() + '-' + event.transactionLogIndex.toString()
+    let removal = new SeedChange(id)
+    removal.hash = event.transaction.hash.toHexString()
+    removal.logIndex = event.transactionLogIndex.toI32()
+    removal.protocol = event.address.toHexString()
+    removal.account = event.params.account.toHexString()
+    removal.delta = event.params.delta
+    removal.season = beanstalk.lastSeason
+    removal.blockNumber = event.block.number
+    removal.timestamp = event.block.timestamp
+    removal.save()
 }
 
 function addDepositToSilo(account: Address, season: i32, bdv: BigInt, timestamp: BigInt, blockNumber: BigInt): void {
@@ -271,30 +293,31 @@ function updateStalkBalances(account: Address, season: i32, stalk: BigInt, times
     let siloHourly = loadSiloHourlySnapshot(account, season, timestamp)
     let siloDaily = loadSiloDailySnapshot(account, timestamp)
 
-    log.debug('\nStalkChanges: Account - {}\nStalkChanges: Amount - {}', [account.toHexString(), stalk.toString()])
 
-    if (stalk > ZERO_BI) {
-        silo.totalStalk = silo.totalStalk.plus(stalk)
-        siloHourly.hourlyStalkDelta = siloHourly.hourlyStalkDelta.plus(stalk)
-        siloDaily.dailyStalkDelta = siloDaily.dailyStalkDelta.plus(stalk)
-    } else {
-        silo.totalStalk = silo.totalStalk.minus(stalk)
-        siloHourly.hourlyStalkDelta = siloHourly.hourlyStalkDelta.minus(stalk)
-        siloDaily.dailyStalkDelta = siloDaily.dailyStalkDelta.minus(stalk)
+    if (account == Address.fromString('0x19a4fe7d0c76490cca77b45580846cdb38b9a406')) {
+        log.debug('\nStalkChanges: Account - {}\nStalkChanges: Starting Stalk - {}\nStalkChanges: Change Amount -  {}\n', [account.toHexString(), silo.totalStalk.toString(), stalk.toString()])
     }
 
+
+    silo.totalStalk = silo.totalStalk.plus(stalk)
     silo.save()
 
     siloHourly.totalStalk = silo.totalStalk
+    siloHourly.hourlyStalkDelta = siloHourly.hourlyStalkDelta.plus(stalk)
     siloHourly.blockNumber = blockNumber
     siloHourly.timestamp = timestamp
     siloHourly.save()
 
     siloDaily.season = season
     siloDaily.totalStalk = silo.totalStalk
+    siloDaily.dailyStalkDelta = siloDaily.dailyStalkDelta.plus(stalk)
     siloDaily.blockNumber = blockNumber
     siloDaily.timestamp = timestamp
     siloDaily.save()
+
+    if (account == Address.fromString('0x19a4fe7d0c76490cca77b45580846cdb38b9a406')) {
+        log.debug('\nStalkChanges: Ending Stalk   - {}\n', [silo.totalStalk.toString()])
+    }
 }
 
 function updateSeedsBalances(account: Address, season: i32, seeds: BigInt, timestamp: BigInt, blockNumber: BigInt): void {
@@ -302,25 +325,18 @@ function updateSeedsBalances(account: Address, season: i32, seeds: BigInt, times
     let siloHourly = loadSiloHourlySnapshot(account, season, timestamp)
     let siloDaily = loadSiloDailySnapshot(account, timestamp)
 
-    if (seeds > ZERO_BI) {
-        silo.totalSeeds = silo.totalSeeds.plus(seeds)
-        siloHourly.hourlySeedsDelta = siloHourly.hourlySeedsDelta.plus(seeds)
-        siloDaily.dailySeedsDelta = siloDaily.dailySeedsDelta.plus(seeds)
-    } else {
-        silo.totalSeeds = silo.totalSeeds.minus(seeds)
-        siloHourly.hourlySeedsDelta = siloHourly.hourlySeedsDelta.minus(seeds)
-        siloDaily.dailySeedsDelta = siloDaily.dailySeedsDelta.minus(seeds)
-    }
-
+    silo.totalSeeds = silo.totalSeeds.plus(seeds)
     silo.save()
 
     siloHourly.totalSeeds = silo.totalSeeds
+    siloHourly.hourlySeedsDelta = siloHourly.hourlySeedsDelta.plus(seeds)
     siloHourly.blockNumber = blockNumber
     siloHourly.timestamp = timestamp
     siloHourly.save()
 
     siloDaily.season = season
     siloDaily.totalSeeds = silo.totalSeeds
+    siloDaily.dailySeedsDelta = siloDaily.dailySeedsDelta.plus(seeds)
     siloDaily.blockNumber = blockNumber
     siloDaily.timestamp = timestamp
     siloDaily.save()

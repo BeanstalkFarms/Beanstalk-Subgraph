@@ -8,6 +8,7 @@ export function loadSiloWithdraw(account: Address, token: Address, season: i32):
     if (withdraw == null) {
         withdraw = new SiloWithdraw(id)
         withdraw.farmer = account.toHexString()
+        withdraw.token = token.toHexString()
         withdraw.withdrawSeason = season
         withdraw.claimableSeason = season + 1
         withdraw.claimed = false
