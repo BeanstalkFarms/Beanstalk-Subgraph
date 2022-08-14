@@ -1,5 +1,5 @@
 import { Address, BigInt, log } from '@graphprotocol/graph-ts'
-import { AddDeposit, StalkBalanceChanged, AddWithdrawal, RemoveDeposit, RemoveDeposits } from '../generated/Silo-Replanted/Beanstalk'
+import { AddDeposit, StalkBalanceChanged, AddWithdrawal, RemoveDeposit, RemoveDeposits, RemoveWithdrawal, RemoveWithdrawals } from '../generated/Silo-Replanted/Beanstalk'
 import { ZERO_BI } from './utils/Decimals'
 import { loadFarmer } from './utils/Farmer'
 import { loadSilo, loadSiloDailySnapshot, loadSiloHourlySnapshot } from './utils/Silo'
@@ -133,6 +133,17 @@ export function handleAddWithdrawal(event: AddWithdrawal): void {
 
     addWithdrawToSiloAsset(event.address, event.params.token, event.params.season.toI32(), event.params.amount, event.block.timestamp, event.block.number)
     addWithdrawToSiloAsset(event.params.account, event.params.token, event.params.season.toI32(), event.params.amount, event.block.timestamp, event.block.number)
+}
+
+export function handleRemoveWithdrawal(event: RemoveWithdrawal): void {
+    updateClaimedWithdraw(event.params.account, event.params.token, event.params.season)
+}
+
+export function handleRemoveWithdrawals(event: RemoveWithdrawals): void {
+
+    for (let i = 0; i < event.params.seasons.length; i++) {
+        updateClaimedWithdraw(event.params.account, event.params.token, event.params.seasons[i])
+    }
 }
 
 export function handleStalkBalanceChanged(event: StalkBalanceChanged): void {
@@ -340,4 +351,10 @@ function updateSeedsBalances(account: Address, season: i32, seeds: BigInt, times
     siloDaily.blockNumber = blockNumber
     siloDaily.timestamp = timestamp
     siloDaily.save()
+}
+
+function updateClaimedWithdraw(account: Address, token: Address, season: BigInt): void {
+    let withdraw = loadSiloWithdraw(account, token, season.toI32())
+    withdraw.claimed = true
+    withdraw.save()
 }

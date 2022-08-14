@@ -132,11 +132,13 @@ export function handleHarvest(event: Harvest): void {
     field.totalHarvestablePods = field.totalHarvestablePods.minus(event.params.beans)
     field.totalHarvestedPods = field.totalHarvestedPods.plus(event.params.beans)
     field.save()
+
     fieldHourly.newHarvestablePods = fieldHourly.newHarvestablePods.minus(event.params.beans)
     fieldHourly.totalHarvestablePods = field.totalHarvestablePods
     fieldHourly.newHarvestedPods = fieldHourly.newHarvestedPods.plus(event.params.beans)
     fieldHourly.totalHarvestedPods = field.totalHarvestedPods
     fieldHourly.save()
+
     fieldDaily.newHarvestablePods = fieldDaily.newHarvestablePods.minus(event.params.beans)
     fieldDaily.totalHarvestablePods = field.totalHarvestablePods
     fieldDaily.newHarvestedPods = fieldDaily.newHarvestedPods.plus(event.params.beans)
@@ -148,7 +150,7 @@ export function handleHarvest(event: Harvest): void {
         let plot = Plot.load(event.params.plots[i].toString())
 
         if (plot !== null) {
-            plot.harvestedPods = plot.harvestablePods
+            plot.harvestedPods = plot.harvestedPods.plus(event.params.beans)
             if (plot.harvestedPods = plot.pods) { plot.fullyHarvested = true }
             plot.save()
         }

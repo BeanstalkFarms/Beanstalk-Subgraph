@@ -31,6 +31,10 @@ dataSources:
           handler: handleRemoveDeposits
         - event: AddWithdrawal(indexed address,indexed address,uint32,uint256)
           handler: handleAddWithdrawal
+        - event: RemoveWithdrawal(indexed address,indexed address,uint32,uint256)
+          handler: handleRemoveWithdrawal
+        - event: RemoveWithdrawals(indexed address,indexed address,uint32[],uint256)
+          handler: handleRemoveWithdrawals
         - event: SeedsBalanceChanged(indexed address,int256)
           handler: handleSeedsBalanceChanged
         - event: StalkBalanceChanged(indexed address,int256,int256)
