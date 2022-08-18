@@ -2,6 +2,7 @@ import { BigDecimal, BigInt } from "@graphprotocol/graph-ts";
 import { Incentivization } from "../generated/Field/Beanstalk";
 import { SeasonSnapshot, Sunrise, Beanstalk } from "../generated/Field/Beanstalk";
 import { Incentive, Beanstalk as BeanstalkEntity } from "../generated/schema";
+import { updateHarvestablePlots } from "./FieldHandler";
 import { loadBeanstalk } from "./utils/Beanstalk";
 import { BEANSTALK } from "./utils/Constants";
 import { toDecimal, ZERO_BD, ZERO_BI } from "./utils/Decimals";
@@ -34,7 +35,7 @@ export function handleSunrise(event: Sunrise): void {
     fieldDaily.podRate = field.podRate
 
     let newIndexes = field.plotIndexes.sort()
-
+/*
     // -- Flag plots as harvestable
     for (let i = 0; i < field.plotIndexes.length; i++) {
         if (field.plotIndexes[i] < season.harvestableIndex) {
@@ -67,7 +68,7 @@ export function handleSunrise(event: Sunrise): void {
     }
 
     field.plotIndexes = newIndexes
-
+*/
     field.save()
     fieldHourly.save()
     fieldDaily.save()
@@ -107,18 +108,12 @@ export function handleSunrise(event: Sunrise): void {
 
 export function handleSeasonSnapshot(event: SeasonSnapshot): void {
     let season = loadSeason(event.address, event.params.season)
-    season.harvestableIndex = event.params.harvestableIndex
     season.price = toDecimal(event.params.price, 18)
     season.save()
-
-
-    let fieldHourly = loadFieldHourly(event.address, event.params.season.toI32(), event.block.timestamp)
-    fieldHourly.snapshotIndex = event.params.podIndex
-    fieldHourly.snapshotHarvestable = event.params.harvestableIndex
-    fieldHourly.save()
 }
 
 export function handleIncentive(event: Incentivization): void {
+    // This is the final function to be called during sunrise both pre and post replant
     let id = 'incentive-' + event.transaction.hash.toHexString() + '-' + event.transactionLogIndex.toString()
     let incentive = new Incentive(id)
     incentive.hash = event.transaction.hash.toHexString()
@@ -132,9 +127,13 @@ export function handleIncentive(event: Incentivization): void {
 
     // Update market cap for season
     let beanstalk = loadBeanstalk(event.address)
+    let beanstalk_contract = Beanstalk.bind(BEANSTALK)
     let season = loadSeason(event.address, BigInt.fromI32(beanstalk.lastSeason))
 
     season.marketCap = season.price.times(toDecimal(season.beans))
     season.incentiveBeans = event.params.beans
+    season.harvestableIndex = beanstalk_contract.harvestableIndex()
     season.save()
+
+    updateHarvestablePlots(season.harvestableIndex, event.block.timestamp, event.block.number)
 }

@@ -313,8 +313,6 @@ type FieldHourlySnapshot @entity {
   podRate: BigDecimal!
   blockNumber: BigInt!
   timestamp: BigInt!
-  snapshotIndex: BigInt!
-  snapshotHarvestable: BigInt!
 }
 
 type FieldDailySnapshot @entity {
@@ -393,6 +391,8 @@ type Plot @entity {
   id: ID! # Index of the plot
   field: Field!
   farmer: Farmer!
+  " Event that created the plot "
+  source: String!
   listing: PodListing
   season: Int!
   creationHash: String!
@@ -401,6 +401,7 @@ type Plot @entity {
   index: BigInt!
   beans: BigInt!
   pods: BigInt!
+  sownPods: BigInt!
   weather: Int!
   harvestablePods: BigInt!
   harvestedPods: BigInt!

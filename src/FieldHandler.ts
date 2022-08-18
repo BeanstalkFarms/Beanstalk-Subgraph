@@ -1,35 +1,25 @@
-import { BigDecimal, log } from '@graphprotocol/graph-ts'
-import { Harvest, PlotTransfer, Sow, SupplyIncrease, WeatherChange } from '../generated/Field/Beanstalk'
-import { Beanstalk, MetapoolOracle, Reward, Soil } from '../generated/Field-Replanted/Beanstalk'
+import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
+import { FundFundraiser, Harvest, PlotTransfer, Sow, SupplyDecrease, SupplyIncrease, SupplyNeutral, WeatherChange } from '../generated/Field/Beanstalk'
+import { MetapoolOracle, Reward, Soil } from '../generated/Field-Replanted/Beanstalk'
 import { CurvePrice } from '../generated/Field-Replanted/CurvePrice'
-import { Plot, Harvest as HarvestEntity, Reward as RewardEntity, MetapoolOracle as MetapoolOracleEntity } from '../generated/schema'
-import { BEANSTALK, BEAN_DECIMALS, CURVE_PRICE } from './utils/Constants'
-import { ONE_BD, ONE_BI, toDecimal, ZERO_BD, ZERO_BI } from './utils/Decimals'
+import { Harvest as HarvestEntity, Reward as RewardEntity, MetapoolOracle as MetapoolOracleEntity } from '../generated/schema'
+import { BEANSTALK, BEANSTALK_FARMS, CURVE_PRICE } from './utils/Constants'
+import { ONE_BD, toDecimal, ZERO_BD, ZERO_BI } from './utils/Decimals'
 import { loadFarmer } from './utils/Farmer'
 import { loadField, loadFieldDaily, loadFieldHourly } from './utils/Field'
 import { loadPlot } from './utils/Plot'
 import { savePodTransfer } from './utils/PodTransfer'
 import { loadSeason } from './utils/Season'
+import { loadBeanstalk } from './utils/Beanstalk'
 
 export function handleWeatherChange(event: WeatherChange): void {
     let field = loadField(event.address)
     let fieldHourly = loadFieldHourly(event.address, event.params.season.toI32(), event.block.timestamp)
     let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)
 
-    log.debug('\nWeatherChanged: =============\nWeatherChanged: Season - {}\nWeatherChanged: Prior Weather - {}\n', [event.params.season.toString(), field.weather.toString()])
-
     field.weather += event.params.change
     fieldHourly.weather += event.params.change
     fieldDaily.weather += event.params.change
-
-    let beanstalk = Beanstalk.bind(BEANSTALK)
-    //let try_weather = beanstalk.try_weather()
-    //let contractWeather = ZERO_BI
-    //if (!try_weather.reverted) { contractWeather = try_weather.value.weatherYield }
-
-    log.debug('\nWeatherChanged: Change - {}\n', [event.params.change.toString()])
-    log.debug('\nWeatherChanged: New Weather - {}\n', [field.weather.toString()])
-    //log.debug('\nWeatherChanged: Contract call weather - {}\n', [contractWeather.toString()])
 
     // Real Rate of Return
 
@@ -47,23 +37,37 @@ export function handleWeatherChange(event: WeatherChange): void {
 }
 
 export function handleSow(event: Sow): void {
+    let beanstalk = loadBeanstalk(event.address)
+
+    let sownBeans = event.params.beans
+
+    if (event.params.account == BEANSTALK_FARMS) {
+        let startingField = loadField(event.address)
+        sownBeans = startingField.totalSoil
+    }
+
+    // Update Beanstalk Totals
+    updateFieldTotals(event.address, beanstalk.lastSeason, ZERO_BI, sownBeans, event.params.pods, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp, event.block.number)
+
+    // Update Farmer Totals
+    updateFieldTotals(event.params.account, beanstalk.lastSeason, ZERO_BI, sownBeans, event.params.pods, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp, event.block.number)
+
+    
     let field = loadField(event.address)
     let fieldHourly = loadFieldHourly(event.address, field.season, event.block.timestamp)
     let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)
     let farmer = loadFarmer(event.params.account)
-    let farmerField = loadField(event.params.account)
-    let farmerFieldHourly = loadFieldHourly(event.params.account, field.season, event.block.timestamp)
-    let farmerFieldDaily = loadFieldDaily(event.params.account, event.block.timestamp)
     let plot = loadPlot(event.address, event.params.index)
 
     plot.farmer = event.params.account.toHexString()
+    plot.source = 'sow'
     plot.season = field.season
     plot.creationHash = event.transaction.hash.toHexString()
     plot.createdAt = event.block.timestamp
     plot.updatedAt = event.block.timestamp
-    plot.index = event.params.index
     plot.beans = event.params.beans
     plot.pods = event.params.pods
+    plot.sownPods = event.params.pods
     plot.weather = field.weather
     plot.save()
 
@@ -74,88 +78,95 @@ export function handleSow(event: Sow): void {
         farmer.save()
     }
 
-    if (farmerField.beanstalk !== event.address.toHexString()) { farmerField.beanstalk = event.address.toHexString() }
-    farmerField.totalPods = farmerField.totalPods.plus(event.params.pods)
-    farmerField.totalNumberOfSows += 1
-    farmerField.totalSownBeans = farmerField.totalSownBeans.plus(event.params.beans)
-    farmerField.save()
+    field.save()
+    fieldHourly.save()
+    fieldDaily.save()
 
-    farmerFieldHourly.newPods = farmerFieldHourly.newPods.plus(event.params.pods)
-    farmerFieldHourly.totalPods = farmerField.totalPods
-    farmerFieldHourly.numberOfSows += 1
-    farmerFieldHourly.totalNumberOfSows = farmerField.totalNumberOfSows
-    farmerFieldHourly.save()
-
-    farmerFieldDaily.newPods = farmerFieldDaily.newPods.plus(event.params.pods)
-    farmerFieldDaily.totalPods = farmerField.totalPods
-    farmerFieldDaily.numberOfSows += 1
-    farmerFieldDaily.totalNumberOfSows = farmerField.totalNumberOfSows
-    farmerFieldDaily.save()
-
-    field.plotIndexes.push(event.params.index)
-    field.podIndex = field.podIndex.plus(event.params.pods)
-    field.totalPods = field.totalPods.plus(event.params.pods)
+    // Update sower counts
     field.totalNumberOfSows += 1
     field.totalNumberOfSowers += newSowers
-    field.totalSownBeans = field.totalSownBeans.plus(event.params.beans)
     field.save()
-
-    fieldHourly.podIndex = fieldHourly.podIndex.plus(event.params.pods)
-    fieldHourly.newPods = fieldHourly.newPods.plus(event.params.pods)
-    fieldHourly.totalPods = field.totalPods
-    fieldHourly.numberOfSows += 1
-    fieldHourly.numberOfSowers += newSowers
+    
     fieldHourly.totalNumberOfSowers = field.totalNumberOfSowers
     fieldHourly.totalNumberOfSows = field.totalNumberOfSows
-    fieldHourly.sownBeans = fieldHourly.sownBeans.plus(event.params.beans)
-    fieldHourly.totalSownBeans = field.totalSownBeans
+    fieldHourly.numberOfSows += 1
+    fieldHourly.numberOfSowers += newSowers
     fieldHourly.save()
 
-    fieldDaily.podIndex = fieldDaily.podIndex.plus(event.params.pods)
-    fieldDaily.newPods = fieldDaily.newPods.plus(event.params.pods)
-    fieldDaily.totalPods = field.totalPods
-    fieldDaily.numberOfSows += 1
-    fieldDaily.numberOfSowers += newSowers
     fieldDaily.totalNumberOfSowers = field.totalNumberOfSowers
     fieldDaily.totalNumberOfSows = field.totalNumberOfSows
-    fieldDaily.sownBeans = fieldDaily.sownBeans.plus(event.params.beans)
-    fieldDaily.totalSownBeans = field.totalSownBeans
+    fieldDaily.numberOfSows += 1
+    fieldDaily.numberOfSowers += newSowers
     fieldDaily.save()
 }
 
 export function handleHarvest(event: Harvest): void {
-    let field = loadField(event.address)
-    let fieldHourly = loadFieldHourly(event.address, field.season, event.block.timestamp)
-    let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)
 
-    // Update field totals
-    field.totalHarvestablePods = field.totalHarvestablePods.minus(event.params.beans)
-    field.totalHarvestedPods = field.totalHarvestedPods.plus(event.params.beans)
-    field.save()
+    let beanstalk = loadBeanstalk(event.address)
+    let season = loadSeason(event.address, BigInt.fromI32(beanstalk.lastSeason))
+    
+    // Harvest function is only called with a list of plots
 
-    fieldHourly.newHarvestablePods = fieldHourly.newHarvestablePods.minus(event.params.beans)
-    fieldHourly.totalHarvestablePods = field.totalHarvestablePods
-    fieldHourly.newHarvestedPods = fieldHourly.newHarvestedPods.plus(event.params.beans)
-    fieldHourly.totalHarvestedPods = field.totalHarvestedPods
-    fieldHourly.save()
+    // Update plots and field totals
 
-    fieldDaily.newHarvestablePods = fieldDaily.newHarvestablePods.minus(event.params.beans)
-    fieldDaily.totalHarvestablePods = field.totalHarvestablePods
-    fieldDaily.newHarvestedPods = fieldDaily.newHarvestedPods.plus(event.params.beans)
-    fieldDaily.totalHarvestedPods = field.totalHarvestedPods
-    fieldDaily.save()
+    let remainingIndex = ZERO_BI
 
-    // Update plots as harvested
     for (let i = 0; i < event.params.plots.length; i++) {
-        let plot = Plot.load(event.params.plots[i].toString())
 
-        if (plot !== null) {
-            plot.harvestedPods = plot.harvestedPods.plus(event.params.beans)
-            if (plot.harvestedPods = plot.pods) { plot.fullyHarvested = true }
+        // Plot should exist
+        let plot = loadPlot(event.address, event.params.plots[i])
+
+        let harvestablePods = season.harvestableIndex.minus(plot.index)
+
+        if (harvestablePods >= plot.pods) {
+            // Plot fully harvests
+            updateFieldTotals(event.address, beanstalk.lastSeason,ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, plot.pods, event.block.timestamp, event.block.number)
+            updateFieldTotals(event.params.account, beanstalk.lastSeason,ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, plot.pods, event.block.timestamp, event.block.number)
+
+            plot.harvestedPods = plot.pods
+            plot.fullyHarvested = true
+            plot.save()
+        } else {
+            // Plot partially harvests
+
+            updateFieldTotals(event.address, beanstalk.lastSeason,ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, harvestablePods, event.block.timestamp, event.block.number)
+            updateFieldTotals(event.params.account, beanstalk.lastSeason,ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, harvestablePods, event.block.timestamp, event.block.number)
+
+            remainingIndex = plot.index.plus(harvestablePods)
+            let remainingPods = plot.pods.minus(harvestablePods)
+
+            let remainingPlot = loadPlot(event.address, remainingIndex)
+            remainingPlot.farmer = plot.farmer
+            remainingPlot.source = 'harvest'
+            remainingPlot.season = beanstalk.lastSeason
+            remainingPlot.creationHash = event.transaction.hash.toHexString()
+            remainingPlot.createdAt = event.block.timestamp
+            remainingPlot.updatedAt = event.block.timestamp
+            remainingPlot.index = remainingIndex
+            remainingPlot.beans = ZERO_BI
+            remainingPlot.pods = remainingPods
+            remainingPlot.weather = plot.weather
+            remainingPlot.save()
+
+            plot.harvestedPods = harvestablePods
+            plot.pods = harvestablePods
+            plot.fullyHarvested = true
             plot.save()
         }
     }
-
+    
+    // Remove the harvested plot IDs from the field list
+    let field = loadField(event.address)
+    let newIndexes = field.plotIndexes
+    for (let i = 0; i < event.params.plots.length; i++) {
+        let plotIndex = newIndexes.indexOf(event.params.plots[i])
+        newIndexes.splice(plotIndex,1)
+        newIndexes.sort()
+    }
+    if (remainingIndex !== ZERO_BI) {newIndexes.push(remainingIndex)}
+    field.plotIndexes = newIndexes
+    field.save()
+    
     // Save the low level details for the event.
     let harvest = new HarvestEntity('harvest-' + event.transaction.hash.toHexString() + '-' + event.transactionLogIndex.toString())
     harvest.hash = event.transaction.hash.toHexString()
@@ -170,65 +181,66 @@ export function handleHarvest(event: Harvest): void {
 }
 
 export function handlePlotTransfer(event: PlotTransfer): void {
-    let field = loadField(event.address)
+    let beanstalk = loadBeanstalk(BEANSTALK)
 
+    // Ensure both farmer entites exist
     let fromFarmer = loadFarmer(event.params.from)
-    let fromFarmerField = loadField(event.params.from)
-    let fromFarmerFieldHourly = loadFieldHourly(event.params.from, field.season, event.block.timestamp)
-    let fromFarmerFieldDaily = loadFieldDaily(event.params.from, event.block.timestamp)
-
     let toFarmer = loadFarmer(event.params.to)
-    let toFarmerField = loadField(event.params.to)
-    let toFarmerFieldHourly = loadFieldHourly(event.params.to, field.season, event.block.timestamp)
-    let toFarmerFieldDaily = loadFieldDaily(event.params.to, event.block.timestamp)
 
-    // Update overall pod totals
-    fromFarmerField.totalPods = fromFarmerField.totalPods.minus(event.params.pods)
-    fromFarmerFieldHourly.totalPods = fromFarmerFieldHourly.totalPods.minus(event.params.pods)
-    fromFarmerFieldDaily.totalPods = fromFarmerFieldDaily.totalPods.minus(event.params.pods)
+    // Update farmer field data
+    updateFieldTotals(event.params.from, beanstalk.lastSeason, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI.minus(event.params.pods), ZERO_BI, ZERO_BI, event.block.timestamp, event.block.number)
+    updateFieldTotals(event.params.to, beanstalk.lastSeason, ZERO_BI, ZERO_BI, ZERO_BI, event.params.pods, ZERO_BI, ZERO_BI, event.block.timestamp, event.block.number)
 
-    toFarmerField.totalPods = toFarmerField.totalPods.plus(event.params.pods)
-    toFarmerFieldHourly.totalPods = toFarmerFieldHourly.totalPods.plus(event.params.pods)
-    toFarmerFieldDaily.totalPods = toFarmerFieldDaily.totalPods.plus(event.params.pods)
+    let field = loadField(BEANSTALK)
+    let sortedPlots = field.plotIndexes.sort()
 
-    // Update plot entities
-    let priorPlot = ZERO_BI
     let sourceIndex = ZERO_BI
-    let transferIndex = event.params.id
-    let newPlotIndexes = field.plotIndexes
 
-    // Find source plot ID in the current plot list
-    for (let i = 0; i < field.plotIndexes.length; i++) {
-        if (field.plotIndexes[i] == event.params.id) {
-            sourceIndex = event.params.id
+    for (let i = 0; i < sortedPlots.length; i++) {
+        // Handle only single comparison for first value of array
+        if (i == 0) {
+            if (sortedPlots[i] == event.params.id) {
+                sourceIndex = sortedPlots[i]
+                break
+            } else {continue}
+        }
+        // Transferred plot matches existing. Start value of zero.
+        if (sortedPlots[i] == event.params.id) {
+            sourceIndex = sortedPlots[i]
             break
-        } else if (priorPlot <= event.params.id && event.params.id < field.plotIndexes[i]) {
-            sourceIndex = priorPlot
-            break
-        } else { priorPlot = field.plotIndexes[i] }
+        }
+        // Transferred plot is in the middle of existing plot. Non-zero start value.
+        if (sortedPlots[i-1] < event.params.id && event.params.id < sortedPlots[i]) {
+            sourceIndex = sortedPlots[i-1]
+        }
     }
 
     let sourcePlot = loadPlot(event.address, sourceIndex)
     let sourceEndIndex = sourceIndex.plus(sourcePlot.pods)
-    let transferEndIndex = transferIndex.plus(event.params.pods)
+    let transferEndIndex = event.params.id.plus(event.params.pods)
 
     log.debug("\nPodTransfer: ===================\n", [])
     log.debug("\nPodTransfer: Transfer Season - {}\n", [field.season.toString()])
-    log.debug("\nPodTransfer: Transfer Index - {}\n", [transferIndex.toString()])
+    log.debug("\nPodTransfer: Transfer Index - {}\n", [event.params.id.toString()])
     log.debug("\nPodTransfer: Transfer Pods - {}\n", [event.params.pods.toString()])
-    log.debug("\nPodTransfer: Transfer Ending Index - {}\n", [transferEndIndex.toString()])
+    log.debug("\nPodTransfer: Transfer Ending Index - {}\n", [event.params.id.plus(event.params.pods).toString()])
     log.debug("\nPodTransfer: Source Index - {}\n", [sourceIndex.toString()])
-    log.debug("\nPodTransfer: Source Ending Index - {}\n", [sourceEndIndex.toString()])
-    log.debug("\nPodTransfer: Source Pods - {}\n", [sourcePlot.pods.toString()])
+    log.debug("\nPodTransfer: Source Ending Index - {}\n", [sourceIndex.plus(sourcePlot.pods).toString()])
+    log.debug("\nPodTransfer: Starting Source Pods - {}\n", [sourcePlot.pods.toString()])
 
-    if (sourceIndex == transferIndex && sourceEndIndex == transferEndIndex) {
+    // Actually transfer the plots
+    if (sourcePlot.pods == event.params.pods) {
         // Sending full plot
         sourcePlot.farmer = event.params.to.toHexString()
         sourcePlot.updatedAt = event.block.timestamp
         sourcePlot.save()
-    } else if (sourceIndex == transferIndex) {
-        let remainderIndex = transferIndex.plus(event.params.pods)
+        log.debug("\nPodTransfer: Sending full plot\n", [])
+    } else if (sourceIndex == event.params.id) {
+        // We are only needing to split this plot once to send
+        // Start value of zero
+        let remainderIndex = sourceIndex.plus(event.params.pods)
         let remainderPlot = loadPlot(event.address, remainderIndex)
+        sortedPlots.push(remainderIndex)
 
         sourcePlot.farmer = event.params.to.toHexString()
         sourcePlot.updatedAt = event.block.timestamp
@@ -236,6 +248,7 @@ export function handlePlotTransfer(event: PlotTransfer): void {
         sourcePlot.save()
 
         remainderPlot.farmer = event.params.from.toHexString()
+        remainderPlot.source = 'transfer'
         remainderPlot.season = field.season
         remainderPlot.creationHash = event.transaction.hash.toHexString()
         remainderPlot.createdAt = event.block.timestamp
@@ -244,55 +257,61 @@ export function handlePlotTransfer(event: PlotTransfer): void {
         remainderPlot.pods = sourceEndIndex.minus(transferEndIndex)
         remainderPlot.weather = sourcePlot.weather
         remainderPlot.save()
-
+        
         log.debug("\nPodTransfer: sourceIndex == transferIndex\n", [])
+        log.debug("\nPodTransfer: Remainder Index - {}\n", [remainderIndex.toString()])
         log.debug("\nPodTransfer: Source Pods - {}\n", [sourcePlot.pods.toString()])
-
+        log.debug("\nPodTransfer: Remainder Pods - {}\n", [remainderPlot.pods.toString()])
     } else if (sourceEndIndex == transferEndIndex) {
         // We are only needing to split this plot once to send
-        let toPlot = loadPlot(event.address, transferIndex)
-        newPlotIndexes.push(transferIndex)
+        // Non-zero start value. Sending to end of plot
+        let toPlot = loadPlot(event.address, event.params.id)
+        sortedPlots.push(event.params.id)
 
         sourcePlot.updatedAt = event.block.timestamp
         sourcePlot.pods = sourcePlot.pods.minus(event.params.pods)
         sourcePlot.save()
 
         toPlot.farmer = event.params.to.toHexString()
+        toPlot.source = 'transfer'
         toPlot.season = field.season
         toPlot.creationHash = event.transaction.hash.toHexString()
         toPlot.createdAt = event.block.timestamp
         toPlot.updatedAt = event.block.timestamp
-        toPlot.index = transferIndex
+        toPlot.index = event.params.id
         toPlot.pods = event.params.pods
         toPlot.weather = sourcePlot.weather
         toPlot.save()
 
         log.debug("\nPodTransfer: sourceEndIndex == transferEndIndex\n", [])
-        log.debug("\nPodTransfer: Source Pods - {}\n", [sourcePlot.pods.toString()])
+        log.debug("\nPodTransfer: Updated Source Pods - {}\n", [sourcePlot.pods.toString()])
+
     } else {
         // We have to split this plot twice to send
-        let remainderIndex = transferIndex.plus(event.params.pods)
-        let toPlot = loadPlot(event.address, transferIndex)
+        let remainderIndex = event.params.id.plus(event.params.pods)
+        let toPlot = loadPlot(event.address, event.params.id)
         let remainderPlot = loadPlot(event.address, remainderIndex)
 
-        newPlotIndexes.push(transferIndex)
-        newPlotIndexes.push(remainderIndex)
+        sortedPlots.push(event.params.id)
+        sortedPlots.push(remainderIndex)
 
         sourcePlot.updatedAt = event.block.timestamp
-        sourcePlot.pods = transferIndex.minus(sourcePlot.index)
+        sourcePlot.pods = event.params.id.minus(sourcePlot.index)
         sourcePlot.save()
 
         toPlot.farmer = event.params.to.toHexString()
+        toPlot.source = 'transfer'
         toPlot.season = field.season
         toPlot.creationHash = event.transaction.hash.toHexString()
         toPlot.createdAt = event.block.timestamp
         toPlot.updatedAt = event.block.timestamp
-        toPlot.index = transferIndex
+        toPlot.index = event.params.id
         toPlot.pods = event.params.pods
         toPlot.weather = sourcePlot.weather
         toPlot.save()
 
         remainderPlot.farmer = event.params.from.toHexString()
+        remainderPlot.source = 'transfer'
         remainderPlot.season = field.season
         remainderPlot.creationHash = event.transaction.hash.toHexString()
         remainderPlot.createdAt = event.block.timestamp
@@ -301,54 +320,37 @@ export function handlePlotTransfer(event: PlotTransfer): void {
         remainderPlot.pods = sourceEndIndex.minus(transferEndIndex)
         remainderPlot.weather = sourcePlot.weather
         remainderPlot.save()
-
+        
         log.debug("\nPodTransfer: split source twice\n", [])
-        log.debug("\nPodTransfer: Source Pods - {}\n", [sourcePlot.pods.toString()])
+        log.debug("\nPodTransfer: Updated Source Pods - {}\n", [sourcePlot.pods.toString()])
+        log.debug("\nPodTransfer: Transferred Pods - {}\n", [toPlot.pods.toString()])
+        log.debug("\nPodTransfer: Remainder Pods - {}\n", [remainderPlot.pods.toString()])
+        
     }
-    newPlotIndexes.sort()
-    field.plotIndexes = newPlotIndexes
+    sortedPlots.sort()
+    field.plotIndexes = sortedPlots
     field.save()
-
+    
     // Save the raw event data
     savePodTransfer(event)
 }
 
 export function handleSupplyIncrease(event: SupplyIncrease): void {
-    let field = loadField(event.address)
-    let fieldHourly = loadFieldHourly(event.address, field.season, event.block.timestamp)
-    let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)
-    //let silo = loadSilo(event.params.season)
+    
+    updateFieldTotals(event.address, event.params.season.toI32(), event.params.newSoil, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp, event.block.number)
 
+}
 
-    field.totalHarvestablePods = field.totalHarvestablePods.plus(event.params.newHarvestable)
-    field.totalPods = field.totalPods.minus(event.params.newHarvestable)
-    field.totalSoil = field.totalSoil.plus(event.params.newSoil)
-    field.save()
+export function handleSupplyDecrease(event: SupplyDecrease): void {
+    
+    updateFieldTotals(event.address, event.params.season.toI32(), event.params.newSoil, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp, event.block.number)
 
-    fieldHourly.newHarvestablePods = fieldHourly.newHarvestablePods.plus(event.params.newHarvestable)
-    fieldHourly.totalHarvestablePods = field.totalHarvestablePods
-    fieldHourly.newPods = fieldHourly.newPods.minus(event.params.newHarvestable)
-    fieldHourly.totalPods = field.totalPods
-    fieldHourly.newSoil = fieldHourly.newSoil.plus(event.params.newSoil)
-    fieldHourly.totalSoil = field.totalSoil
-    fieldHourly.save()
+}
 
-    fieldDaily.newHarvestablePods = fieldDaily.newHarvestablePods.plus(event.params.newHarvestable)
-    fieldDaily.totalHarvestablePods = field.totalHarvestablePods
-    fieldDaily.newPods = fieldDaily.newPods.minus(event.params.newHarvestable)
-    fieldDaily.totalPods = field.totalPods
-    fieldDaily.newSoil = fieldDaily.newSoil.plus(event.params.newSoil)
-    fieldDaily.totalSoil = field.totalSoil
-    fieldDaily.save()
-
-    //silo.newBeans = toDecimal(event.params.newSilo, BEAN_DECIMALS)
-    //silo.save()
-
-    //let season = loadSeason(event.address, event.params.season)
-    //season.deltaBeans = event.params.newHarvestable.plus(event.params.newSilo)
-    //season.beans = season.beans.plus(season.deltaBeans)
-    //season.save()
-
+export function handleSupplyNeutral(event: SupplyNeutral): void {
+    
+    updateFieldTotals(event.address, event.params.season.toI32(), event.params.newSoil, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp, event.block.number)
+    
 }
 
 export function handleReward(event: Reward): void {
@@ -368,26 +370,6 @@ export function handleReward(event: Reward): void {
     let season = loadSeason(event.address, event.params.season)
     season.rewardBeans = reward.toField.plus(reward.toSilo).plus(reward.toFertilizer)
     season.save()
-
-    let field = loadField(event.address)
-    let fieldHourly = loadFieldHourly(event.address, event.params.season.toI32(), event.block.timestamp)
-    let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)
-
-    field.totalHarvestablePods = field.totalHarvestablePods.plus(event.params.toField)
-    field.totalPods = field.totalPods.minus(event.params.toField)
-    field.save()
-
-    fieldHourly.newHarvestablePods = fieldHourly.newHarvestablePods.plus(event.params.toField)
-    fieldHourly.totalHarvestablePods = field.totalHarvestablePods
-    fieldHourly.newPods = fieldHourly.newPods.minus(event.params.toField)
-    fieldHourly.totalPods = field.totalPods
-    fieldHourly.save()
-
-    fieldDaily.newHarvestablePods = fieldDaily.newHarvestablePods.plus(event.params.toField)
-    fieldDaily.totalHarvestablePods = field.totalHarvestablePods
-    fieldDaily.newPods = fieldDaily.newPods.minus(event.params.toField)
-    fieldDaily.totalPods = field.totalPods
-    fieldDaily.save()
 
 }
 
@@ -413,20 +395,112 @@ export function handleMetapoolOracle(event: MetapoolOracle): void {
 }
 
 export function handleSoil(event: Soil): void {
+    // Replant sets the soil to the amount every season instead of adding new soil
+    // to an existing amount.
+    
     let field = loadField(event.address)
     let fieldHourly = loadFieldHourly(event.address, event.params.season.toI32(), event.block.timestamp)
     let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)
 
-    field.totalSoil = field.totalSoil.plus(event.params.soil)
-
-    fieldHourly.newSoil = fieldHourly.newSoil.plus(event.params.soil)
-    fieldHourly.totalSoil = field.totalSoil
-
-    fieldDaily.newSoil = fieldDaily.newSoil.plus(event.params.soil)
-    fieldDaily.totalSoil = field.totalSoil
-
+    field.season = event.params.season.toI32()
+    field.totalSoil = event.params.soil
     field.save()
-    fieldHourly.save()
-    fieldDaily.save()
 
+    fieldHourly.totalSoil = field.totalSoil
+    fieldHourly.newSoil = fieldHourly.newSoil.plus(event.params.soil)
+    fieldHourly.blockNumber = event.block.number
+    fieldHourly.timestamp = event.block.timestamp
+    fieldHourly.save()
+
+    fieldDaily.totalSoil = field.totalSoil
+    fieldDaily.newSoil = fieldDaily.newSoil.plus(event.params.soil)
+    fieldDaily.blockNumber = event.block.number
+    fieldDaily.timestamp = event.block.timestamp
+    fieldDaily.save()
+}
+
+export function handleFundFundraiser(event: FundFundraiser): void {
+    // Account for the fact thta fundraiser sow using no soil.
+    let beanstalk = loadBeanstalk(event.address)
+    updateFieldTotals(event.address, beanstalk.lastSeason, ZERO_BI, ZERO_BI.minus(event.params.amount) , ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp, event.block.number)
+
+}
+
+function updateFieldTotals(
+    account: Address, 
+    season: i32, 
+    soil: BigInt, 
+    sownBeans: BigInt,
+    sownPods: BigInt,
+    transferredPods: BigInt,
+    harvestablePods: BigInt,
+    harvestedPods: BigInt,
+    timestamp: BigInt,
+    blockNumber: BigInt
+       ):void {
+    let field = loadField(account)
+    let fieldHourly = loadFieldHourly(account, season, timestamp)
+    let fieldDaily = loadFieldDaily(account, timestamp)
+
+    field.season = season
+    field.totalSoil = field.totalSoil.plus(soil).minus(sownBeans)
+    field.totalSownBeans = field.totalSownBeans.plus(sownBeans)
+    field.totalPods = field.totalPods.plus(sownPods).minus(harvestablePods).plus(transferredPods)
+    field.totalHarvestablePods = field.totalHarvestablePods.plus(harvestablePods)
+    field.totalHarvestedPods = field.totalHarvestedPods.plus(harvestedPods)
+    field.podIndex = field.podIndex.plus(sownPods)
+    field.save()
+
+    fieldHourly.totalSoil = field.totalSoil
+    fieldHourly.totalSownBeans = field.totalSownBeans
+    fieldHourly.totalPods = field.totalPods
+    fieldHourly.totalHarvestablePods = field.totalHarvestablePods
+    fieldHourly.totalHarvestedPods = field.totalHarvestedPods
+    fieldHourly.podIndex = field.podIndex
+    fieldHourly.newSoil = fieldHourly.newSoil.plus(soil)
+    fieldHourly.sownBeans = fieldHourly.sownBeans.plus(sownBeans)
+    fieldHourly.newPods = fieldHourly.newPods.plus(sownPods).plus(transferredPods)
+    fieldHourly.newHarvestablePods = fieldHourly.newHarvestablePods.plus(harvestablePods)
+    fieldHourly.newHarvestedPods = fieldHourly.newHarvestedPods.plus(harvestedPods)
+    fieldHourly.blockNumber = blockNumber
+    fieldHourly.timestamp = timestamp
+    fieldHourly.save()
+
+    fieldDaily.totalSoil = field.totalSoil
+    fieldDaily.totalSownBeans = field.totalSownBeans
+    fieldDaily.totalPods = field.totalPods
+    fieldDaily.totalHarvestablePods = field.totalHarvestablePods
+    fieldDaily.totalHarvestedPods = field.totalHarvestedPods
+    fieldDaily.podIndex = field.podIndex
+    fieldDaily.newSoil = fieldDaily.newSoil.plus(soil)
+    fieldDaily.sownBeans = fieldDaily.sownBeans.plus(sownBeans)
+    fieldDaily.newPods = fieldDaily.newPods.plus(sownPods).plus(transferredPods)
+    fieldDaily.newHarvestablePods = fieldDaily.newHarvestablePods.plus(harvestablePods)
+    fieldDaily.newHarvestedPods = fieldDaily.newHarvestedPods.plus(harvestedPods)
+    fieldDaily.blockNumber = blockNumber
+    fieldDaily.timestamp = timestamp
+    fieldDaily.save()
+}
+
+export function updateHarvestablePlots(harvestableIndex: BigInt, timestamp: BigInt, blockNumber: BigInt): void {
+    let field = loadField(BEANSTALK)
+    let sortedIndexes = field.plotIndexes.sort()
+
+    for (let i = 0; i < sortedIndexes.length; i++) {
+        if (sortedIndexes[i] > harvestableIndex) {break}
+        let plot = loadPlot(BEANSTALK, sortedIndexes[i])
+
+        let unharvestablePods = plot.pods.minus(plot.harvestablePods)
+        // Plot is fully harvestable, but hasn't been harvested yet
+        if ( unharvestablePods == ZERO_BI ) { continue }
+
+        let harvestablePods = harvestableIndex.minus(plot.index)
+        plot.harvestablePods = harvestablePods >= plot.pods ? plot.pods : harvestablePods
+        plot.save()
+
+        let newHarvestablePods = plot.harvestablePods == plot.pods ? unharvestablePods : unharvestablePods.minus(plot.pods.minus(plot.harvestablePods))
+
+        updateFieldTotals(BEANSTALK, field.season, ZERO_BI, ZERO_BI, ZERO_BI ,ZERO_BI, newHarvestablePods, ZERO_BI, timestamp, blockNumber)
+        updateFieldTotals(Address.fromString(plot.farmer), field.season, ZERO_BI, ZERO_BI, ZERO_BI ,ZERO_BI, newHarvestablePods, ZERO_BI, timestamp, blockNumber)
+    }
 }

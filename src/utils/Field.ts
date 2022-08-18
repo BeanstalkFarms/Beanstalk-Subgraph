@@ -56,8 +56,6 @@ export function loadFieldHourly(diamondAddress: Address, season: i32, timestamp:
         hourly.podRate = field.podRate
         hourly.blockNumber = ZERO_BI
         hourly.timestamp = timestamp
-        hourly.snapshotIndex = ZERO_BI
-        hourly.snapshotHarvestable = ZERO_BI
         hourly.save()
     }
     return hourly
