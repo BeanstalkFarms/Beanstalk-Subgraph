@@ -59,6 +59,10 @@ export function handleSow(event: Sow): void {
     let farmer = loadFarmer(event.params.account)
     let plot = loadPlot(event.address, event.params.index)
 
+    let newIndexes = field.plotIndexes
+    newIndexes.push(plot.index)
+    field.plotIndexes = newIndexes
+
     plot.farmer = event.params.account.toHexString()
     plot.source = 'sow'
     plot.season = field.season
@@ -182,6 +186,7 @@ export function handleHarvest(event: Harvest): void {
 
 export function handlePlotTransfer(event: PlotTransfer): void {
     let beanstalk = loadBeanstalk(BEANSTALK)
+    let season = loadSeason(event.address, BigInt.fromI32(beanstalk.lastSeason))
 
     // Ensure both farmer entites exist
     let fromFarmer = loadFarmer(event.params.from)
@@ -330,6 +335,9 @@ export function handlePlotTransfer(event: PlotTransfer): void {
     sortedPlots.sort()
     field.plotIndexes = sortedPlots
     field.save()
+
+    // Update any harvestable pod amounts
+    updateHarvestablePlots(season.harvestableIndex, event.block.timestamp, event.block.number)
     
     // Save the raw event data
     savePodTransfer(event)
@@ -397,7 +405,7 @@ export function handleMetapoolOracle(event: MetapoolOracle): void {
 export function handleSoil(event: Soil): void {
     // Replant sets the soil to the amount every season instead of adding new soil
     // to an existing amount.
-    
+
     let field = loadField(event.address)
     let fieldHourly = loadFieldHourly(event.address, event.params.season.toI32(), event.block.timestamp)
     let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)
@@ -459,7 +467,7 @@ function updateFieldTotals(
     fieldHourly.podIndex = field.podIndex
     fieldHourly.newSoil = fieldHourly.newSoil.plus(soil)
     fieldHourly.sownBeans = fieldHourly.sownBeans.plus(sownBeans)
-    fieldHourly.newPods = fieldHourly.newPods.plus(sownPods).plus(transferredPods)
+    fieldHourly.newPods = fieldHourly.newPods.plus(sownPods).minus(harvestablePods).plus(transferredPods)
     fieldHourly.newHarvestablePods = fieldHourly.newHarvestablePods.plus(harvestablePods)
     fieldHourly.newHarvestedPods = fieldHourly.newHarvestedPods.plus(harvestedPods)
     fieldHourly.blockNumber = blockNumber
@@ -474,7 +482,7 @@ function updateFieldTotals(
     fieldDaily.podIndex = field.podIndex
     fieldDaily.newSoil = fieldDaily.newSoil.plus(soil)
     fieldDaily.sownBeans = fieldDaily.sownBeans.plus(sownBeans)
-    fieldDaily.newPods = fieldDaily.newPods.plus(sownPods).plus(transferredPods)
+    fieldDaily.newPods = fieldDaily.newPods.plus(sownPods).minus(harvestablePods).plus(transferredPods)
     fieldDaily.newHarvestablePods = fieldDaily.newHarvestablePods.plus(harvestablePods)
     fieldDaily.newHarvestedPods = fieldDaily.newHarvestedPods.plus(harvestedPods)
     fieldDaily.blockNumber = blockNumber
@@ -490,15 +498,15 @@ export function updateHarvestablePlots(harvestableIndex: BigInt, timestamp: BigI
         if (sortedIndexes[i] > harvestableIndex) {break}
         let plot = loadPlot(BEANSTALK, sortedIndexes[i])
 
-        let unharvestablePods = plot.pods.minus(plot.harvestablePods)
         // Plot is fully harvestable, but hasn't been harvested yet
-        if ( unharvestablePods == ZERO_BI ) { continue }
+        if ( plot.harvestablePods == plot.pods ) { continue }
 
         let harvestablePods = harvestableIndex.minus(plot.index)
+        let oldHarvestablePods = plot.harvestablePods
         plot.harvestablePods = harvestablePods >= plot.pods ? plot.pods : harvestablePods
         plot.save()
 
-        let newHarvestablePods = plot.harvestablePods == plot.pods ? unharvestablePods : unharvestablePods.minus(plot.pods.minus(plot.harvestablePods))
+        let newHarvestablePods = oldHarvestablePods == ZERO_BI ? plot.harvestablePods : plot.harvestablePods.minus(oldHarvestablePods)
 
         updateFieldTotals(BEANSTALK, field.season, ZERO_BI, ZERO_BI, ZERO_BI ,ZERO_BI, newHarvestablePods, ZERO_BI, timestamp, blockNumber)
         updateFieldTotals(Address.fromString(plot.farmer), field.season, ZERO_BI, ZERO_BI, ZERO_BI ,ZERO_BI, newHarvestablePods, ZERO_BI, timestamp, blockNumber)
