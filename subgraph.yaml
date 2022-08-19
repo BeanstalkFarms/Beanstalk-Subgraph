@@ -256,7 +256,7 @@ dataSources:
           handler: handleChop
       file: ./src/ReplantHandler.ts
   - kind: ethereum/contract
-    name: Field-Replanted
+    name: Season-Replanted
     network: mainnet
     source:
       address: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5"
@@ -267,7 +267,7 @@ dataSources:
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - Field-Replanted
+        - Season-Replanted
       abis:
         - name: Beanstalk
           file: ./abis/Beanstalk-Replanted.json
@@ -284,7 +284,7 @@ dataSources:
           handler: handleMetapoolOracle
         - event: Soil(indexed uint32,uint256)
           handler: handleSoil
-      file: ./src/FieldHandler.ts
+      file: ./src/SeasonHandler.ts
   - kind: ethereum/contract
     name: Fertilizer
     network: mainnet

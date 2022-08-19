@@ -1,8 +1,7 @@
 import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
 import { FundFundraiser, Harvest, PlotTransfer, Sow, SupplyDecrease, SupplyIncrease, SupplyNeutral, WeatherChange } from '../generated/Field/Beanstalk'
-import { MetapoolOracle, Reward, Soil } from '../generated/Field-Replanted/Beanstalk'
 import { CurvePrice } from '../generated/Field-Replanted/CurvePrice'
-import { Harvest as HarvestEntity, Reward as RewardEntity, MetapoolOracle as MetapoolOracleEntity } from '../generated/schema'
+import { Harvest as HarvestEntity } from '../generated/schema'
 import { BEANSTALK, BEANSTALK_FARMS, CURVE_PRICE } from './utils/Constants'
 import { ONE_BD, toDecimal, ZERO_BD, ZERO_BI } from './utils/Decimals'
 import { loadFarmer } from './utils/Farmer'
@@ -359,72 +358,6 @@ export function handleSupplyNeutral(event: SupplyNeutral): void {
 
     updateFieldTotals(event.address, event.params.season.toI32(), event.params.newSoil, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp, event.block.number)
 
-}
-
-export function handleReward(event: Reward): void {
-    let id = 'reward-' + event.transaction.hash.toHexString() + '-' + event.transactionLogIndex.toString()
-    let reward = new RewardEntity(id)
-    reward.hash = event.transaction.hash.toHexString()
-    reward.logIndex = event.transactionLogIndex.toI32()
-    reward.protocol = event.address.toHexString()
-    reward.season = event.params.season.toI32()
-    reward.toField = event.params.toField
-    reward.toSilo = event.params.toSilo
-    reward.toFertilizer = event.params.toFertilizer
-    reward.blockNumber = event.block.number
-    reward.timestamp = event.block.timestamp
-    reward.save()
-
-    let season = loadSeason(event.address, event.params.season)
-    season.rewardBeans = reward.toField.plus(reward.toSilo).plus(reward.toFertilizer)
-    season.save()
-
-}
-
-export function handleMetapoolOracle(event: MetapoolOracle): void {
-    let id = 'metapoolOracle-' + event.transaction.hash.toHexString() + '-' + event.transactionLogIndex.toString()
-    let oracle = new MetapoolOracleEntity(id)
-    oracle.hash = event.transaction.hash.toHexString()
-    oracle.logIndex = event.transactionLogIndex.toI32()
-    oracle.protocol = event.address.toHexString()
-    oracle.season = event.params.season.toI32()
-    oracle.deltaB = event.params.deltaB
-    oracle.balanceA = event.params.balances[0]
-    oracle.balanceB = event.params.balances[1]
-    oracle.blockNumber = event.block.number
-    oracle.timestamp = event.block.timestamp
-    oracle.save()
-
-    let curvePrice = CurvePrice.bind(CURVE_PRICE)
-    let season = loadSeason(event.address, event.params.season)
-    season.price = toDecimal(curvePrice.getCurve().price, 6)
-    season.deltaB = event.params.deltaB
-    season.save()
-}
-
-export function handleSoil(event: Soil): void {
-    // Replant sets the soil to the amount every season instead of adding new soil
-    // to an existing amount.
-
-    let field = loadField(event.address)
-    let fieldHourly = loadFieldHourly(event.address, event.params.season.toI32(), event.block.timestamp)
-    let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)
-
-    field.season = event.params.season.toI32()
-    field.totalSoil = event.params.soil
-    field.save()
-
-    fieldHourly.totalSoil = field.totalSoil
-    fieldHourly.newSoil = fieldHourly.newSoil.plus(event.params.soil)
-    fieldHourly.blockNumber = event.block.number
-    fieldHourly.timestamp = event.block.timestamp
-    fieldHourly.save()
-
-    fieldDaily.totalSoil = field.totalSoil
-    fieldDaily.newSoil = fieldDaily.newSoil.plus(event.params.soil)
-    fieldDaily.blockNumber = event.block.number
-    fieldDaily.timestamp = event.block.timestamp
-    fieldDaily.save()
 }
 
 export function handleFundFundraiser(event: FundFundraiser): void {
