@@ -35,40 +35,40 @@ export function handleSunrise(event: Sunrise): void {
     fieldDaily.podRate = field.podRate
 
     let newIndexes = field.plotIndexes.sort()
-/*
-    // -- Flag plots as harvestable
-    for (let i = 0; i < field.plotIndexes.length; i++) {
-        if (field.plotIndexes[i] < season.harvestableIndex) {
-            let plot = loadPlot(event.address, field.plotIndexes[i])
-            // Insert farmer field info
-            let harvestablePods = ZERO_BI
-            if (plot.harvestablePods == ZERO_BI) {
-                if (plot.index.plus(plot.pods) <= season.harvestableIndex) {
-                    harvestablePods = plot.pods
+    /*
+        // -- Flag plots as harvestable
+        for (let i = 0; i < field.plotIndexes.length; i++) {
+            if (field.plotIndexes[i] < season.harvestableIndex) {
+                let plot = loadPlot(event.address, field.plotIndexes[i])
+                // Insert farmer field info
+                let harvestablePods = ZERO_BI
+                if (plot.harvestablePods == ZERO_BI) {
+                    if (plot.index.plus(plot.pods) <= season.harvestableIndex) {
+                        harvestablePods = plot.pods
+                    } else {
+                        harvestablePods = season.harvestableIndex.minus(plot.index)
+                    }
                 } else {
-                    harvestablePods = season.harvestableIndex.minus(plot.index)
+                    if (plot.index.plus(plot.pods) <= season.harvestableIndex) {
+                        harvestablePods = plot.pods.minus(plot.harvestablePods)
+                    } else {
+                        harvestablePods = season.harvestableIndex.minus(plot.index).plus(plot.harvestablePods)
+                    }
                 }
-            } else {
-                if (plot.index.plus(plot.pods) <= season.harvestableIndex) {
-                    harvestablePods = plot.pods.minus(plot.harvestablePods)
-                } else {
-                    harvestablePods = season.harvestableIndex.minus(plot.index).plus(plot.harvestablePods)
+    
+                plot.harvestablePods = plot.harvestablePods.plus(harvestablePods)
+                plot.save()
+    
+                // Farmer totals here
+    
+                if (plot.harvestablePods == plot.pods) {
+                    newIndexes.shift()
                 }
-            }
-
-            plot.harvestablePods = plot.harvestablePods.plus(harvestablePods)
-            plot.save()
-
-            // Farmer totals here
-
-            if (plot.harvestablePods == plot.pods) {
-                newIndexes.shift()
-            }
-        } else { break }
-    }
-
-    field.plotIndexes = newIndexes
-*/
+            } else { break }
+        }
+    
+        field.plotIndexes = newIndexes
+    */
     field.save()
     fieldHourly.save()
     fieldDaily.save()

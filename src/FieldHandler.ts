@@ -52,7 +52,7 @@ export function handleSow(event: Sow): void {
     // Update Farmer Totals
     updateFieldTotals(event.params.account, beanstalk.lastSeason, ZERO_BI, sownBeans, event.params.pods, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp, event.block.number)
 
-    
+
     let field = loadField(event.address)
     let fieldHourly = loadFieldHourly(event.address, field.season, event.block.timestamp)
     let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)
@@ -90,7 +90,7 @@ export function handleSow(event: Sow): void {
     field.totalNumberOfSows += 1
     field.totalNumberOfSowers += newSowers
     field.save()
-    
+
     fieldHourly.totalNumberOfSowers = field.totalNumberOfSowers
     fieldHourly.totalNumberOfSows = field.totalNumberOfSows
     fieldHourly.numberOfSows += 1
@@ -108,7 +108,7 @@ export function handleHarvest(event: Harvest): void {
 
     let beanstalk = loadBeanstalk(event.address)
     let season = loadSeason(event.address, BigInt.fromI32(beanstalk.lastSeason))
-    
+
     // Harvest function is only called with a list of plots
 
     // Update plots and field totals
@@ -124,8 +124,8 @@ export function handleHarvest(event: Harvest): void {
 
         if (harvestablePods >= plot.pods) {
             // Plot fully harvests
-            updateFieldTotals(event.address, beanstalk.lastSeason,ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, plot.pods, event.block.timestamp, event.block.number)
-            updateFieldTotals(event.params.account, beanstalk.lastSeason,ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, plot.pods, event.block.timestamp, event.block.number)
+            updateFieldTotals(event.address, beanstalk.lastSeason, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, plot.pods, event.block.timestamp, event.block.number)
+            updateFieldTotals(event.params.account, beanstalk.lastSeason, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, plot.pods, event.block.timestamp, event.block.number)
 
             plot.harvestedPods = plot.pods
             plot.fullyHarvested = true
@@ -133,8 +133,8 @@ export function handleHarvest(event: Harvest): void {
         } else {
             // Plot partially harvests
 
-            updateFieldTotals(event.address, beanstalk.lastSeason,ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, harvestablePods, event.block.timestamp, event.block.number)
-            updateFieldTotals(event.params.account, beanstalk.lastSeason,ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, harvestablePods, event.block.timestamp, event.block.number)
+            updateFieldTotals(event.address, beanstalk.lastSeason, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, harvestablePods, event.block.timestamp, event.block.number)
+            updateFieldTotals(event.params.account, beanstalk.lastSeason, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, harvestablePods, event.block.timestamp, event.block.number)
 
             remainingIndex = plot.index.plus(harvestablePods)
             let remainingPods = plot.pods.minus(harvestablePods)
@@ -158,19 +158,19 @@ export function handleHarvest(event: Harvest): void {
             plot.save()
         }
     }
-    
+
     // Remove the harvested plot IDs from the field list
     let field = loadField(event.address)
     let newIndexes = field.plotIndexes
     for (let i = 0; i < event.params.plots.length; i++) {
         let plotIndex = newIndexes.indexOf(event.params.plots[i])
-        newIndexes.splice(plotIndex,1)
+        newIndexes.splice(plotIndex, 1)
         newIndexes.sort()
     }
-    if (remainingIndex !== ZERO_BI) {newIndexes.push(remainingIndex)}
+    if (remainingIndex !== ZERO_BI) { newIndexes.push(remainingIndex) }
     field.plotIndexes = newIndexes
     field.save()
-    
+
     // Save the low level details for the event.
     let harvest = new HarvestEntity('harvest-' + event.transaction.hash.toHexString() + '-' + event.transactionLogIndex.toString())
     harvest.hash = event.transaction.hash.toHexString()
@@ -207,7 +207,7 @@ export function handlePlotTransfer(event: PlotTransfer): void {
             if (sortedPlots[i] == event.params.id) {
                 sourceIndex = sortedPlots[i]
                 break
-            } else {continue}
+            } else { continue }
         }
         // Transferred plot matches existing. Start value of zero.
         if (sortedPlots[i] == event.params.id) {
@@ -215,8 +215,8 @@ export function handlePlotTransfer(event: PlotTransfer): void {
             break
         }
         // Transferred plot is in the middle of existing plot. Non-zero start value.
-        if (sortedPlots[i-1] < event.params.id && event.params.id < sortedPlots[i]) {
-            sourceIndex = sortedPlots[i-1]
+        if (sortedPlots[i - 1] < event.params.id && event.params.id < sortedPlots[i]) {
+            sourceIndex = sortedPlots[i - 1]
         }
     }
 
@@ -262,7 +262,7 @@ export function handlePlotTransfer(event: PlotTransfer): void {
         remainderPlot.pods = sourceEndIndex.minus(transferEndIndex)
         remainderPlot.weather = sourcePlot.weather
         remainderPlot.save()
-        
+
         log.debug("\nPodTransfer: sourceIndex == transferIndex\n", [])
         log.debug("\nPodTransfer: Remainder Index - {}\n", [remainderIndex.toString()])
         log.debug("\nPodTransfer: Source Pods - {}\n", [sourcePlot.pods.toString()])
@@ -325,12 +325,12 @@ export function handlePlotTransfer(event: PlotTransfer): void {
         remainderPlot.pods = sourceEndIndex.minus(transferEndIndex)
         remainderPlot.weather = sourcePlot.weather
         remainderPlot.save()
-        
+
         log.debug("\nPodTransfer: split source twice\n", [])
         log.debug("\nPodTransfer: Updated Source Pods - {}\n", [sourcePlot.pods.toString()])
         log.debug("\nPodTransfer: Transferred Pods - {}\n", [toPlot.pods.toString()])
         log.debug("\nPodTransfer: Remainder Pods - {}\n", [remainderPlot.pods.toString()])
-        
+
     }
     sortedPlots.sort()
     field.plotIndexes = sortedPlots
@@ -338,27 +338,27 @@ export function handlePlotTransfer(event: PlotTransfer): void {
 
     // Update any harvestable pod amounts
     updateHarvestablePlots(season.harvestableIndex, event.block.timestamp, event.block.number)
-    
+
     // Save the raw event data
     savePodTransfer(event)
 }
 
 export function handleSupplyIncrease(event: SupplyIncrease): void {
-    
+
     updateFieldTotals(event.address, event.params.season.toI32(), event.params.newSoil, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp, event.block.number)
 
 }
 
 export function handleSupplyDecrease(event: SupplyDecrease): void {
-    
+
     updateFieldTotals(event.address, event.params.season.toI32(), event.params.newSoil, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp, event.block.number)
 
 }
 
 export function handleSupplyNeutral(event: SupplyNeutral): void {
-    
+
     updateFieldTotals(event.address, event.params.season.toI32(), event.params.newSoil, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp, event.block.number)
-    
+
 }
 
 export function handleReward(event: Reward): void {
@@ -430,14 +430,14 @@ export function handleSoil(event: Soil): void {
 export function handleFundFundraiser(event: FundFundraiser): void {
     // Account for the fact thta fundraiser sow using no soil.
     let beanstalk = loadBeanstalk(event.address)
-    updateFieldTotals(event.address, beanstalk.lastSeason, ZERO_BI, ZERO_BI.minus(event.params.amount) , ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp, event.block.number)
+    updateFieldTotals(event.address, beanstalk.lastSeason, ZERO_BI, ZERO_BI.minus(event.params.amount), ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp, event.block.number)
 
 }
 
 function updateFieldTotals(
-    account: Address, 
-    season: i32, 
-    soil: BigInt, 
+    account: Address,
+    season: i32,
+    soil: BigInt,
     sownBeans: BigInt,
     sownPods: BigInt,
     transferredPods: BigInt,
@@ -445,7 +445,7 @@ function updateFieldTotals(
     harvestedPods: BigInt,
     timestamp: BigInt,
     blockNumber: BigInt
-       ):void {
+): void {
     let field = loadField(account)
     let fieldHourly = loadFieldHourly(account, season, timestamp)
     let fieldDaily = loadFieldDaily(account, timestamp)
@@ -495,11 +495,11 @@ export function updateHarvestablePlots(harvestableIndex: BigInt, timestamp: BigI
     let sortedIndexes = field.plotIndexes.sort()
 
     for (let i = 0; i < sortedIndexes.length; i++) {
-        if (sortedIndexes[i] > harvestableIndex) {break}
+        if (sortedIndexes[i] > harvestableIndex) { break }
         let plot = loadPlot(BEANSTALK, sortedIndexes[i])
 
         // Plot is fully harvestable, but hasn't been harvested yet
-        if ( plot.harvestablePods == plot.pods ) { continue }
+        if (plot.harvestablePods == plot.pods) { continue }
 
         let harvestablePods = harvestableIndex.minus(plot.index)
         let oldHarvestablePods = plot.harvestablePods
@@ -508,7 +508,7 @@ export function updateHarvestablePlots(harvestableIndex: BigInt, timestamp: BigI
 
         let newHarvestablePods = oldHarvestablePods == ZERO_BI ? plot.harvestablePods : plot.harvestablePods.minus(oldHarvestablePods)
 
-        updateFieldTotals(BEANSTALK, field.season, ZERO_BI, ZERO_BI, ZERO_BI ,ZERO_BI, newHarvestablePods, ZERO_BI, timestamp, blockNumber)
-        updateFieldTotals(Address.fromString(plot.farmer), field.season, ZERO_BI, ZERO_BI, ZERO_BI ,ZERO_BI, newHarvestablePods, ZERO_BI, timestamp, blockNumber)
+        updateFieldTotals(BEANSTALK, field.season, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, newHarvestablePods, ZERO_BI, timestamp, blockNumber)
+        updateFieldTotals(Address.fromString(plot.farmer), field.season, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, newHarvestablePods, ZERO_BI, timestamp, blockNumber)
     }
 }
