@@ -179,6 +179,7 @@ type SiloHourlySnapshot @entity {
   totalDepositedBDV: BigInt!
   totalStalk: BigInt!
   totalSeeds: BigInt!
+  totalRoots: BigInt!
   totalBeanMints: BigInt!
   cumulativeDepositedUSD: BigDecimal!
   hourlyDepositedUSD: BigDecimal!
@@ -187,6 +188,7 @@ type SiloHourlySnapshot @entity {
   hourlyClaimableBDV: BigInt!
   hourlyStalkDelta: BigInt!
   hourlySeedsDelta: BigInt!
+  hourlyRootsDelta: BigInt!
   hourlyBeanMints: BigInt!
   blockNumber: BigInt!
   timestamp: BigInt!
@@ -200,6 +202,7 @@ type SiloDailySnapshot @entity {
   totalDepositedBDV: BigInt!
   totalStalk: BigInt!
   totalSeeds: BigInt!
+  totalRoots: BigInt!
   totalBeanMints: BigInt!
   cumulativeDepositedUSD: BigDecimal!
   dailyDepositedUSD: BigDecimal!
@@ -208,6 +211,7 @@ type SiloDailySnapshot @entity {
   dailyClaimableBDV: BigInt!
   dailyStalkDelta: BigInt!
   dailySeedsDelta: BigInt!
+  dailyRootsDelta: BigInt!
   dailyBeanMints: BigInt!
   blockNumber: BigInt!
   timestamp: BigInt!

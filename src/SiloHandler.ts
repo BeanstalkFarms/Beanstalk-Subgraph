@@ -149,8 +149,8 @@ export function handleRemoveWithdrawals(event: RemoveWithdrawals): void {
 export function handleStalkBalanceChanged(event: StalkBalanceChanged): void {
 
     let beanstalk = loadBeanstalk(event.address) // get current season
-    updateStalkBalances(event.address, beanstalk.lastSeason, event.params.delta, event.block.timestamp, event.block.number)
-    updateStalkBalances(event.params.account, beanstalk.lastSeason, event.params.delta, event.block.timestamp, event.block.number)
+    updateStalkBalances(event.address, beanstalk.lastSeason, event.params.delta, event.params.deltaRoots, event.block.timestamp, event.block.number)
+    updateStalkBalances(event.params.account, beanstalk.lastSeason, event.params.delta, event.params.deltaRoots, event.block.timestamp, event.block.number)
 
     let id = 'stalkChange-' + event.transaction.hash.toHexString() + '-' + event.transactionLogIndex.toString()
     let removal = new StalkChange(id)
@@ -299,7 +299,7 @@ function addWithdrawToSiloAsset(account: Address, token: Address, season: i32, t
     assetDaily.save()
 }
 
-function updateStalkBalances(account: Address, season: i32, stalk: BigInt, timestamp: BigInt, blockNumber: BigInt): void {
+function updateStalkBalances(account: Address, season: i32, stalk: BigInt, roots: BigInt, timestamp: BigInt, blockNumber: BigInt): void {
     let silo = loadSilo(account)
     let siloHourly = loadSiloHourlySnapshot(account, season, timestamp)
     let siloDaily = loadSiloDailySnapshot(account, timestamp)
@@ -311,17 +311,22 @@ function updateStalkBalances(account: Address, season: i32, stalk: BigInt, times
 
 
     silo.totalStalk = silo.totalStalk.plus(stalk)
+    silo.totalRoots = silo.totalRoots.plus(roots)
     silo.save()
 
     siloHourly.totalStalk = silo.totalStalk
+    siloHourly.totalRoots = silo.totalRoots
     siloHourly.hourlyStalkDelta = siloHourly.hourlyStalkDelta.plus(stalk)
+    siloHourly.hourlyRootsDelta = siloHourly.hourlyRootsDelta.plus(roots)
     siloHourly.blockNumber = blockNumber
     siloHourly.timestamp = timestamp
     siloHourly.save()
 
     siloDaily.season = season
     siloDaily.totalStalk = silo.totalStalk
+    siloDaily.totalRoots = silo.totalRoots
     siloDaily.dailyStalkDelta = siloDaily.dailyStalkDelta.plus(stalk)
+    siloDaily.dailyRootsDelta = siloDaily.dailyRootsDelta.plus(roots)
     siloDaily.blockNumber = blockNumber
     siloDaily.timestamp = timestamp
     siloDaily.save()

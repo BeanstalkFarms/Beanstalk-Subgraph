@@ -34,6 +34,7 @@ export function loadSiloHourlySnapshot(account: Address, season: i32, timestamp:
         snapshot.totalDepositedBDV = silo.totalDepositedBDV
         snapshot.totalStalk = silo.totalStalk
         snapshot.totalSeeds = silo.totalSeeds
+        snapshot.totalRoots = silo.totalRoots
         snapshot.totalBeanMints = silo.totalBeanMints
         snapshot.cumulativeDepositedUSD = ZERO_BD
         snapshot.hourlyDepositedUSD = ZERO_BD
@@ -42,6 +43,7 @@ export function loadSiloHourlySnapshot(account: Address, season: i32, timestamp:
         snapshot.hourlyClaimableBDV = ZERO_BI
         snapshot.hourlyStalkDelta = ZERO_BI
         snapshot.hourlySeedsDelta = ZERO_BI
+        snapshot.hourlyRootsDelta = ZERO_BI
         snapshot.hourlyBeanMints = ZERO_BI
         snapshot.blockNumber = ZERO_BI
         snapshot.timestamp = timestamp
@@ -63,6 +65,7 @@ export function loadSiloDailySnapshot(account: Address, timestamp: BigInt): Silo
         snapshot.totalDepositedBDV = silo.totalDepositedBDV
         snapshot.totalStalk = silo.totalStalk
         snapshot.totalSeeds = silo.totalSeeds
+        snapshot.totalRoots = silo.totalRoots
         snapshot.totalBeanMints = silo.totalBeanMints
         snapshot.cumulativeDepositedUSD = ZERO_BD
         snapshot.dailyDepositedUSD = ZERO_BD
@@ -71,6 +74,7 @@ export function loadSiloDailySnapshot(account: Address, timestamp: BigInt): Silo
         snapshot.dailyClaimableBDV = ZERO_BI
         snapshot.dailyStalkDelta = ZERO_BI
         snapshot.dailySeedsDelta = ZERO_BI
+        snapshot.dailyRootsDelta = ZERO_BI
         snapshot.dailyBeanMints = ZERO_BI
         snapshot.blockNumber = ZERO_BI
         snapshot.timestamp = timestamp
