@@ -2,7 +2,7 @@ import { Address, BigDecimal, BigInt } from "@graphprotocol/graph-ts"
 import { Farmer, Fertilizer, FertilizerBalance, FertilizerToken } from "../../generated/schema"
 import { ZERO_BD, ZERO_BI } from "./Decimals"
 import { BEANSTALK, INITIAL_HUMIDITY } from "./Constants"
-import { Beanstalk } from "../../generated/Field-Replanted/Beanstalk"
+import { Beanstalk } from "../../generated/Fertilizer/Beanstalk"
 
 export function loadFertilizer(fertilizerAddress: Address): Fertilizer {
     let fertilizer = Fertilizer.load(fertilizerAddress.toHexString())
