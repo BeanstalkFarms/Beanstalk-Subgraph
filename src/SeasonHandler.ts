@@ -12,6 +12,7 @@ import { loadField, loadFieldDaily, loadFieldHourly } from "./utils/Field";
 import { expirePodListing, loadPodListing } from "./utils/PodListing";
 import { loadPodMarketplace, loadPodMarketplaceDailySnapshot, loadPodMarketplaceHourlySnapshot } from "./utils/PodMarketplace";
 import { loadSeason } from "./utils/Season";
+import { loadSilo, loadSiloDailySnapshot, loadSiloHourlySnapshot } from "./utils/Silo";
 
 export function handleSunrise(event: Sunrise): void {
     let currentSeason = event.params.season.toI32()
@@ -130,6 +131,23 @@ export function handleReward(event: Reward): void {
     let season = loadSeason(event.address, event.params.season)
     season.rewardBeans = reward.toField.plus(reward.toSilo).plus(reward.toFertilizer)
     season.save()
+
+    // Add to total Silo Bean mints
+
+    let silo = loadSilo(event.address)
+    let siloHourly = loadSiloHourlySnapshot(event.address, season.season, event.block.timestamp)
+    let siloDaily = loadSiloDailySnapshot(event.address, event.block.timestamp)
+
+    silo.totalBeanMints = silo.totalBeanMints.plus(event.params.toSilo)
+    silo.save()
+
+    siloHourly.totalBeanMints = silo.totalBeanMints
+    siloHourly.hourlyBeanMints = siloHourly.hourlyBeanMints.plus(event.params.toSilo)
+    siloHourly.save()
+
+    siloDaily.totalBeanMints = silo.totalBeanMints
+    siloDaily.dailyBeanMints = siloDaily.dailyBeanMints.plus(event.params.toSilo)
+    siloDaily.save()
 
 }
 
