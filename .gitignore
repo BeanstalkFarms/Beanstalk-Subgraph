@@ -64,3 +64,6 @@ typings/
 
 # thegraph build
 build
+
+# generated files from graph-cli
+generated
