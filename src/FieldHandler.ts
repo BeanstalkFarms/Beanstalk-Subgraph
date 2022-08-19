@@ -1,6 +1,6 @@
 import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
 import { FundFundraiser, Harvest, PlotTransfer, Sow, SupplyDecrease, SupplyIncrease, SupplyNeutral, WeatherChange } from '../generated/Field/Beanstalk'
-import { CurvePrice } from '../generated/Field-Replanted/CurvePrice'
+import { CurvePrice } from '../generated/Field/CurvePrice'
 import { Harvest as HarvestEntity } from '../generated/schema'
 import { BEANSTALK, BEANSTALK_FARMS, CURVE_PRICE } from './utils/Constants'
 import { ONE_BD, toDecimal, ZERO_BD, ZERO_BI } from './utils/Decimals'
