@@ -14,6 +14,7 @@ export function loadSilo(account: Address): Silo {
         silo.totalValueLockedUSD = ZERO_BD
         silo.totalDepositedBDV = ZERO_BI
         silo.totalStalk = ZERO_BI
+        silo.totalPlantableStalk = ZERO_BI
         silo.totalSeeds = ZERO_BI
         silo.totalRoots = ZERO_BI
         silo.totalBeanMints = ZERO_BI
@@ -33,6 +34,7 @@ export function loadSiloHourlySnapshot(account: Address, season: i32, timestamp:
         snapshot.totalValueLockedUSD = silo.totalValueLockedUSD
         snapshot.totalDepositedBDV = silo.totalDepositedBDV
         snapshot.totalStalk = silo.totalStalk
+        snapshot.totalPlantableStalk = silo.totalPlantableStalk
         snapshot.totalSeeds = silo.totalSeeds
         snapshot.totalRoots = silo.totalRoots
         snapshot.totalBeanMints = silo.totalBeanMints
@@ -42,6 +44,7 @@ export function loadSiloHourlySnapshot(account: Address, season: i32, timestamp:
         snapshot.hourlyWithdrawnBDV = ZERO_BI
         snapshot.hourlyClaimableBDV = ZERO_BI
         snapshot.hourlyStalkDelta = ZERO_BI
+        snapshot.hourlyPlantableStalkDelta = ZERO_BI
         snapshot.hourlySeedsDelta = ZERO_BI
         snapshot.hourlyRootsDelta = ZERO_BI
         snapshot.hourlyBeanMints = ZERO_BI
@@ -64,6 +67,7 @@ export function loadSiloDailySnapshot(account: Address, timestamp: BigInt): Silo
         snapshot.totalValueLockedUSD = silo.totalValueLockedUSD
         snapshot.totalDepositedBDV = silo.totalDepositedBDV
         snapshot.totalStalk = silo.totalStalk
+        snapshot.totalPlantableStalk = silo.totalPlantableStalk
         snapshot.totalSeeds = silo.totalSeeds
         snapshot.totalRoots = silo.totalRoots
         snapshot.totalBeanMints = silo.totalBeanMints
@@ -73,6 +77,7 @@ export function loadSiloDailySnapshot(account: Address, timestamp: BigInt): Silo
         snapshot.dailyWithdrawnBDV = ZERO_BI
         snapshot.dailyClaimableBDV = ZERO_BI
         snapshot.dailyStalkDelta = ZERO_BI
+        snapshot.dailyPlantableStalkDelta = ZERO_BI
         snapshot.dailySeedsDelta = ZERO_BI
         snapshot.dailyRootsDelta = ZERO_BI
         snapshot.dailyBeanMints = ZERO_BI

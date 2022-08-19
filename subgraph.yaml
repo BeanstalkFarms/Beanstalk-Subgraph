@@ -39,6 +39,8 @@ dataSources:
           handler: handleSeedsBalanceChanged
         - event: StalkBalanceChanged(indexed address,int256,int256)
           handler: handleStalkBalanceChanged
+        - event: Plant(indexed address,uint256)
+          handler: handlePlant
       file: ./src/SiloHandler.ts
   # Field - Original
   - kind: ethereum/contract

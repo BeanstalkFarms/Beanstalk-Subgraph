@@ -139,14 +139,19 @@ export function handleReward(event: Reward): void {
     let siloDaily = loadSiloDailySnapshot(event.address, event.block.timestamp)
 
     silo.totalBeanMints = silo.totalBeanMints.plus(event.params.toSilo)
+    silo.totalPlantableStalk = silo.totalPlantableStalk.plus(event.params.toSilo)
     silo.save()
 
     siloHourly.totalBeanMints = silo.totalBeanMints
+    siloHourly.totalPlantableStalk = silo.totalPlantableStalk
     siloHourly.hourlyBeanMints = siloHourly.hourlyBeanMints.plus(event.params.toSilo)
+    siloHourly.hourlyPlantableStalkDelta = siloHourly.hourlyPlantableStalkDelta.plus(event.params.toSilo)
     siloHourly.save()
 
     siloDaily.totalBeanMints = silo.totalBeanMints
+    siloDaily.totalPlantableStalk = silo.totalPlantableStalk
     siloDaily.dailyBeanMints = siloDaily.dailyBeanMints.plus(event.params.toSilo)
+    siloDaily.dailyPlantableStalkDelta = siloDaily.dailyPlantableStalkDelta.plus(event.params.toSilo)
     siloDaily.save()
 
 }

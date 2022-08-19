@@ -1,5 +1,5 @@
 import { Address, BigInt, log } from '@graphprotocol/graph-ts'
-import { AddDeposit, StalkBalanceChanged, AddWithdrawal, RemoveDeposit, RemoveDeposits, RemoveWithdrawal, RemoveWithdrawals } from '../generated/Silo-Replanted/Beanstalk'
+import { AddDeposit, StalkBalanceChanged, AddWithdrawal, RemoveDeposit, RemoveDeposits, RemoveWithdrawal, RemoveWithdrawals, Plant } from '../generated/Silo-Replanted/Beanstalk'
 import { ZERO_BI } from './utils/Decimals'
 import { loadFarmer } from './utils/Farmer'
 import { loadSilo, loadSiloDailySnapshot, loadSiloHourlySnapshot } from './utils/Silo'
@@ -182,6 +182,31 @@ export function handleSeedsBalanceChanged(event: StalkBalanceChanged): void {
     removal.blockNumber = event.block.number
     removal.timestamp = event.block.timestamp
     removal.save()
+}
+
+export function handlePlant(event: Plant): void {
+    // This removes the plantable stalk for planted beans.
+    // Actual stalk credit for the farmer will be handled under the StalkBalanceChanged event.
+
+    let beanstalk = loadBeanstalk(event.address)
+    let silo = loadSilo(event.address)
+    let siloHourly = loadSiloHourlySnapshot(event.address, beanstalk.lastSeason, event.block.timestamp)
+    let siloDaily = loadSiloDailySnapshot(event.address, event.block.timestamp)
+
+    silo.totalPlantableStalk = silo.totalPlantableStalk.minus(event.params.beans)
+    silo.save()
+
+    siloHourly.totalPlantableStalk = silo.totalPlantableStalk
+    siloHourly.hourlyPlantableStalkDelta = siloHourly.hourlyPlantableStalkDelta.minus(event.params.beans)
+    siloHourly.blockNumber = event.block.number
+    siloHourly.timestamp = event.block.timestamp
+    siloHourly.save()
+
+    siloDaily.totalPlantableStalk = silo.totalPlantableStalk
+    siloDaily.dailyPlantableStalkDelta = siloDaily.dailyPlantableStalkDelta.minus(event.params.beans)
+    siloDaily.blockNumber = event.block.number
+    siloDaily.timestamp = event.block.timestamp
+    siloDaily.save()
 }
 
 function addDepositToSilo(account: Address, season: i32, bdv: BigInt, timestamp: BigInt, blockNumber: BigInt): void {
