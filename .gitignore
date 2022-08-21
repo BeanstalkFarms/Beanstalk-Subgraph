@@ -67,3 +67,7 @@ build
 
 # generated files from graph-cli
 generated
+
+# matchstick binary download info
+tests/.latest.json
+tests/.bin
