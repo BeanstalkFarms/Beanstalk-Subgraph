@@ -1,7 +1,7 @@
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as/assembly/index";
 
-import { AddDeposit } from "../../generated/Silo-Replanted/Beanstalk";
+import { AddDeposit, RemoveDeposit } from "../../generated/Silo-Replanted/Beanstalk";
 import { handleAddDeposit } from "../../src/SiloHandler";
 import { BEAN_DECIMALS } from "../../src/utils/Constants";
 
@@ -29,3 +29,18 @@ export function createAddDepositEvent(account: string, token: string, season: i3
     return addDepositEvent as AddDeposit
 }
 
+export function createRemoveDepositEvent(account: string, token: string, season: i32, amount: i32, tokenDecimals: i32): RemoveDeposit {
+    let removeDepositEvent = changetype<RemoveDeposit>(newMockEvent())
+    removeDepositEvent.parameters = new Array()
+    let accountParam = new ethereum.EventParam("account", ethereum.Value.fromAddress(Address.fromString(account)))
+    let tokenParam = new ethereum.EventParam("token", ethereum.Value.fromAddress(Address.fromString(token)))
+    let seasonParam = new ethereum.EventParam("season", ethereum.Value.fromI32(season))
+    let amountParam = new ethereum.EventParam("amount", ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(amount).times(BigInt.fromI32(10 ** tokenDecimals))))
+
+    removeDepositEvent.parameters.push(accountParam)
+    removeDepositEvent.parameters.push(tokenParam)
+    removeDepositEvent.parameters.push(seasonParam)
+    removeDepositEvent.parameters.push(amountParam)
+
+    return removeDepositEvent as RemoveDeposit
+}

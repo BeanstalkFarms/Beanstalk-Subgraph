@@ -13,9 +13,11 @@ export function handleAddDeposit(event: AddDeposit): void {
 
 
     let deposit = loadSiloDeposit(event.params.account, event.params.token, event.params.season)
-    deposit.tokenAmount = event.params.amount
-    deposit.bdv = event.params.bdv
-    deposit.hashes.push(event.transaction.hash.toHexString())
+    deposit.tokenAmount = deposit.tokenAmount.plus(event.params.amount)
+    deposit.bdv = deposit.bdv.plus(event.params.bdv)
+    let depositHashes = deposit.hashes
+    depositHashes.push(event.transaction.hash.toHexString())
+    deposit.hashes = depositHashes
     deposit.createdAt = deposit.createdAt == ZERO_BI ? event.block.timestamp : deposit.createdAt
     deposit.updatedAt = event.block.timestamp
     deposit.save()
@@ -55,7 +57,7 @@ export function handleRemoveDeposit(event: RemoveDeposit): void {
     let remainingTokenAmount = deposit.tokenAmount.minus(deposit.removedTokenAmount)
     let remainingBDV = deposit.bdv.minus(deposit.removedBDV)
 
-    let removedBDV = remainingTokenAmount == ZERO_BI ? ZERO_BI : (event.params.amount.div(remainingTokenAmount)).times(remainingBDV)
+    let removedBDV = remainingTokenAmount == ZERO_BI ? ZERO_BI : event.params.amount.times(remainingBDV).div(remainingTokenAmount)
 
     // Update deposit
     deposit.removedBDV = deposit.removedBDV.plus(removedBDV)
@@ -94,7 +96,7 @@ export function handleRemoveDeposits(event: RemoveDeposits): void {
         let remainingTokenAmount = deposit.tokenAmount.minus(deposit.removedTokenAmount)
         let remainingBDV = deposit.bdv.minus(deposit.removedBDV)
 
-        let removedBDV = remainingTokenAmount == ZERO_BI ? ZERO_BI : (event.params.amounts[i].div(remainingTokenAmount)).times(remainingBDV)
+        let removedBDV = remainingTokenAmount == ZERO_BI ? ZERO_BI : event.params.amounts[i].times(remainingBDV).div(remainingTokenAmount)
 
         // Update deposit
         deposit.removedBDV = deposit.removedBDV.plus(removedBDV)
