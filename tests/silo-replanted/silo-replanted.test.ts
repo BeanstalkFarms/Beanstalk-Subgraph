@@ -67,7 +67,7 @@ describe("Mocked Events", () => {
             let newRemoveDepositEvent = createRemoveDepositEvent(
                 account,
                 token,
-                6100,
+                6150,
                 500,
                 6
             )

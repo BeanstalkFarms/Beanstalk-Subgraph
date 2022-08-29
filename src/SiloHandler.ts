@@ -8,6 +8,7 @@ import { loadSiloDeposit } from './utils/SiloDeposit'
 import { loadSiloWithdraw } from './utils/SiloWithdraw'
 import { AddDeposit as AddDepositEntity, RemoveDeposit as RemoveDepositEntity, SeedChange, StalkChange } from '../generated/schema'
 import { loadBeanstalk } from './utils/Beanstalk'
+import { BEANSTALK } from './utils/Constants'
 
 export function handleAddDeposit(event: AddDeposit): void {
 
@@ -30,6 +31,7 @@ export function handleAddDeposit(event: AddDeposit): void {
 
     // Ensure that a Farmer entity is set up for this account.
     loadFarmer(event.params.account)
+
 
     // Update farmer silo totals
     addDepositToSilo(event.params.account, season, event.params.bdv, event.block.timestamp, event.block.number)
@@ -209,6 +211,22 @@ export function handlePlant(event: Plant): void {
     siloDaily.blockNumber = event.block.number
     siloDaily.timestamp = event.block.timestamp
     siloDaily.save()
+    /*
+    let farmerSilo = loadSilo(event.params.account)
+    let farmerHourly = loadSiloHourlySnapshot(event.params.account, beanstalk.lastSeason, event.block.timestamp)
+    let farmerDaily = loadSiloDailySnapshot(event.params.account, event.block.timestamp)
+
+    farmerSilo.totalPlantableStalk = farmerSilo.totalPlantableStalk.minus(event.params.beans)
+    farmerSilo.save()
+
+    farmerHourly.totalPlantableStalk = farmerSilo.totalPlantableStalk
+    farmerHourly.hourlyPlantableStalkDelta = farmerHourly.hourlyPlantableStalkDelta.minus(event.params.beans)
+    farmerHourly.save()
+
+    farmerDaily.totalPlantableStalk = farmerSilo.totalPlantableStalk
+    farmerDaily.dailyPlantableStalkDelta = farmerDaily.dailyPlantableStalkDelta.minus(event.params.beans)
+    farmerDaily.save()
+    */
 }
 
 function addDepositToSilo(account: Address, season: i32, bdv: BigInt, timestamp: BigInt, blockNumber: BigInt): void {
@@ -331,12 +349,6 @@ function updateStalkBalances(account: Address, season: i32, stalk: BigInt, roots
     let siloHourly = loadSiloHourlySnapshot(account, season, timestamp)
     let siloDaily = loadSiloDailySnapshot(account, timestamp)
 
-
-    if (account == Address.fromString('0x19a4fe7d0c76490cca77b45580846cdb38b9a406')) {
-        log.debug('\nStalkChanges: Account - {}\nStalkChanges: Starting Stalk - {}\nStalkChanges: Change Amount -  {}\n', [account.toHexString(), silo.totalStalk.toString(), stalk.toString()])
-    }
-
-
     silo.totalStalk = silo.totalStalk.plus(stalk)
     silo.totalRoots = silo.totalRoots.plus(roots)
     silo.save()
@@ -358,8 +370,39 @@ function updateStalkBalances(account: Address, season: i32, stalk: BigInt, roots
     siloDaily.timestamp = timestamp
     siloDaily.save()
 
-    if (account == Address.fromString('0x19a4fe7d0c76490cca77b45580846cdb38b9a406')) {
-        log.debug('\nStalkChanges: Ending Stalk   - {}\n', [silo.totalStalk.toString()])
+    // Add account to active list if needed
+    if (account !== BEANSTALK) {
+        let beanstalk = loadBeanstalk(BEANSTALK)
+        let farmerIndex = beanstalk.activeFarmers.indexOf(account.toHexString())
+        if (farmerIndex == -1) {
+            let newFarmers = beanstalk.activeFarmers
+            newFarmers.push(account.toHexString())
+            beanstalk.activeFarmers = newFarmers
+            beanstalk.save()
+
+            silo.totalFarmers += 1
+            siloHourly.totalFarmers += 1
+            siloHourly.hourlyFarmers += 1
+            siloDaily.totalFarmers += 1
+            siloDaily.dailyFarmers += 1
+            silo.save()
+            siloHourly.save()
+            siloDaily.save()
+
+        } else if (silo.totalStalk == ZERO_BI) {
+            let newFarmers = beanstalk.activeFarmers
+            newFarmers.splice(farmerIndex, 1)
+            beanstalk.activeFarmers = newFarmers
+
+            silo.totalFarmers -= 1
+            siloHourly.totalFarmers -= 1
+            siloHourly.hourlyFarmers -= 1
+            siloDaily.totalFarmers -= 1
+            siloDaily.dailyFarmers -= 1
+            silo.save()
+            siloHourly.save()
+            siloDaily.save()
+        }
     }
 }
 

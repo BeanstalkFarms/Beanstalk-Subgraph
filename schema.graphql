@@ -115,6 +115,9 @@ type Beanstalk @entity {
 
   " Last season called "
   lastSeason: Int!
+
+  " Array of the addresses for all active farmers in the silo "
+  activeFarmers: [String!]!
 }
 
 # An entity that holds season level data
@@ -168,6 +171,7 @@ type Silo @entity {
   totalSeeds: BigInt!
   totalRoots: BigInt!
   totalBeanMints: BigInt!
+  totalFarmers: Int!
   hourlySnapshots: [SiloHourlySnapshot!]! @derivedFrom(field: "silo")
   dailySnapshots: [SiloDailySnapshot!]! @derivedFrom(field: "silo")
 }
@@ -183,6 +187,8 @@ type SiloHourlySnapshot @entity {
   totalSeeds: BigInt!
   totalRoots: BigInt!
   totalBeanMints: BigInt!
+  totalFarmers: Int!
+  beansPerStalk: BigInt!
   cumulativeDepositedUSD: BigDecimal!
   hourlyDepositedUSD: BigDecimal!
   hourlyDepositedBDV: BigInt!
@@ -193,6 +199,7 @@ type SiloHourlySnapshot @entity {
   hourlySeedsDelta: BigInt!
   hourlyRootsDelta: BigInt!
   hourlyBeanMints: BigInt!
+  hourlyFarmers: Int!
   blockNumber: BigInt!
   timestamp: BigInt!
 }
@@ -208,6 +215,8 @@ type SiloDailySnapshot @entity {
   totalSeeds: BigInt!
   totalRoots: BigInt!
   totalBeanMints: BigInt!
+  totalFarmers: Int!
+  beansPerStalk: BigInt!
   cumulativeDepositedUSD: BigDecimal!
   dailyDepositedUSD: BigDecimal!
   dailyDepositedBDV: BigInt!
@@ -218,6 +227,7 @@ type SiloDailySnapshot @entity {
   dailySeedsDelta: BigInt!
   dailyRootsDelta: BigInt!
   dailyBeanMints: BigInt!
+  dailyFarmers: Int!
   blockNumber: BigInt!
   timestamp: BigInt!
 }
