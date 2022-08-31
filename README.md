@@ -13,10 +13,10 @@
 
 All currently used subgraphs live on the graph protocol's centralized host. 
 
+- [Testing Subgraph](https://graph.node.bean.money/subgraphs/name/beanstalk-testing)
+  - Used during local development for debugging and rapid iteration.   
+- [Dev Subgraph](https://api.thegraph.com/subgraphs/name/cujowolf/beanstalk-dev)
+  - Used for testing fixes or improvements made in the testing subgraph. 
 - [Canonical Subgraph](https://api.thegraph.com/subgraphs/name/cujowolf/beanstalk)
-  - Used by the UI. 
-  - Once changes are tested on the staging subgraph, they are pushed to the canonical subgraph. 
-- [Staging Subgraph](https://api.thegraph.com/subgraphs/name/cujowolf/beanstalk-dev)
-  - Used for testing fixes or improvements to the development subgraph. 
-- [Development Subgraph](https://graph.playgrounds.academy/subgraphs/name/beanstalk)
-  - Used during local development for rapid iteration.   
+  - Stable deployment and current source of truth for UI and other production processes. 
+  - All changes pushed to the canonical subgraph are prototyped on the testing subgraph, tested on the dev subgraph, then made canonical once verified. 
