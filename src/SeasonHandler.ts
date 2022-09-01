@@ -6,13 +6,14 @@ import { Incentive } from "../generated/schema";
 import { updateHarvestablePlots } from "./FieldHandler";
 import { loadBeanstalk } from "./utils/Beanstalk";
 import { Reward as RewardEntity, MetapoolOracle as MetapoolOracleEntity } from '../generated/schema'
-import { BEANSTALK, CURVE_PRICE } from "./utils/Constants";
+import { BEANSTALK, BEAN_ERC20, CURVE_PRICE } from "./utils/Constants";
 import { ONE_BI, toDecimal, ZERO_BD, ZERO_BI } from "./utils/Decimals";
 import { loadField, loadFieldDaily, loadFieldHourly } from "./utils/Field";
 import { expirePodListing, loadPodListing } from "./utils/PodListing";
 import { loadPodMarketplace, loadPodMarketplaceDailySnapshot, loadPodMarketplaceHourlySnapshot } from "./utils/PodMarketplace";
 import { loadSeason } from "./utils/Season";
 import { loadSilo, loadSiloDailySnapshot, loadSiloHourlySnapshot } from "./utils/Silo";
+import { addDepositToSiloAsset } from "./SiloHandler";
 
 export function handleSunrise(event: Sunrise): void {
     let currentSeason = event.params.season.toI32()
@@ -36,41 +37,6 @@ export function handleSunrise(event: Sunrise): void {
     fieldDaily.season = currentSeason
     fieldDaily.podRate = field.podRate
 
-    let newIndexes = field.plotIndexes.sort()
-    /*
-        // -- Flag plots as harvestable
-        for (let i = 0; i < field.plotIndexes.length; i++) {
-            if (field.plotIndexes[i] < season.harvestableIndex) {
-                let plot = loadPlot(event.address, field.plotIndexes[i])
-                // Insert farmer field info
-                let harvestablePods = ZERO_BI
-                if (plot.harvestablePods == ZERO_BI) {
-                    if (plot.index.plus(plot.pods) <= season.harvestableIndex) {
-                        harvestablePods = plot.pods
-                    } else {
-                        harvestablePods = season.harvestableIndex.minus(plot.index)
-                    }
-                } else {
-                    if (plot.index.plus(plot.pods) <= season.harvestableIndex) {
-                        harvestablePods = plot.pods.minus(plot.harvestablePods)
-                    } else {
-                        harvestablePods = season.harvestableIndex.minus(plot.index).plus(plot.harvestablePods)
-                    }
-                }
-    
-                plot.harvestablePods = plot.harvestablePods.plus(harvestablePods)
-                plot.save()
-    
-                // Farmer totals here
-    
-                if (plot.harvestablePods == plot.pods) {
-                    newIndexes.shift()
-                }
-            } else { break }
-        }
-    
-        field.plotIndexes = newIndexes
-    */
     field.save()
     fieldHourly.save()
     fieldDaily.save()
@@ -138,59 +104,28 @@ export function handleReward(event: Reward): void {
     let siloHourly = loadSiloHourlySnapshot(event.address, season.season, event.block.timestamp)
     let siloDaily = loadSiloDailySnapshot(event.address, event.block.timestamp)
 
-    //let stalkPerBean = (silo.totalStalk.plus(silo.totalPlantableStalk)).div(event.params.toSilo)
-
     silo.totalBeanMints = silo.totalBeanMints.plus(event.params.toSilo)
     silo.totalPlantableStalk = silo.totalPlantableStalk.plus(event.params.toSilo)
+    silo.totalDepositedBDV = silo.totalDepositedBDV.plus(event.params.toSilo)
     silo.save()
 
     siloHourly.totalBeanMints = silo.totalBeanMints
     siloHourly.totalPlantableStalk = silo.totalPlantableStalk
+    siloHourly.totalDepositedBDV = silo.totalDepositedBDV
     siloHourly.hourlyBeanMints = siloHourly.hourlyBeanMints.plus(event.params.toSilo)
     siloHourly.hourlyPlantableStalkDelta = siloHourly.hourlyPlantableStalkDelta.plus(event.params.toSilo)
-    //siloHourly.beansPerStalk = ONE_BI.times(BigInt.fromString('10000000000')).div(stalkPerBean)
+    siloHourly.hourlyDepositedBDV = siloHourly.hourlyDepositedBDV.plus(event.params.toSilo)
     siloHourly.save()
 
     siloDaily.totalBeanMints = silo.totalBeanMints
     siloDaily.totalPlantableStalk = silo.totalPlantableStalk
+    siloDaily.totalDepositedBDV = silo.totalDepositedBDV
     siloDaily.dailyBeanMints = siloDaily.dailyBeanMints.plus(event.params.toSilo)
     siloDaily.dailyPlantableStalkDelta = siloDaily.dailyPlantableStalkDelta.plus(event.params.toSilo)
-    //siloDaily.beansPerStalk = siloDaily.beansPerStalk.plus(siloHourly.beansPerStalk)
+    siloDaily.dailyDepositedBDV = siloDaily.dailyDepositedBDV.plus(event.params.toSilo)
     siloDaily.save()
 
-    // Update active farmers with bean amounts
-
-    let beanstalk = loadBeanstalk(BEANSTALK)
-
-    for (let i = 0; i < beanstalk.activeFarmers.length; i++) {
-        let farmerSilo = loadSilo(Address.fromString(beanstalk.activeFarmers[i]))
-        let farmerHourly = loadSiloHourlySnapshot(Address.fromString(beanstalk.activeFarmers[i]), season.season, event.block.timestamp)
-        let farmerDaily = loadSiloDailySnapshot(Address.fromString(beanstalk.activeFarmers[i]), event.block.timestamp)
-
-        /*
-        let totalSiloStalk = silo.totalStalk.plus(silo.totalPlantableStalk)
-        let farmerPlantableStalk = (farmerSilo.totalRoots.times(totalSiloStalk).div(silo.totalRoots)).minus(farmerSilo.totalStalk)
-        let newFarmerPlantableStalk = farmerPlantableStalk.minus(farmerSilo.totalPlantableStalk)
-
-        farmerSilo.totalBeanMints = farmerSilo.totalBeanMints.plus(newFarmerPlantableStalk)
-        farmerSilo.totalPlantableStalk = farmerPlantableStalk
-        farmerSilo.save()
-
-        farmerHourly.totalBeanMints = farmerSilo.totalBeanMints
-        farmerHourly.totalPlantableStalk = farmerSilo.totalPlantableStalk
-        farmerHourly.hourlyBeanMints = farmerHourly.hourlyBeanMints.plus(newFarmerPlantableStalk)
-        farmerHourly.hourlyPlantableStalkDelta = farmerHourly.hourlyPlantableStalkDelta.plus(newFarmerPlantableStalk)
-        farmerHourly.blockNumber = event.block.number
-        farmerHourly.save()
-
-        farmerDaily.totalBeanMints = farmerSilo.totalBeanMints
-        farmerDaily.totalPlantableStalk = farmerSilo.totalPlantableStalk
-        farmerDaily.dailyBeanMints = farmerDaily.dailyBeanMints.plus(newFarmerPlantableStalk)
-        farmerDaily.dailyPlantableStalkDelta = farmerDaily.dailyPlantableStalkDelta.plus(newFarmerPlantableStalk)
-        farmerDaily.blockNumber = event.block.number
-        farmerDaily.save()
-        */
-    }
+    addDepositToSiloAsset(event.address, BEAN_ERC20, event.params.season.toI32(), event.params.toSilo, event.params.toSilo, event.block.timestamp, event.block.number)
 }
 
 

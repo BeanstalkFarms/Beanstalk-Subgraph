@@ -9,7 +9,7 @@ describe("Mocked Events", () => {
     })
 
     describe("Bean", () => {
-        test("AddDeposit - Farmer Overall Silo Amounts", () => {
+        test("AddDeposit - Farm and Assets updated", () => {
 
             let account = '0x1234567890abcdef1234567890abcdef12345678'.toLowerCase()
             let token = BEAN_ERC20.toHexString().toLowerCase()
@@ -25,27 +25,9 @@ describe("Mocked Events", () => {
 
             handleAddDeposit(newAddDepositEvent)
 
-            assert.fieldEquals("Silo", account, "totalDepositedBDV", "1000000000")
-        })
-
-        test("AddDeposit - Farmer Silo Asset Amounts", () => {
-
-            let account = '0x1234567890abcdef1234567890abcdef12345678'.toLowerCase()
-            let token = BEAN_ERC20.toHexString().toLowerCase()
-
-            let newAddDepositEvent = createAddDepositEvent(
-                account,
-                token,
-                6100,
-                1000,
-                6,
-                1000
-            )
-
-            handleAddDeposit(newAddDepositEvent)
-
-            assert.fieldEquals("SiloAsset", account + '-' + token, "totalDepositedBDV", "1000000000")
-            assert.fieldEquals("SiloAsset", account + '-' + token, "totalDepositedAmount", "1000000000")
+            assert.fieldEquals("Farm", account, "totalDepositedBDV", "1000000000")
+            assert.fieldEquals("FarmAsset", account + '-' + token, "totalDepositedBDV", "1000000000")
+            assert.fieldEquals("FarmAsset", account + '-' + token, "totalDepositedAmount", "1000000000")
         })
 
         test("RemoveDeposit - Farmer Silo Amounts 50% Initial", () => {
@@ -67,17 +49,18 @@ describe("Mocked Events", () => {
             let newRemoveDepositEvent = createRemoveDepositEvent(
                 account,
                 token,
-                6150,
+                6100,
                 500,
                 6
             )
 
             handleRemoveDeposit(newRemoveDepositEvent)
 
+            assert.fieldEquals("Farm", account, "totalDepositedBDV", "500000000")
             assert.fieldEquals("SiloDeposit", account + '-' + token + '-6100', "removedTokenAmount", "500000000")
             assert.fieldEquals("SiloDeposit", account + '-' + token + '-6100', "removedBDV", "500000000")
-            assert.fieldEquals("SiloAsset", account + '-' + token, "totalDepositedBDV", "500000000")
-            assert.fieldEquals("SiloAsset", account + '-' + token, "totalDepositedAmount", "500000000")
+            assert.fieldEquals("FarmAsset", account + '-' + token, "totalDepositedBDV", "500000000")
+            assert.fieldEquals("FarmAsset", account + '-' + token, "totalDepositedAmount", "500000000")
         })
 
         test("RemoveDeposit - Farmer Silo Amounts 50% Remaining", () => {
@@ -116,10 +99,11 @@ describe("Mocked Events", () => {
 
             handleRemoveDeposit(secondRemoveDepositEvent)
 
+            assert.fieldEquals("Farm", account, "totalDepositedBDV", "250000000")
             assert.fieldEquals("SiloDeposit", account + '-' + token + '-6100', "removedTokenAmount", "750000000")
             assert.fieldEquals("SiloDeposit", account + '-' + token + '-6100', "removedBDV", "750000000")
-            assert.fieldEquals("SiloAsset", account + '-' + token, "totalDepositedBDV", "250000000")
-            assert.fieldEquals("SiloAsset", account + '-' + token, "totalDepositedAmount", "250000000")
+            assert.fieldEquals("FarmAsset", account + '-' + token, "totalDepositedBDV", "250000000")
+            assert.fieldEquals("FarmAsset", account + '-' + token, "totalDepositedAmount", "250000000")
         })
     })
 })

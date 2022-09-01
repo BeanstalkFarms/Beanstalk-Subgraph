@@ -1,8 +1,7 @@
 import { Address, BigInt } from '@graphprotocol/graph-ts';
-import { SiloAsset, SiloAssetDailySnapshot, SiloAssetHourlySnapshot } from '../../generated/schema'
-import { dayFromTimestamp } from './Dates';
+import { SiloAsset, SiloAssetHourlySnapshot, SiloAssetDailySnapshot } from '../../generated/schema'
+import { dayFromTimestamp, hourFromTimestamp } from './Dates';
 import { ZERO_BD, ZERO_BI } from './Decimals';
-import { loadToken } from './Token';
 
 export function loadSiloAsset(account: Address, token: Address): SiloAsset {
     let id = account.toHexString() + '-' + token.toHexString()
@@ -19,12 +18,14 @@ export function loadSiloAsset(account: Address, token: Address): SiloAsset {
         asset.cumulativeDepositedUSD = ZERO_BD
         asset.totalStalk = ZERO_BI
         asset.totalSeeds = ZERO_BI
+        asset.totalFarmAmount = ZERO_BI
         asset.save()
     }
     return asset as SiloAsset
 }
 
-export function loadSiloAssetHourlySnapshot(account: Address, token: Address, season: i32): SiloAssetHourlySnapshot {
+export function loadSiloAssetHourlySnapshot(account: Address, token: Address, season: i32, timestamp: BigInt): SiloAssetHourlySnapshot {
+    let hour = hourFromTimestamp(timestamp)
     let id = account.toHexString() + '-' + token.toHexString() + '-' + season.toString()
     let snapshot = SiloAssetHourlySnapshot.load(id)
     if (snapshot == null) {
@@ -38,14 +39,17 @@ export function loadSiloAssetHourlySnapshot(account: Address, token: Address, se
         snapshot.totalStalk = asset.totalStalk
         snapshot.totalSeeds = asset.totalSeeds
         snapshot.cumulativeDepositedUSD = asset.cumulativeDepositedUSD
+        snapshot.totalFarmAmount = asset.totalFarmAmount
         snapshot.hourlyDepositedUSD = ZERO_BD
         snapshot.hourlyDepositedBDV = ZERO_BI
         snapshot.hourlyDepositedAmount = ZERO_BI
         snapshot.hourlyWithdrawnAmount = ZERO_BI
         snapshot.hourlyStalkDelta = ZERO_BI
         snapshot.hourlySeedsDelta = ZERO_BI
+        snapshot.hourlyFarmAmountDelta = ZERO_BI
         snapshot.blockNumber = ZERO_BI
-        snapshot.timestamp = ZERO_BI
+        snapshot.timestamp = BigInt.fromString(hour)
+        snapshot.lastUpdated = ZERO_BI
         snapshot.save()
     }
     return snapshot as SiloAssetHourlySnapshot
@@ -66,14 +70,17 @@ export function loadSiloAssetDailySnapshot(account: Address, token: Address, tim
         snapshot.totalStalk = asset.totalStalk
         snapshot.totalSeeds = asset.totalSeeds
         snapshot.cumulativeDepositedUSD = asset.cumulativeDepositedUSD
+        snapshot.totalFarmAmount = asset.totalFarmAmount
         snapshot.dailyDepositedUSD = ZERO_BD
         snapshot.dailyDepositedBDV = ZERO_BI
         snapshot.dailyDepositedAmount = ZERO_BI
         snapshot.dailyWithdrawnAmount = ZERO_BI
         snapshot.dailyStalkDelta = ZERO_BI
         snapshot.dailySeedsDelta = ZERO_BI
+        snapshot.dailyFarmAmountDelta = ZERO_BI
         snapshot.blockNumber = ZERO_BI
-        snapshot.timestamp = ZERO_BI
+        snapshot.timestamp = BigInt.fromString(day)
+        snapshot.lastUpdated = ZERO_BI
         snapshot.save()
     }
     return snapshot as SiloAssetDailySnapshot
