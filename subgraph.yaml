@@ -311,3 +311,25 @@ dataSources:
         - event: TransferSingle(indexed address,indexed address,indexed address,uint256,uint256)
           handler: handleTransferSingle
       file: ./src/FertilizerHandler.ts
+  - kind: ethereum/contract
+    name: Farm
+    network: mainnet
+    source:
+      address: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5"
+      abi: Beanstalk
+      startBlock: 15277986
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Farm
+      abis:
+        - name: Beanstalk
+          file: ./abis/Beanstalk-Replanted.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: InternalBalanceChanged(indexed address,indexed address,int256)
+          handler: handleInternalBalanceChanged
+      file: ./src/FarmHandler.ts

@@ -1,8 +1,7 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
-import { SiloDailySnapshot } from "../../generated/schema";
-import { Silo, SiloHourlySnapshot } from "../../generated/schema";
+import { Silo, SiloHourlySnapshot, SiloDailySnapshot } from "../../generated/schema";
 import { BEANSTALK } from "./Constants";
-import { dayFromTimestamp } from "./Dates";
+import { dayFromTimestamp, hourFromTimestamp } from "./Dates";
 import { ZERO_BD, ZERO_BI } from "./Decimals";
 
 export function loadSilo(account: Address): Silo {
@@ -21,10 +20,11 @@ export function loadSilo(account: Address): Silo {
         silo.totalFarmers = 0
         silo.save()
     }
-    return silo
+    return silo as Silo
 }
 
 export function loadSiloHourlySnapshot(account: Address, season: i32, timestamp: BigInt): SiloHourlySnapshot {
+    let hour = hourFromTimestamp(timestamp)
     let id = account.toHexString() + '-' + season.toString()
     let snapshot = SiloHourlySnapshot.load(id)
     if (snapshot == null) {
@@ -53,10 +53,11 @@ export function loadSiloHourlySnapshot(account: Address, season: i32, timestamp:
         snapshot.hourlyBeanMints = ZERO_BI
         snapshot.hourlyFarmers = 0
         snapshot.blockNumber = ZERO_BI
-        snapshot.timestamp = timestamp
+        snapshot.timestamp = BigInt.fromString(hour)
+        snapshot.lastUpdated = timestamp
         snapshot.save()
     }
-    return snapshot
+    return snapshot as SiloHourlySnapshot
 }
 
 export function loadSiloDailySnapshot(account: Address, timestamp: BigInt): SiloDailySnapshot {
@@ -89,7 +90,8 @@ export function loadSiloDailySnapshot(account: Address, timestamp: BigInt): Silo
         snapshot.dailyBeanMints = ZERO_BI
         snapshot.dailyFarmers = 0
         snapshot.blockNumber = ZERO_BI
-        snapshot.timestamp = timestamp
+        snapshot.timestamp = BigInt.fromString(day)
+        snapshot.lastUpdated = timestamp
         snapshot.save()
     }
     return snapshot as SiloDailySnapshot

@@ -202,6 +202,7 @@ type SiloHourlySnapshot @entity {
   hourlyFarmers: Int!
   blockNumber: BigInt!
   timestamp: BigInt!
+  lastUpdated: BigInt!
 }
 
 type SiloDailySnapshot @entity {
@@ -230,6 +231,7 @@ type SiloDailySnapshot @entity {
   dailyFarmers: Int!
   blockNumber: BigInt!
   timestamp: BigInt!
+  lastUpdated: BigInt!
 }
 
 type SiloAsset @entity {
@@ -242,6 +244,7 @@ type SiloAsset @entity {
   cumulativeDepositedUSD: BigDecimal!
   totalStalk: BigInt!
   totalSeeds: BigInt!
+  totalFarmAmount: BigInt!
   hourlySnapshots: [SiloAssetHourlySnapshot!]! @derivedFrom(field: "siloAsset")
   dailySnapshots: [SiloAssetDailySnapshot!]! @derivedFrom(field: "siloAsset")
 }
@@ -256,14 +259,17 @@ type SiloAssetHourlySnapshot @entity {
   totalStalk: BigInt!
   totalSeeds: BigInt!
   cumulativeDepositedUSD: BigDecimal!
+  totalFarmAmount: BigInt!
   hourlyDepositedUSD: BigDecimal!
   hourlyDepositedBDV: BigInt!
   hourlyDepositedAmount: BigInt!
   hourlyWithdrawnAmount: BigInt!
   hourlyStalkDelta: BigInt!
   hourlySeedsDelta: BigInt!
+  hourlyFarmAmountDelta: BigInt!
   blockNumber: BigInt!
   timestamp: BigInt!
+  lastUpdated: BigInt!
 }
 
 type SiloAssetDailySnapshot @entity {
@@ -276,14 +282,17 @@ type SiloAssetDailySnapshot @entity {
   totalStalk: BigInt!
   totalSeeds: BigInt!
   cumulativeDepositedUSD: BigDecimal!
+  totalFarmAmount: BigInt!
   dailyDepositedUSD: BigDecimal!
   dailyDepositedBDV: BigInt!
   dailyDepositedAmount: BigInt!
   dailyWithdrawnAmount: BigInt!
   dailyStalkDelta: BigInt!
   dailySeedsDelta: BigInt!
+  dailyFarmAmountDelta: BigInt!
   blockNumber: BigInt!
   timestamp: BigInt!
+  lastUpdated: BigInt!
 }
 
 type Field @entity {
