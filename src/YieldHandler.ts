@@ -1,11 +1,10 @@
 import { BigDecimal, BigInt, log } from "@graphprotocol/graph-ts";
 import { BEANSTALK } from "./utils/Constants";
 import { pow, toDecimal, ZERO_BD } from "./utils/Decimals";
-import { loadSeason } from "./utils/Season";
-import { loadSilo } from "./utils/Silo";
+import { loadSilo, loadSiloHourlySnapshot } from "./utils/Silo";
 import { loadSiloYield } from "./utils/SiloYield";
 
-export function updateBeanEMA(t: i32): void {
+export function updateBeanEMA(t: i32, timestamp: BigInt): void {
     let siloYield = loadSiloYield(t)
 
     // Calculate the current u value
@@ -20,15 +19,15 @@ export function updateBeanEMA(t: i32): void {
 
     if (t - 6075 <= 720) {
         for (let i = 6075; i <= t; i++) {
-            let season = loadSeason(BEANSTALK, BigInt.fromI32(i))
-            currentEMA = ((toDecimal(season.rewardBeans).minus(priorEMA)).times(siloYield.beta)).plus(priorEMA)
+            let season = loadSiloHourlySnapshot(BEANSTALK, i, timestamp)
+            currentEMA = ((toDecimal(season.hourlyBeanMints).minus(priorEMA)).times(siloYield.beta)).plus(priorEMA)
             priorEMA = currentEMA
         }
     } else {
         // Beta has become stable
-        let season = loadSeason(BEANSTALK, BigInt.fromI32(t))
+        let season = loadSiloHourlySnapshot(BEANSTALK, t, timestamp)
         let priorYield = loadSiloYield(t - 1)
-        currentEMA = ((toDecimal(season.rewardBeans).minus(priorYield.beansPerSeasonEMA)).times(siloYield.beta)).plus(priorYield.beansPerSeasonEMA)
+        currentEMA = ((toDecimal(season.hourlyBeanMints).minus(priorYield.beansPerSeasonEMA)).times(siloYield.beta)).plus(priorYield.beansPerSeasonEMA)
     }
 
     siloYield.beansPerSeasonEMA = currentEMA
@@ -64,8 +63,8 @@ function calculateAPY(n: BigDecimal, seeds: BigDecimal): BigDecimal {
     for (let i = 0; i < 8760; i++) {
         // Each Season, Farmer's ownership = `current Stalk / total Stalk`
         let ownership = k.div(K)
-        let newBeans  = n.times(ownership)
-        
+        let newBeans = n.times(ownership)
+
         // Total Seeds: each seignorage Bean => 2 Seeds
         C_i = C.plus(n.times(BigDecimal.fromString('2')))
         // Total Stalk: each seignorage Bean => 1 Stalk, each outstanding Bean => 1/10_000 Stalk

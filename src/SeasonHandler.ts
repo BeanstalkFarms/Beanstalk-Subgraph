@@ -202,6 +202,6 @@ export function handleIncentive(event: Incentivization): void {
     updateHarvestablePlots(season.harvestableIndex, event.block.timestamp, event.block.number)
 
     if (beanstalk.lastSeason >= 6075) {
-        updateBeanEMA(beanstalk.lastSeason)
+        updateBeanEMA(beanstalk.lastSeason, event.block.timestamp)
     }
 }
