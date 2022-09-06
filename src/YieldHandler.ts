@@ -1,14 +1,18 @@
-import { BigDecimal, BigInt, log } from "@graphprotocol/graph-ts";
+import { BigDecimal, BigInt } from "@graphprotocol/graph-ts";
 import { BEANSTALK } from "./utils/Constants";
-import { pow, toDecimal, ZERO_BD } from "./utils/Decimals";
+import { toDecimal, ZERO_BD } from "./utils/Decimals";
 import { loadSilo, loadSiloHourlySnapshot } from "./utils/Silo";
 import { loadSiloYield } from "./utils/SiloYield";
 
+const MAX_WINDOW = 720;
+
+// Note: minimum value of `t` is 6075
 export function updateBeanEMA(t: i32, timestamp: BigInt): void {
     let siloYield = loadSiloYield(t)
 
-    // Calculate the current u value
-    siloYield.u = t - 6074 < 720 ? t - 6074 : 720
+    // When less then MAX_WINDOW data points are available,
+    // smooth over whatever is available. Otherwise use MAX_WINDOW.
+    siloYield.u = t - 6074 < MAX_WINDOW ? t - 6074 : MAX_WINDOW
 
     // Calculate the current beta value
     siloYield.beta = BigDecimal.fromString('2').div(BigDecimal.fromString((siloYield.u + 1).toString()))
@@ -17,7 +21,8 @@ export function updateBeanEMA(t: i32, timestamp: BigInt): void {
     let currentEMA = ZERO_BD
     let priorEMA = ZERO_BD
 
-    if (t - 6075 <= 720) {
+    if (siloYield.u < MAX_WINDOW) {
+        // Recalculate EMA from initial season since beta has changed
         for (let i = 6075; i <= t; i++) {
             let season = loadSiloHourlySnapshot(BEANSTALK, i, timestamp)
             currentEMA = ((toDecimal(season.hourlyBeanMints).minus(priorEMA)).times(siloYield.beta)).plus(priorEMA)
@@ -33,22 +38,37 @@ export function updateBeanEMA(t: i32, timestamp: BigInt): void {
     siloYield.beansPerSeasonEMA = currentEMA
     siloYield.save()
 
-    siloYield.beanAPY = calculateAPY(currentEMA, BigDecimal.fromString('2'))
-    siloYield.lpAPY = calculateAPY(currentEMA, BigDecimal.fromString('4'))
+    // This iterates through 8760 times to calculate the silo APY
+    let silo = loadSilo(BEANSTALK)
+    
+    siloYield.beanAPY = calculateAPY(currentEMA, BigDecimal.fromString('2'), silo.totalStalk, silo.totalSeeds)[0]
+    siloYield.lpAPY   = calculateAPY(currentEMA, BigDecimal.fromString('4'), silo.totalStalk, silo.totalSeeds)[0]
     siloYield.save()
 }
 
+/**
+ * 
+ * @param n An estimate of number of Beans minted to the Silo per Season on average
+ * over the next 720 Seasons. This could be pre-calculated as a SMA, EMA, or otherwise.
+ * @param seedsPerBDV The number of seeds per BDV Beanstalk rewards for this token.
+ * @returns 
+ */
 
-function calculateAPY(n: BigDecimal, seeds: BigDecimal): BigDecimal {
-    // This iterates through 8760 times to calculate the silo APY
-    let silo = loadSilo(BEANSTALK)
-
+export function calculateAPY(
+    n: BigDecimal, 
+    seedsPerBDV: BigDecimal,
+    totalStalk: BigInt,
+    totalSeeds: BigInt
+) : StaticArray<BigDecimal> {
     // Initialize sequence
-    let C = toDecimal(silo.totalSeeds)              // Init: Total Seeds
-    let K = toDecimal(silo.totalStalk, 10)          // Init: Total Stalk
-    let b = seeds.div(BigDecimal.fromString('2'))   // Init: User BDV
-    let k = BigDecimal.fromString('1')              // Init: User Stalk
+    let C = toDecimal(totalSeeds)              // Init: Total Seeds
+    let K = toDecimal(totalStalk, 10)          // Init: Total Stalk
+    let b = seedsPerBDV.div(BigDecimal.fromString('2')) // Init: User BDV
+    let k = BigDecimal.fromString('1')         // Init: User Stalk
+    
+    // Farmer initial values
     let b_start = b
+    let k_start = k
 
     // Placeholders for above values during each iteration
     let C_i = ZERO_BD
@@ -63,16 +83,20 @@ function calculateAPY(n: BigDecimal, seeds: BigDecimal): BigDecimal {
     for (let i = 0; i < 8760; i++) {
         // Each Season, Farmer's ownership = `current Stalk / total Stalk`
         let ownership = k.div(K)
-        let newBeans = n.times(ownership)
+        let newBDV = n.times(ownership)
 
         // Total Seeds: each seignorage Bean => 2 Seeds
         C_i = C.plus(n.times(BigDecimal.fromString('2')))
         // Total Stalk: each seignorage Bean => 1 Stalk, each outstanding Bean => 1/10_000 Stalk
-        K_i = K.plus(n/* .times(1) */).plus(STALK_PER_SEED.times(C))
-        // User Beans: each seignorage Bean => 1 BDV
-        b_i = b.plus(newBeans)
-        // User Stalk: each seignorage Bean => 1 Stalk, each outstanding Bean => d = 1/5_000 Stalk per Bean
-        k_i = k.plus(newBeans).plus(STALK_PER_BEAN.times(b))
+        K_i = K
+            .plus(n)
+            .plus(STALK_PER_SEED.times(C))
+        // Farmer BDV: each seignorage Bean => 1 BDV
+        b_i = b.plus(newBDV)
+        // Farmer Stalk: each 1 BDV => 1 Stalk, each outstanding Bean => d = 1/5_000 Stalk per Bean
+        k_i = k
+            .plus(newBDV)
+            .plus(STALK_PER_BEAN.times(b))
 
         C = C_i
         K = K_i
@@ -89,7 +113,9 @@ function calculateAPY(n: BigDecimal, seeds: BigDecimal): BigDecimal {
     // b_start = 1
     // b       = 1.1
     // b.minus(b_start) = 0.1 = 10% APY
-    let siloAPY = b.minus(b_start)
+    let apys = new StaticArray<BigDecimal>(2)
+    apys[0] = b.minus(b_start) // beanAPY
+    apys[1] = k.minus(k_start) // stalkAPY
 
-    return siloAPY
+    return apys
 }
