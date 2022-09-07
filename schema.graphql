@@ -299,12 +299,13 @@ type SiloYield @entity {
   "Season of data points"
   id: ID!
   season: Int!
-  trailingSiloMints: BigDecimal!
   beta: BigDecimal!
   u: Int!
   beansPerSeasonEMA: BigDecimal!
-  beanAPY: BigDecimal!
-  lpAPY: BigDecimal!
+  twoSeedBeanAPY: BigDecimal!
+  twoSeedStalkAPY: BigDecimal!
+  fourSeedBeanAPY: BigDecimal!
+  fourSeedStalkAPY: BigDecimal!
 }
 
 type Field @entity {

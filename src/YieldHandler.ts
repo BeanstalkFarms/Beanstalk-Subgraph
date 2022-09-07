@@ -40,9 +40,13 @@ export function updateBeanEMA(t: i32, timestamp: BigInt): void {
 
     // This iterates through 8760 times to calculate the silo APY
     let silo = loadSilo(BEANSTALK)
-    
-    siloYield.beanAPY = calculateAPY(currentEMA, BigDecimal.fromString('2'), silo.totalStalk, silo.totalSeeds)[0]
-    siloYield.lpAPY   = calculateAPY(currentEMA, BigDecimal.fromString('4'), silo.totalStalk, silo.totalSeeds)[0]
+
+    let twoSeedAPY = calculateAPY(currentEMA, BigDecimal.fromString('2'), silo.totalStalk, silo.totalSeeds)
+    siloYield.twoSeedBeanAPY = twoSeedAPY[0]
+    siloYield.twoSeedStalkAPY = twoSeedAPY[1]
+    let fourSeedAPY = calculateAPY(currentEMA, BigDecimal.fromString('4'), silo.totalStalk, silo.totalSeeds)
+    siloYield.fourSeedBeanAPY = fourSeedAPY[0]
+    siloYield.fourSeedStalkAPY = fourSeedAPY[1]
     siloYield.save()
 }
 
@@ -55,17 +59,17 @@ export function updateBeanEMA(t: i32, timestamp: BigInt): void {
  */
 
 export function calculateAPY(
-    n: BigDecimal, 
+    n: BigDecimal,
     seedsPerBDV: BigDecimal,
     totalStalk: BigInt,
     totalSeeds: BigInt
-) : StaticArray<BigDecimal> {
+): StaticArray<BigDecimal> {
     // Initialize sequence
     let C = toDecimal(totalSeeds)              // Init: Total Seeds
     let K = toDecimal(totalStalk, 10)          // Init: Total Stalk
     let b = seedsPerBDV.div(BigDecimal.fromString('2')) // Init: User BDV
     let k = BigDecimal.fromString('1')         // Init: User Stalk
-    
+
     // Farmer initial values
     let b_start = b
     let k_start = k

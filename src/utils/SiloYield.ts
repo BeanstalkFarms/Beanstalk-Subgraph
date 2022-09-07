@@ -6,12 +6,13 @@ export function loadSiloYield(season: i32): SiloYield {
     if (siloYield == null) {
         siloYield = new SiloYield(season.toString())
         siloYield.season = season
-        siloYield.trailingSiloMints = ZERO_BD
         siloYield.beta = ZERO_BD
         siloYield.u = 0
         siloYield.beansPerSeasonEMA = ZERO_BD
-        siloYield.beanAPY = ZERO_BD
-        siloYield.lpAPY = ZERO_BD
+        siloYield.twoSeedBeanAPY = ZERO_BD
+        siloYield.twoSeedStalkAPY = ZERO_BD
+        siloYield.fourSeedBeanAPY = ZERO_BD
+        siloYield.fourSeedStalkAPY = ZERO_BD
         siloYield.save()
     }
     return siloYield as SiloYield
