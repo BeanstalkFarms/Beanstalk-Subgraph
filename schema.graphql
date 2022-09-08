@@ -306,6 +306,7 @@ type SiloYield @entity {
   twoSeedStalkAPY: BigDecimal!
   fourSeedBeanAPY: BigDecimal!
   fourSeedStalkAPY: BigDecimal!
+  timestamp: BigInt!
 }
 
 type Field @entity {

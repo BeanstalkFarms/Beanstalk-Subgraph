@@ -4,7 +4,7 @@ import { toDecimal, ZERO_BD } from "./utils/Decimals";
 import { loadSilo, loadSiloHourlySnapshot } from "./utils/Silo";
 import { loadSiloYield } from "./utils/SiloYield";
 
-const MAX_WINDOW = 720;
+const MAX_WINDOW = 336;
 
 // Note: minimum value of `t` is 6075
 export function updateBeanEMA(t: i32, timestamp: BigInt): void {
@@ -36,6 +36,7 @@ export function updateBeanEMA(t: i32, timestamp: BigInt): void {
     }
 
     siloYield.beansPerSeasonEMA = currentEMA
+    siloYield.timestamp = timestamp
     siloYield.save()
 
     // This iterates through 8760 times to calculate the silo APY
