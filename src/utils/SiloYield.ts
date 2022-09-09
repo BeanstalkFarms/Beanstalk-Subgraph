@@ -1,5 +1,5 @@
 import { SiloYield } from "../../generated/schema";
-import { ZERO_BD } from "./Decimals";
+import { ZERO_BD, ZERO_BI } from "./Decimals";
 
 export function loadSiloYield(season: i32): SiloYield {
     let siloYield = SiloYield.load(season.toString())
@@ -13,6 +13,7 @@ export function loadSiloYield(season: i32): SiloYield {
         siloYield.twoSeedStalkAPY = ZERO_BD
         siloYield.fourSeedBeanAPY = ZERO_BD
         siloYield.fourSeedStalkAPY = ZERO_BD
+        siloYield.timestamp = ZERO_BI
         siloYield.save()
     }
     return siloYield as SiloYield
