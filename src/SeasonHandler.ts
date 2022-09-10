@@ -14,6 +14,7 @@ import { loadPodMarketplace, loadPodMarketplaceDailySnapshot, loadPodMarketplace
 import { loadSeason } from "./utils/Season";
 import { loadSilo, loadSiloDailySnapshot, loadSiloHourlySnapshot } from "./utils/Silo";
 import { addDepositToSiloAsset } from "./SiloHandler";
+import { updateBeanEMA } from "./YieldHandler";
 
 export function handleSunrise(event: Sunrise): void {
     let currentSeason = event.params.season.toI32()
@@ -199,4 +200,8 @@ export function handleIncentive(event: Incentivization): void {
     season.save()
 
     updateHarvestablePlots(season.harvestableIndex, event.block.timestamp, event.block.number)
+
+    if (beanstalk.lastSeason >= 6075) {
+        updateBeanEMA(beanstalk.lastSeason, event.block.timestamp)
+    }
 }

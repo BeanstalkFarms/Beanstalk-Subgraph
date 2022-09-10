@@ -295,6 +295,20 @@ type SiloAssetDailySnapshot @entity {
   lastUpdated: BigInt!
 }
 
+type SiloYield @entity {
+  "Season of data points"
+  id: ID!
+  season: Int!
+  beta: BigDecimal!
+  u: Int!
+  beansPerSeasonEMA: BigDecimal!
+  twoSeedBeanAPY: BigDecimal!
+  twoSeedStalkAPY: BigDecimal!
+  fourSeedBeanAPY: BigDecimal!
+  fourSeedStalkAPY: BigDecimal!
+  timestamp: BigInt!
+}
+
 type Field @entity {
   " Contract address for this field or farmer "
   id: ID!
