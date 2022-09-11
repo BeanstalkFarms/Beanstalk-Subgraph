@@ -23,19 +23,20 @@ export function handleAddDeposit(event: AddDeposit): void {
     deposit.updatedAt = event.block.timestamp
     deposit.save()
 
-    let season = event.params.season.toI32()
+    // Use the current season of beanstalk for updating silo and farmer totals
+    let beanstalk = loadBeanstalk(event.address)
 
     // Update overall silo totals
-    addDepositToSilo(event.address, season, event.params.bdv, event.block.timestamp, event.block.number)
-    addDepositToSiloAsset(event.address, event.params.token, season, event.params.bdv, event.params.amount, event.block.timestamp, event.block.number)
+    addDepositToSilo(event.address, beanstalk.lastSeason, event.params.bdv, event.block.timestamp, event.block.number)
+    addDepositToSiloAsset(event.address, event.params.token, beanstalk.lastSeason, event.params.bdv, event.params.amount, event.block.timestamp, event.block.number)
 
     // Ensure that a Farmer entity is set up for this account.
     loadFarmer(event.params.account)
 
 
     // Update farmer silo totals
-    addDepositToSilo(event.params.account, season, event.params.bdv, event.block.timestamp, event.block.number)
-    addDepositToSiloAsset(event.params.account, event.params.token, season, event.params.bdv, event.params.amount, event.block.timestamp, event.block.number)
+    addDepositToSilo(event.params.account, beanstalk.lastSeason, event.params.bdv, event.block.timestamp, event.block.number)
+    addDepositToSiloAsset(event.params.account, event.params.token, beanstalk.lastSeason, event.params.bdv, event.params.amount, event.block.timestamp, event.block.number)
 
     let id = 'addDeposit-' + event.transaction.hash.toHexString() + '-' + event.transactionLogIndex.toString()
     let add = new AddDepositEntity(id)
