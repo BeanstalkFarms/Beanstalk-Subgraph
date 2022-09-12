@@ -276,7 +276,7 @@ export function addDepositToSiloAsset(account: Address, token: Address, season: 
     asset.save()
 
     assetHourly.hourlyDepositedBDV = assetHourly.hourlyDepositedBDV.plus(bdv)
-    assetHourly.totalDepositedBDV = asset.totalDepositedBDV.plus(bdv)
+    assetHourly.totalDepositedBDV = asset.totalDepositedBDV
     assetHourly.hourlyDepositedAmount = assetHourly.hourlyDepositedAmount.plus(tokenAmount)
     assetHourly.totalDepositedAmount = asset.totalDepositedAmount
     assetHourly.blockNumber = blockNumber
@@ -285,7 +285,7 @@ export function addDepositToSiloAsset(account: Address, token: Address, season: 
 
     assetDaily.season = season
     assetDaily.dailyDepositedBDV = assetDaily.dailyDepositedBDV.plus(bdv)
-    assetDaily.totalDepositedBDV = asset.totalDepositedBDV.plus(bdv)
+    assetDaily.totalDepositedBDV = asset.totalDepositedBDV
     assetDaily.dailyDepositedAmount = assetDaily.dailyDepositedAmount.plus(tokenAmount)
     assetDaily.totalDepositedAmount = asset.totalDepositedAmount
     assetDaily.blockNumber = blockNumber
