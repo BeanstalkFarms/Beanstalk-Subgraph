@@ -15,6 +15,7 @@ export function loadBeanstalk(protocol: Address): Beanstalk {
         beanstalk.lastUpgrade = ZERO_BI
         beanstalk.lastSeason = 1
         beanstalk.activeFarmers = []
+        beanstalk.farmersToUpdate = []
         beanstalk.save()
     }
     return beanstalk as Beanstalk

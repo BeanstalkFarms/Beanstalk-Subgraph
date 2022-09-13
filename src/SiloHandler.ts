@@ -1,5 +1,6 @@
 import { Address, BigInt, log } from '@graphprotocol/graph-ts'
 import { AddDeposit, StalkBalanceChanged, AddWithdrawal, RemoveDeposit, RemoveDeposits, RemoveWithdrawal, RemoveWithdrawals, Plant } from '../generated/Silo-Replanted/Beanstalk'
+import { Beanstalk, TransferDepositCall, TransferDepositsCall } from '../generated/Silo-Calls/Beanstalk'
 import { ZERO_BI } from './utils/Decimals'
 import { loadFarmer } from './utils/Farmer'
 import { loadSilo, loadSiloDailySnapshot, loadSiloHourlySnapshot } from './utils/Silo'
@@ -222,6 +223,24 @@ export function handlePlant(event: Plant): void {
 
 }
 
+export function handleTransferDepositCall(call: TransferDepositCall): void {
+    let beanstalk = loadBeanstalk(BEANSTALK)
+    let updateFarmers = beanstalk.farmersToUpdate
+    if (updateFarmers.indexOf(call.from.toHexString()) == -1) updateFarmers.push(call.from.toHexString())
+    if (updateFarmers.indexOf(call.inputs.recipient.toHexString()) == -1) updateFarmers.push(call.inputs.recipient.toHexString())
+    beanstalk.farmersToUpdate = updateFarmers
+    beanstalk.save()
+}
+
+export function handleTransferDepositsCall(call: TransferDepositsCall): void {
+    let beanstalk = loadBeanstalk(BEANSTALK)
+    let updateFarmers = beanstalk.farmersToUpdate
+    if (updateFarmers.indexOf(call.from.toHexString()) == -1) updateFarmers.push(call.from.toHexString())
+    if (updateFarmers.indexOf(call.inputs.recipient.toHexString()) == -1) updateFarmers.push(call.inputs.recipient.toHexString())
+    beanstalk.farmersToUpdate = updateFarmers
+    beanstalk.save()
+}
+
 function addDepositToSilo(account: Address, season: i32, bdv: BigInt, timestamp: BigInt, blockNumber: BigInt): void {
     let silo = loadSilo(account)
     let siloHourly = loadSiloHourlySnapshot(account, season, timestamp)
@@ -425,4 +444,20 @@ function updateClaimedWithdraw(account: Address, token: Address, season: BigInt)
     let withdraw = loadSiloWithdraw(account, token, season.toI32())
     withdraw.claimed = true
     withdraw.save()
+}
+
+export function updateStalkWithCalls(season: i32, timestamp: BigInt, blockNumber: BigInt): void {
+    // This should be run at sunrise for the previous season to update any farmers stalk/seed/roots balances from silo transfers.
+
+    let beanstalk = loadBeanstalk(BEANSTALK)
+    let beanstalk_call = Beanstalk.bind(BEANSTALK)
+
+    for (let i = 0; i < beanstalk.farmersToUpdate.length; i++) {
+        let account = Address.fromString(beanstalk.farmersToUpdate[i])
+        let silo = loadSilo(account)
+        updateStalkBalances(account, season, beanstalk_call.balanceOfStalk(account).minus(silo.totalStalk), beanstalk_call.balanceOfRoots(account).minus(silo.totalRoots), timestamp, blockNumber)
+        updateSeedsBalances(account, season, beanstalk_call.balanceOfSeeds(account).minus(silo.totalSeeds), timestamp, blockNumber)
+    }
+    beanstalk.farmersToUpdate = []
+    beanstalk.save()
 }

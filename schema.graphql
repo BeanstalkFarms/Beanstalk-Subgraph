@@ -118,6 +118,9 @@ type Beanstalk @entity {
 
   " Array of the addresses for all active farmers in the silo "
   activeFarmers: [String!]!
+
+  " Array of the addresses for all farmers that had silo transfers and need stalk/seeds/roots updated "
+  farmersToUpdate: [String!]!
 }
 
 # An entity that holds season level data
