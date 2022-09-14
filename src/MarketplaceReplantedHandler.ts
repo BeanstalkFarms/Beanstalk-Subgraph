@@ -1,5 +1,5 @@
 import { PodListingCreated } from "../generated/Marketplace-Replanted/Beanstalk";
-import { Plot } from "../generated/schema";
+import { Plot, PodListingCreated as PodListingCreatedEvent } from "../generated/schema";
 import { ZERO_BI } from "./utils/Decimals";
 import { loadPlot } from "./utils/Plot";
 import { createHistoricalPodListing, loadPodListing } from "./utils/PodListing";
@@ -65,4 +65,21 @@ export function handlePodListingCreated(event: PodListingCreated): void {
     marketDaily.blockNumber = event.block.number
     marketDaily.timestamp = event.block.timestamp
     marketDaily.save()
+
+    // Save the raw event data
+    let id = 'podListingCreated' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+    let rawEvent = new PodListingCreatedEvent(id)
+    rawEvent.hash = event.transaction.hash.toHexString()
+    rawEvent.logIndex = event.logIndex.toI32()
+    rawEvent.protocol = event.address.toHexString()
+    rawEvent.account = event.params.account.toHexString()
+    rawEvent.index = event.params.index
+    rawEvent.start = event.params.start
+    rawEvent.amount = event.params.amount
+    rawEvent.pricePerPod = event.params.pricePerPod
+    rawEvent.maxHarvestableIndex = event.params.maxHarvestableIndex
+    rawEvent.mode = event.params.mode
+    rawEvent.blockNumber = event.block.number
+    rawEvent.timestamp = event.block.timestamp
+    rawEvent.save()
 }
