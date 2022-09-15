@@ -78,7 +78,7 @@ export function handlePodListingCreated(event: PodListingCreated): void {
     marketDaily.save()
 
     // Save the raw event data
-    let id = 'podListingCreated' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+    let id = 'podListingCreated-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
     let rawEvent = new PodListingCreatedEvent(id)
     rawEvent.hash = event.transaction.hash.toHexString()
     rawEvent.logIndex = event.logIndex.toI32()
@@ -130,7 +130,7 @@ export function handlePodListingCancelled(event: PodListingCancelled): void {
     listing.save()
 
     // Save the raw event data
-    let id = 'podListingCancelled' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+    let id = 'podListingCancelled-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
     let rawEvent = new PodListingCancelledEvent(id)
     rawEvent.hash = event.transaction.hash.toHexString()
     rawEvent.logIndex = event.logIndex.toI32()
@@ -225,7 +225,7 @@ export function handlePodListingFilled(event: PodListingFilled): void {
     fill.save()
 
     // Save the raw event data
-    let id = 'podListingFilled' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+    let id = 'podListingFilled-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
     let rawEvent = new PodListingFilledEvent(id)
     rawEvent.hash = event.transaction.hash.toHexString()
     rawEvent.logIndex = event.logIndex.toI32()
@@ -275,7 +275,7 @@ export function handlePodOrderCreated(event: PodOrderCreated): void {
     marketDaily.save()
 
     // Save the raw event data
-    let id = 'podOrderCreated' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+    let id = 'podOrderCreated-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
     let rawEvent = new PodOrderCreatedEvent(id)
     rawEvent.hash = event.transaction.hash.toHexString()
     rawEvent.logIndex = event.logIndex.toI32()
@@ -345,7 +345,7 @@ export function handlePodOrderFilled(event: PodOrderFilled): void {
     marketDaily.save()
 
     // Save the raw event data
-    let id = 'podOrderFilled' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+    let id = 'podOrderFilled-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
     let rawEvent = new PodOrderFilledEvent(id)
     rawEvent.hash = event.transaction.hash.toHexString()
     rawEvent.logIndex = event.logIndex.toI32()
@@ -387,7 +387,7 @@ export function handlePodOrderCancelled(event: PodOrderCancelled): void {
     marketDaily.save()
 
     // Save the raw event data
-    let id = 'podOrderCancelled' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+    let id = 'podOrderCancelled-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
     let rawEvent = new PodOrderCancelledEvent(id)
     rawEvent.hash = event.transaction.hash.toHexString()
     rawEvent.logIndex = event.logIndex.toI32()

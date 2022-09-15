@@ -648,7 +648,52 @@ interface Event {
   timestamp: BigInt!
 }
 
-type PodTransfer implements Event @entity {
+interface SiloEvent implements Event{
+  " { Event type }-{ Transaction hash }-{ Log index } "
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " The protocol this transaction belongs to "
+  protocol: Beanstalk!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+}
+
+interface FieldEvent implements Event{
+  " { Event type }-{ Transaction hash }-{ Log index } "
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " The protocol this transaction belongs to "
+  protocol: Beanstalk!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+}
+
+interface MarketplaceEvent implements Event{
+  " { Event type }-{ Transaction hash }-{ Log index } "
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " The protocol this transaction belongs to "
+  protocol: Beanstalk!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+}
+
+type PodTransfer implements FieldEvent @entity(immutable: true) {
   " podtransfer-{ Transaction hash }-{ Log index } "
   id: ID!
   " Transaction hash of the transaction that emitted this event "
@@ -671,7 +716,7 @@ type PodTransfer implements Event @entity {
   timestamp: BigInt!
 }
 
-type Harvest implements Event @entity {
+type Harvest implements FieldEvent @entity(immutable: true) {
   "harvest-{ Transaction hash }-{ Log index } "
   id: ID!
   " Transaction hash of the transaction that emitted this event "
@@ -693,7 +738,7 @@ type Harvest implements Event @entity {
   
 }
 
-type Chop implements Event @entity {
+type Chop implements SiloEvent @entity(immutable: true){
   "chop-{ Transaction hash }-{ Log index }"
   id: ID!
   " Transaction hash of the transaction that emitted this event "
@@ -716,7 +761,7 @@ type Chop implements Event @entity {
   timestamp: BigInt!
 }
 
-type Incentive implements Event @entity {
+type Incentive implements SiloEvent @entity(immutable: true) {
   "incentive-{ Transaction hash }-{ Log index }"
   id: ID!
   " Transaction hash of the transaction that emitted this event "
@@ -735,7 +780,7 @@ type Incentive implements Event @entity {
   timestamp: BigInt!
 }
 
-type Reward implements Event @entity {
+type Reward implements SiloEvent @entity(immutable: true) {
   "reward-{ Transaction hash }-{ Log index }"
   id: ID!
   " Transaction hash of the transaction that emitted this event "
@@ -758,7 +803,7 @@ type Reward implements Event @entity {
   timestamp: BigInt!
 }
 
-type MetapoolOracle implements Event @entity {
+type MetapoolOracle implements SiloEvent @entity(immutable: true) {
   "metapoolOracle-{ Transaction hash }-{ Log index }"
   id: ID!
   " Transaction hash of the transaction that emitted this event "
@@ -781,7 +826,7 @@ type MetapoolOracle implements Event @entity {
   timestamp: BigInt!
 }
 
-type AddDeposit implements Event @entity {
+type AddDeposit implements SiloEvent @entity(immutable: true) {
   "addDeposit-{ Transaction hash }-{ Log index }"
   id: ID!
   " Transaction hash of the transaction that emitted this event "
@@ -806,7 +851,7 @@ type AddDeposit implements Event @entity {
   timestamp: BigInt!
 }
 
-type RemoveDeposit implements Event @entity {
+type RemoveDeposit implements SiloEvent @entity(immutable: true) {
   "removeDeposit-{ Transaction hash }-{ Log index }"
   id: ID!
   " Transaction hash of the transaction that emitted this event "
@@ -829,7 +874,7 @@ type RemoveDeposit implements Event @entity {
   timestamp: BigInt!
 }
 
-type StalkChange implements Event @entity {
+type StalkChange implements SiloEvent @entity(immutable: true) {
   "stalkChange-{ Transaction hash }-{ Log index }"
   id: ID!
   " Transaction hash of the transaction that emitted this event "
@@ -850,7 +895,7 @@ type StalkChange implements Event @entity {
   timestamp: BigInt!
 }
 
-type SeedChange implements Event @entity {
+type SeedChange implements SiloEvent @entity(immutable: true) {
   "seedChange-{ Transaction hash }-{ Log index }"
   id: ID!
   " Transaction hash of the transaction that emitted this event "
@@ -871,7 +916,7 @@ type SeedChange implements Event @entity {
   timestamp: BigInt!
 }
 
-type PodListingCreated implements Event @entity {
+type PodListingCreated implements MarketplaceEvent @entity(immutable: true) {
   "podListingCreated-{ Transaction hash }-{ Log index }"
   id: ID!
   " Transaction hash of the transaction that emitted this event "
@@ -900,7 +945,7 @@ type PodListingCreated implements Event @entity {
   timestamp: BigInt!
 }
 
-type PodListingFilled implements Event @entity {
+type PodListingFilled implements MarketplaceEvent @entity(immutable: true) {
   "podListingFilled-{ Transaction hash }-{ Log index }"
   id: ID!
   " Transaction hash of the transaction that emitted this event "
@@ -925,7 +970,7 @@ type PodListingFilled implements Event @entity {
   timestamp: BigInt!
 }
 
-type PodListingCancelled implements Event @entity {
+type PodListingCancelled implements MarketplaceEvent @entity(immutable: true) {
   "seedChange-{ Transaction hash }-{ Log index }"
   id: ID!
   " Transaction hash of the transaction that emitted this event "
@@ -944,7 +989,7 @@ type PodListingCancelled implements Event @entity {
   timestamp: BigInt!
 }
 
-type PodOrderCreated implements Event @entity {
+type PodOrderCreated implements MarketplaceEvent @entity(immutable: true) {
   "podOrderCreated-{ Transaction hash }-{ Log index }"
   id: ID!
   " Transaction hash of the transaction that emitted this event "
@@ -969,7 +1014,7 @@ type PodOrderCreated implements Event @entity {
   timestamp: BigInt!
 }
 
-type PodOrderFilled implements Event @entity {
+type PodOrderFilled implements MarketplaceEvent @entity(immutable: true) {
   "podOrderFilled-{ Transaction hash }-{ Log index }"
   id: ID!
   " Transaction hash of the transaction that emitted this event "
@@ -994,7 +1039,7 @@ type PodOrderFilled implements Event @entity {
   timestamp: BigInt!
 }
 
-type PodOrderCancelled implements Event @entity {
+type PodOrderCancelled implements MarketplaceEvent @entity(immutable: true) {
   "podOrderCancelled-{ Transaction hash }-{ Log index }"
   id: ID!
   " Transaction hash of the transaction that emitted this event "
