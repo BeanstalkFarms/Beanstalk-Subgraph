@@ -1,5 +1,6 @@
 import { Address, BigInt, log } from '@graphprotocol/graph-ts'
 import { AddDeposit, StalkBalanceChanged, AddWithdrawal, RemoveDeposit, RemoveDeposits, RemoveWithdrawal, RemoveWithdrawals, Plant } from '../generated/Silo-Replanted/Beanstalk'
+import { Beanstalk, TransferDepositCall, TransferDepositsCall } from '../generated/Silo-Calls/Beanstalk'
 import { ZERO_BI } from './utils/Decimals'
 import { loadFarmer } from './utils/Farmer'
 import { loadSilo, loadSiloDailySnapshot, loadSiloHourlySnapshot } from './utils/Silo'
@@ -23,19 +24,20 @@ export function handleAddDeposit(event: AddDeposit): void {
     deposit.updatedAt = event.block.timestamp
     deposit.save()
 
-    let season = event.params.season.toI32()
+    // Use the current season of beanstalk for updating silo and farmer totals
+    let beanstalk = loadBeanstalk(event.address)
 
     // Update overall silo totals
-    addDepositToSilo(event.address, season, event.params.bdv, event.block.timestamp, event.block.number)
-    addDepositToSiloAsset(event.address, event.params.token, season, event.params.bdv, event.params.amount, event.block.timestamp, event.block.number)
+    addDepositToSilo(event.address, beanstalk.lastSeason, event.params.bdv, event.block.timestamp, event.block.number)
+    addDepositToSiloAsset(event.address, event.params.token, beanstalk.lastSeason, event.params.bdv, event.params.amount, event.block.timestamp, event.block.number)
 
     // Ensure that a Farmer entity is set up for this account.
     loadFarmer(event.params.account)
 
 
     // Update farmer silo totals
-    addDepositToSilo(event.params.account, season, event.params.bdv, event.block.timestamp, event.block.number)
-    addDepositToSiloAsset(event.params.account, event.params.token, season, event.params.bdv, event.params.amount, event.block.timestamp, event.block.number)
+    addDepositToSilo(event.params.account, beanstalk.lastSeason, event.params.bdv, event.block.timestamp, event.block.number)
+    addDepositToSiloAsset(event.params.account, event.params.token, beanstalk.lastSeason, event.params.bdv, event.params.amount, event.block.timestamp, event.block.number)
 
     let id = 'addDeposit-' + event.transaction.hash.toHexString() + '-' + event.transactionLogIndex.toString()
     let add = new AddDepositEntity(id)
@@ -221,6 +223,24 @@ export function handlePlant(event: Plant): void {
 
 }
 
+export function handleTransferDepositCall(call: TransferDepositCall): void {
+    let beanstalk = loadBeanstalk(BEANSTALK)
+    let updateFarmers = beanstalk.farmersToUpdate
+    if (updateFarmers.indexOf(call.from.toHexString()) == -1) updateFarmers.push(call.from.toHexString())
+    if (updateFarmers.indexOf(call.inputs.recipient.toHexString()) == -1) updateFarmers.push(call.inputs.recipient.toHexString())
+    beanstalk.farmersToUpdate = updateFarmers
+    beanstalk.save()
+}
+
+export function handleTransferDepositsCall(call: TransferDepositsCall): void {
+    let beanstalk = loadBeanstalk(BEANSTALK)
+    let updateFarmers = beanstalk.farmersToUpdate
+    if (updateFarmers.indexOf(call.from.toHexString()) == -1) updateFarmers.push(call.from.toHexString())
+    if (updateFarmers.indexOf(call.inputs.recipient.toHexString()) == -1) updateFarmers.push(call.inputs.recipient.toHexString())
+    beanstalk.farmersToUpdate = updateFarmers
+    beanstalk.save()
+}
+
 function addDepositToSilo(account: Address, season: i32, bdv: BigInt, timestamp: BigInt, blockNumber: BigInt): void {
     let silo = loadSilo(account)
     let siloHourly = loadSiloHourlySnapshot(account, season, timestamp)
@@ -275,7 +295,7 @@ export function addDepositToSiloAsset(account: Address, token: Address, season: 
     asset.save()
 
     assetHourly.hourlyDepositedBDV = assetHourly.hourlyDepositedBDV.plus(bdv)
-    assetHourly.totalDepositedBDV = asset.totalDepositedBDV.plus(bdv)
+    assetHourly.totalDepositedBDV = asset.totalDepositedBDV
     assetHourly.hourlyDepositedAmount = assetHourly.hourlyDepositedAmount.plus(tokenAmount)
     assetHourly.totalDepositedAmount = asset.totalDepositedAmount
     assetHourly.blockNumber = blockNumber
@@ -284,7 +304,7 @@ export function addDepositToSiloAsset(account: Address, token: Address, season: 
 
     assetDaily.season = season
     assetDaily.dailyDepositedBDV = assetDaily.dailyDepositedBDV.plus(bdv)
-    assetDaily.totalDepositedBDV = asset.totalDepositedBDV.plus(bdv)
+    assetDaily.totalDepositedBDV = asset.totalDepositedBDV
     assetDaily.dailyDepositedAmount = assetDaily.dailyDepositedAmount.plus(tokenAmount)
     assetDaily.totalDepositedAmount = asset.totalDepositedAmount
     assetDaily.blockNumber = blockNumber
@@ -424,4 +444,20 @@ function updateClaimedWithdraw(account: Address, token: Address, season: BigInt)
     let withdraw = loadSiloWithdraw(account, token, season.toI32())
     withdraw.claimed = true
     withdraw.save()
+}
+
+export function updateStalkWithCalls(season: i32, timestamp: BigInt, blockNumber: BigInt): void {
+    // This should be run at sunrise for the previous season to update any farmers stalk/seed/roots balances from silo transfers.
+
+    let beanstalk = loadBeanstalk(BEANSTALK)
+    let beanstalk_call = Beanstalk.bind(BEANSTALK)
+
+    for (let i = 0; i < beanstalk.farmersToUpdate.length; i++) {
+        let account = Address.fromString(beanstalk.farmersToUpdate[i])
+        let silo = loadSilo(account)
+        updateStalkBalances(account, season, beanstalk_call.balanceOfStalk(account).minus(silo.totalStalk), beanstalk_call.balanceOfRoots(account).minus(silo.totalRoots), timestamp, blockNumber)
+        updateSeedsBalances(account, season, beanstalk_call.balanceOfSeeds(account).minus(silo.totalSeeds), timestamp, blockNumber)
+    }
+    beanstalk.farmersToUpdate = []
+    beanstalk.save()
 }

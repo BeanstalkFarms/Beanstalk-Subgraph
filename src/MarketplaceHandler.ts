@@ -1,6 +1,14 @@
 import { Address, BigDecimal, BigInt } from "@graphprotocol/graph-ts";
 import { PodListingCancelled, PodListingCreated, PodListingFilled, PodOrderCancelled, PodOrderCreated, PodOrderFilled } from "../generated/Field/Beanstalk";
-import { Plot } from "../generated/schema";
+import {
+    Plot,
+    PodListingCreated as PodListingCreatedEvent,
+    PodListingFilled as PodListingFilledEvent,
+    PodListingCancelled as PodListingCancelledEvent,
+    PodOrderCreated as PodOrderCreatedEvent,
+    PodOrderFilled as PodOrderFilledEvent,
+    PodOrderCancelled as PodOrderCancelledEvent
+} from "../generated/schema";
 import { toDecimal, ZERO_BI } from "./utils/Decimals";
 import { loadFarmer } from "./utils/Farmer";
 import { loadPlot } from "./utils/Plot";
@@ -68,6 +76,23 @@ export function handlePodListingCreated(event: PodListingCreated): void {
     marketDaily.blockNumber = event.block.number
     marketDaily.timestamp = event.block.timestamp
     marketDaily.save()
+
+    // Save the raw event data
+    let id = 'podListingCreated-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+    let rawEvent = new PodListingCreatedEvent(id)
+    rawEvent.hash = event.transaction.hash.toHexString()
+    rawEvent.logIndex = event.logIndex.toI32()
+    rawEvent.protocol = event.address.toHexString()
+    rawEvent.account = event.params.account.toHexString()
+    rawEvent.index = event.params.index
+    rawEvent.start = event.params.start
+    rawEvent.amount = event.params.amount
+    rawEvent.pricePerPod = event.params.pricePerPod
+    rawEvent.maxHarvestableIndex = event.params.maxHarvestableIndex
+    rawEvent.mode = event.params.toWallet
+    rawEvent.blockNumber = event.block.number
+    rawEvent.timestamp = event.block.timestamp
+    rawEvent.save()
 }
 
 export function handlePodListingCancelled(event: PodListingCancelled): void {
@@ -103,6 +128,18 @@ export function handlePodListingCancelled(event: PodListingCancelled): void {
     listing.cancelledAmount = listing.remainingAmount
     listing.remainingAmount = ZERO_BI
     listing.save()
+
+    // Save the raw event data
+    let id = 'podListingCancelled-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+    let rawEvent = new PodListingCancelledEvent(id)
+    rawEvent.hash = event.transaction.hash.toHexString()
+    rawEvent.logIndex = event.logIndex.toI32()
+    rawEvent.protocol = event.address.toHexString()
+    rawEvent.account = event.params.account.toHexString()
+    rawEvent.index = event.params.index
+    rawEvent.blockNumber = event.block.number
+    rawEvent.timestamp = event.block.timestamp
+    rawEvent.save()
 }
 
 export function handlePodListingFilled(event: PodListingFilled): void {
@@ -186,6 +223,21 @@ export function handlePodListingFilled(event: PodListingFilled): void {
     fill.start = event.params.start
     fill.transaction = transaction.id
     fill.save()
+
+    // Save the raw event data
+    let id = 'podListingFilled-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+    let rawEvent = new PodListingFilledEvent(id)
+    rawEvent.hash = event.transaction.hash.toHexString()
+    rawEvent.logIndex = event.logIndex.toI32()
+    rawEvent.protocol = event.address.toHexString()
+    rawEvent.from = event.params.from.toHexString()
+    rawEvent.to = event.params.to.toHexString()
+    rawEvent.index = event.params.index
+    rawEvent.start = event.params.start
+    rawEvent.amount = event.params.amount
+    rawEvent.blockNumber = event.block.number
+    rawEvent.timestamp = event.block.timestamp
+    rawEvent.save()
 }
 
 export function handlePodOrderCreated(event: PodOrderCreated): void {
@@ -221,6 +273,21 @@ export function handlePodOrderCreated(event: PodOrderCreated): void {
     marketDaily.newOrdersCreated = marketDaily.newOrdersCreated.plus(event.params.amount)
     marketDaily.totalOrdersCreated = market.totalOrdersCreated
     marketDaily.save()
+
+    // Save the raw event data
+    let id = 'podOrderCreated-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+    let rawEvent = new PodOrderCreatedEvent(id)
+    rawEvent.hash = event.transaction.hash.toHexString()
+    rawEvent.logIndex = event.logIndex.toI32()
+    rawEvent.protocol = event.address.toHexString()
+    rawEvent.account = event.params.account.toHexString()
+    rawEvent.orderId = event.params.id.toHexString()
+    rawEvent.amount = event.params.amount
+    rawEvent.pricePerPod = event.params.pricePerPod
+    rawEvent.maxPlaceInLine = event.params.maxPlaceInLine
+    rawEvent.blockNumber = event.block.number
+    rawEvent.timestamp = event.block.timestamp
+    rawEvent.save()
 }
 
 export function handlePodOrderFilled(event: PodOrderFilled): void {
@@ -276,6 +343,21 @@ export function handlePodOrderFilled(event: PodOrderFilled): void {
     marketDaily.newBeanVolume = marketDaily.newBeanVolume.plus(beanAmount)
     marketDaily.totalBeanVolume = market.totalBeanVolume
     marketDaily.save()
+
+    // Save the raw event data
+    let id = 'podOrderFilled-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+    let rawEvent = new PodOrderFilledEvent(id)
+    rawEvent.hash = event.transaction.hash.toHexString()
+    rawEvent.logIndex = event.logIndex.toI32()
+    rawEvent.protocol = event.address.toHexString()
+    rawEvent.from = event.params.from.toHexString()
+    rawEvent.to = event.params.to.toHexString()
+    rawEvent.index = event.params.index
+    rawEvent.start = event.params.start
+    rawEvent.amount = event.params.amount
+    rawEvent.blockNumber = event.block.number
+    rawEvent.timestamp = event.block.timestamp
+    rawEvent.save()
 }
 
 export function handlePodOrderCancelled(event: PodOrderCancelled): void {
@@ -303,4 +385,16 @@ export function handlePodOrderCancelled(event: PodOrderCancelled): void {
     marketDaily.newOrdersCancelled = marketDaily.newOrdersCancelled.plus(order.amount).minus(order.filledAmount)
     marketDaily.totalOrdersCancelled = market.totalOrdersCancelled
     marketDaily.save()
+
+    // Save the raw event data
+    let id = 'podOrderCancelled-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+    let rawEvent = new PodOrderCancelledEvent(id)
+    rawEvent.hash = event.transaction.hash.toHexString()
+    rawEvent.logIndex = event.logIndex.toI32()
+    rawEvent.protocol = event.address.toHexString()
+    rawEvent.account = event.params.account.toHexString()
+    rawEvent.orderId = event.params.id.toHexString()
+    rawEvent.blockNumber = event.block.number
+    rawEvent.timestamp = event.block.timestamp
+    rawEvent.save()
 }

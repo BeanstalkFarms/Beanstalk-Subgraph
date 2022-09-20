@@ -13,12 +13,15 @@ import { expirePodListing, loadPodListing } from "./utils/PodListing";
 import { loadPodMarketplace, loadPodMarketplaceDailySnapshot, loadPodMarketplaceHourlySnapshot } from "./utils/PodMarketplace";
 import { loadSeason } from "./utils/Season";
 import { loadSilo, loadSiloDailySnapshot, loadSiloHourlySnapshot } from "./utils/Silo";
-import { addDepositToSiloAsset } from "./SiloHandler";
+import { addDepositToSiloAsset, updateStalkWithCalls } from "./SiloHandler";
 import { updateBeanEMA } from "./YieldHandler";
 
 export function handleSunrise(event: Sunrise): void {
     let currentSeason = event.params.season.toI32()
     let season = loadSeason(event.address, event.params.season)
+
+    // Update any farmers that had silo transfers from the prior season
+    updateStalkWithCalls(currentSeason - 1, event.block.timestamp, event.block.number)
 
     // Update season metrics
     //season.harvestableIndex = beanstalkContract.harvestableIndex()

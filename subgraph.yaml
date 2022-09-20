@@ -333,3 +333,27 @@ dataSources:
         - event: InternalBalanceChanged(indexed address,indexed address,int256)
           handler: handleInternalBalanceChanged
       file: ./src/FarmHandler.ts
+  - kind: ethereum/contract
+    name: Silo-Calls
+    network: mainnet
+    source:
+      address: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5"
+      abi: Beanstalk
+      startBlock: 15277986
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Silo
+      abis:
+        - name: Beanstalk
+          file: ./abis/Beanstalk-Replanted.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+      callHandlers:
+        - function: transferDeposit(address,address,uint32,uint256)
+          handler: handleTransferDepositCall
+        - function: transferDeposits(address,address,uint32[],uint256[])
+          handler: handleTransferDepositsCall
+      file: ./src/SiloHandler.ts
