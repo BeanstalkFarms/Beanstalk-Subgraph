@@ -166,6 +166,7 @@ type Silo @entity {
   id: ID!
   beanstalk: Beanstalk!
   farmer: Farmer
+  whitelistedTokens: [String!]!
   assets: [SiloAsset!]! @derivedFrom(field: "silo")
   totalValueLockedUSD: BigDecimal!
   totalDepositedBDV: BigInt!
@@ -398,6 +399,7 @@ type Farmer @entity {
   field: Field @derivedFrom(field: "farmer")
   plots: [Plot!]! @derivedFrom(field: "farmer")
   listings: [PodListing!]! @derivedFrom(field: "farmer")
+  orders: [PodOrder!]! @derivedFrom(field: "farmer")
   sown: Boolean!
   fertilizers: [FertilizerBalance!]! @derivedFrom(field: "farmer")
 }
@@ -1052,6 +1054,46 @@ type PodOrderCancelled implements MarketplaceEvent @entity(immutable: true) {
   account: String!
   " ID of order cancelled"
   orderId: String!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+}
+
+type WhitelistToken implements SiloEvent @entity(immutable: true) {
+  "whitelistToken-{ Transaction hash }-{ Log index }"
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " The protocol this transaction belongs to "
+  protocol: Beanstalk!
+  "Token address whitelisted"
+  token: String!
+  "Stalk per BDV"
+  stalk: BigInt!
+  "Seeds per BDV"
+  seeds: BigInt!
+  "Selector for token"
+  selector: String!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+}
+
+type DewhitelistToken implements SiloEvent @entity(immutable: true) {
+  "dewhitelistToken-{ Transaction hash }-{ Log index }"
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " The protocol this transaction belongs to "
+  protocol: Beanstalk!
+  "Token address dewhitelisted"
+  token: String!
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "

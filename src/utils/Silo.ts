@@ -10,6 +10,7 @@ export function loadSilo(account: Address): Silo {
         silo = new Silo(account.toHexString())
         silo.beanstalk = BEANSTALK.toHexString()
         if (account !== BEANSTALK) { silo.farmer = account.toHexString() }
+        silo.whitelistedTokens = []
         silo.totalValueLockedUSD = ZERO_BD
         silo.totalDepositedBDV = ZERO_BI
         silo.totalStalk = ZERO_BI

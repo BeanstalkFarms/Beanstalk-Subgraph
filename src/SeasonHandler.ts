@@ -76,6 +76,13 @@ export function handleSunrise(event: Sunrise): void {
 
     market.listingIndexes = remainingListings
     market.save()
+
+    // Create silo entities for the protocol
+    let silo = loadSilo(event.address)
+    for (let i = 0; i < silo.whitelistedTokens.length; i++) {
+        loadSiloHourlySnapshot(event.address, currentSeason, event.block.timestamp)
+        loadSiloDailySnapshot(event.address, event.block.timestamp)
+    }
 }
 
 export function handleSeasonSnapshot(event: SeasonSnapshot): void {

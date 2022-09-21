@@ -1,13 +1,31 @@
 import { Address, BigInt, log } from '@graphprotocol/graph-ts'
-import { AddDeposit, StalkBalanceChanged, AddWithdrawal, RemoveDeposit, RemoveDeposits, RemoveWithdrawal, RemoveWithdrawals, Plant } from '../generated/Silo-Replanted/Beanstalk'
+import {
+    AddDeposit,
+    StalkBalanceChanged,
+    AddWithdrawal,
+    RemoveDeposit,
+    RemoveDeposits,
+    RemoveWithdrawal,
+    RemoveWithdrawals,
+    Plant,
+    WhitelistToken,
+    DewhitelistToken
+} from '../generated/Silo-Replanted/Beanstalk'
 import { Beanstalk, TransferDepositCall, TransferDepositsCall } from '../generated/Silo-Calls/Beanstalk'
 import { ZERO_BI } from './utils/Decimals'
 import { loadFarmer } from './utils/Farmer'
 import { loadSilo, loadSiloDailySnapshot, loadSiloHourlySnapshot } from './utils/Silo'
-import { loadSiloAsset as loadSiloAsset, loadSiloAssetDailySnapshot as loadSiloAssetDailySnapshot, loadSiloAssetHourlySnapshot } from './utils/SiloAsset'
+import { loadSiloAsset as loadSiloAsset, loadSiloAssetDailySnapshot, loadSiloAssetHourlySnapshot } from './utils/SiloAsset'
 import { loadSiloDeposit } from './utils/SiloDeposit'
 import { loadSiloWithdraw } from './utils/SiloWithdraw'
-import { AddDeposit as AddDepositEntity, RemoveDeposit as RemoveDepositEntity, SeedChange, StalkChange } from '../generated/schema'
+import {
+    AddDeposit as AddDepositEntity,
+    RemoveDeposit as RemoveDepositEntity,
+    WhitelistToken as WhitelistTokenEntity,
+    DewhitelistToken as DewhitelistTokenEntity,
+    SeedChange,
+    StalkChange
+} from '../generated/schema'
 import { loadBeanstalk } from './utils/Beanstalk'
 import { BEANSTALK, BEAN_ERC20 } from './utils/Constants'
 
@@ -460,4 +478,42 @@ export function updateStalkWithCalls(season: i32, timestamp: BigInt, blockNumber
     }
     beanstalk.farmersToUpdate = []
     beanstalk.save()
+}
+
+export function handleWhitelistToken(event: WhitelistToken): void {
+    let silo = loadSilo(event.address)
+    let currentList = silo.whitelistedTokens
+    currentList.push(event.params.token.toHexString())
+
+    let id = 'whitelistToken-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+    let rawEvent = new WhitelistTokenEntity(id)
+    rawEvent.hash = event.transaction.hash.toHexString()
+    rawEvent.logIndex = event.logIndex.toI32()
+    rawEvent.protocol = event.address.toHexString()
+    rawEvent.token = event.params.token.toHexString()
+    rawEvent.stalk = event.params.stalk
+    rawEvent.seeds = event.params.seeds
+    rawEvent.selector = event.params.selector.toHexString()
+    rawEvent.blockNumber = event.block.number
+    rawEvent.timestamp = event.block.timestamp
+    rawEvent.save()
+
+}
+
+export function handleDewhitelistToken(event: DewhitelistToken): void {
+    let silo = loadSilo(event.address)
+    let currentList = silo.whitelistedTokens
+    let index = currentList.indexOf(event.params.token.toHexString())
+    currentList.splice(index, 1)
+
+    let id = 'dewhitelistToken-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+    let rawEvent = new DewhitelistTokenEntity(id)
+    rawEvent.hash = event.transaction.hash.toHexString()
+    rawEvent.logIndex = event.logIndex.toI32()
+    rawEvent.protocol = event.address.toHexString()
+    rawEvent.token = event.params.token.toHexString()
+    rawEvent.blockNumber = event.block.number
+    rawEvent.timestamp = event.block.timestamp
+    rawEvent.save()
+
 }
