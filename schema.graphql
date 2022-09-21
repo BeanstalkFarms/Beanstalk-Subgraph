@@ -357,8 +357,10 @@ type FieldHourlySnapshot @entity {
   newSoil: BigInt!
   totalSoil: BigInt!
   podRate: BigDecimal!
+  blocksToSoldOutSoil: BigInt!
   blockNumber: BigInt!
   timestamp: BigInt!
+  lastUpdated: BigInt!
 }
 
 type FieldDailySnapshot @entity {
@@ -385,6 +387,7 @@ type FieldDailySnapshot @entity {
   podRate: BigDecimal!
   blockNumber: BigInt!
   timestamp: BigInt!
+  lastUpdated: BigInt!
 }
 
 # ---===== Farmer Account Entities =====---

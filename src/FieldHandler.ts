@@ -403,8 +403,9 @@ function updateFieldTotals(
     fieldHourly.newPods = fieldHourly.newPods.plus(sownPods).minus(harvestablePods).plus(transferredPods)
     fieldHourly.newHarvestablePods = fieldHourly.newHarvestablePods.plus(harvestablePods)
     fieldHourly.newHarvestedPods = fieldHourly.newHarvestedPods.plus(harvestedPods)
-    fieldHourly.blockNumber = blockNumber
-    fieldHourly.timestamp = timestamp
+    fieldHourly.blockNumber = fieldHourly.blockNumber == ZERO_BI ? blockNumber : fieldHourly.blockNumber
+    fieldHourly.lastUpdated = timestamp
+    if (fieldHourly.newSoil == fieldHourly.sownBeans) fieldHourly.blocksToSoldOutSoil = blockNumber.minus(fieldHourly.blockNumber)
     fieldHourly.save()
 
     fieldDaily.totalSoil = field.totalSoil
