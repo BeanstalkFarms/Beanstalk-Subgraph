@@ -15,6 +15,7 @@ import { loadSeason } from "./utils/Season";
 import { loadSilo, loadSiloDailySnapshot, loadSiloHourlySnapshot } from "./utils/Silo";
 import { addDepositToSiloAsset, updateStalkWithCalls } from "./SiloHandler";
 import { updateBeanEMA } from "./YieldHandler";
+import { loadSiloAssetDailySnapshot, loadSiloAssetHourlySnapshot } from "./utils/SiloAsset";
 
 export function handleSunrise(event: Sunrise): void {
     let currentSeason = event.params.season.toI32()
@@ -79,9 +80,11 @@ export function handleSunrise(event: Sunrise): void {
 
     // Create silo entities for the protocol
     let silo = loadSilo(event.address)
+    loadSiloHourlySnapshot(event.address, currentSeason, event.block.timestamp)
+    loadSiloDailySnapshot(event.address, event.block.timestamp)
     for (let i = 0; i < silo.whitelistedTokens.length; i++) {
-        loadSiloHourlySnapshot(event.address, currentSeason, event.block.timestamp)
-        loadSiloDailySnapshot(event.address, event.block.timestamp)
+        loadSiloAssetHourlySnapshot(event.address, Address.fromString(silo.whitelistedTokens[i]), currentSeason, event.block.timestamp)
+        loadSiloAssetDailySnapshot(event.address, Address.fromString(silo.whitelistedTokens[i]), event.block.timestamp)
     }
 }
 
