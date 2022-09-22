@@ -36,6 +36,14 @@ enum ProtocolType {
   # Will add more
 }
 
+enum MarketStatus {
+  ACTIVE
+  FILLED
+  FILLED_PARTIAL
+  CANCELLED
+  CANCELLED_PARTIAL
+}
+
 type Token @entity {
   " Smart contract address of the token "
   id: ID!
@@ -541,7 +549,7 @@ type PodListing @entity {
   farmer: Farmer!
   createdAt: BigInt!
   updatedAt: BigInt!
-  status: String!
+  status: MarketStatus!
   fill: PodFill
   originalIndex: BigInt!
   index: BigInt!
@@ -555,7 +563,6 @@ type PodListing @entity {
   pricePerPod: Int!
   maxHarvestableIndex: BigInt!
   mode: Int!
-  transaction: Transaction
 }
 
 type PodOrder @entity {
@@ -563,17 +570,17 @@ type PodOrder @entity {
   farmer: Farmer!
   createdAt: BigInt!
   updatedAt: BigInt!
-  status: String!
+  status: MarketStatus!
   amount: BigInt!
   filledAmount: BigInt!
   maxPlaceInLine: BigInt!
   pricePerPod: Int!
-  transaction: Transaction
 }
 
 type PodFill @entity {
   id: ID!
   podMarketplace: PodMarketplace!
+  createdAt: BigInt!
   listing: PodListing
   order: PodOrder
   from: String!
@@ -581,7 +588,6 @@ type PodFill @entity {
   amount: BigInt!
   index: BigInt!
   start: BigInt!
-  transaction: Transaction
 }
 
 type Transaction @entity {

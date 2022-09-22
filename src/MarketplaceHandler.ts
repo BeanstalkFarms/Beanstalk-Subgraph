@@ -16,10 +16,8 @@ import { loadPodFill } from "./utils/PodFill";
 import { createHistoricalPodListing, loadPodListing } from "./utils/PodListing";
 import { loadPodMarketplace, loadPodMarketplaceDailySnapshot, loadPodMarketplaceHourlySnapshot } from "./utils/PodMarketplace";
 import { createHistoricalPodOrder, loadPodOrder } from "./utils/PodOrder";
-import { loadTransaction } from "./utils/Transaction";
 
 export function handlePodListingCreated(event: PodListingCreated): void {
-    let transaction = loadTransaction(event.transaction, event.block)
     let market = loadPodMarketplace(event.address)
     let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, market.season, event.block.timestamp)
     let marketDaily = loadPodMarketplaceDailySnapshot(event.address, event.block.timestamp)
@@ -45,7 +43,6 @@ export function handlePodListingCreated(event: PodListingCreated): void {
     listing.pricePerPod = event.params.pricePerPod
     listing.maxHarvestableIndex = event.params.maxHarvestableIndex
     listing.mode = event.params.toWallet === true ? 0 : 1
-    listing.transaction = transaction.id
     listing.save()
 
     plot.listing = listing.id
@@ -124,7 +121,7 @@ export function handlePodListingCancelled(event: PodListingCancelled): void {
     marketDaily.timestamp = event.block.timestamp
     marketDaily.save()
 
-    listing.status = 'cancelled'
+    listing.status = 'CANCELLED'
     listing.cancelledAmount = listing.remainingAmount
     listing.remainingAmount = ZERO_BI
     listing.save()
@@ -143,7 +140,6 @@ export function handlePodListingCancelled(event: PodListingCancelled): void {
 }
 
 export function handlePodListingFilled(event: PodListingFilled): void {
-    let transaction = loadTransaction(event.transaction, event.block)
     let market = loadPodMarketplace(event.address)
     let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, market.season, event.block.timestamp)
     let marketDaily = loadPodMarketplaceDailySnapshot(event.address, event.block.timestamp)
@@ -190,9 +186,9 @@ export function handlePodListingFilled(event: PodListingFilled): void {
     let listingIndex = market.listingIndexes.indexOf(listing.index)
     market.listingIndexes.splice(listingIndex, 1)
     if (listing.remainingAmount == ZERO_BI) {
-        listing.status = 'filled-full'
+        listing.status = 'FILLED'
     } else {
-        listing.status = 'filled-partial'
+        listing.status = 'FILLED_PARTIAL'
         let remainingListing = loadPodListing(Address.fromString(listing.farmer), listing.index.plus(event.params.amount).plus(listing.start))
 
         remainingListing.plot = listing.index.plus(event.params.amount).plus(listing.start).toString()
@@ -207,7 +203,6 @@ export function handlePodListingFilled(event: PodListingFilled): void {
         remainingListing.pricePerPod = listing.pricePerPod
         remainingListing.maxHarvestableIndex = listing.maxHarvestableIndex
         remainingListing.mode = listing.mode
-        remainingListing.transaction = transaction.id
         remainingListing.save()
         market.listingIndexes.push(remainingListing.index)
     }
@@ -215,13 +210,13 @@ export function handlePodListingFilled(event: PodListingFilled): void {
     listing.save()
 
     let fill = loadPodFill(event.address, event.params.index, event.transaction.hash.toHexString())
+    fill.createdAt = event.block.timestamp
     fill.listing = listing.id
     fill.from = event.params.from.toHexString()
     fill.to = event.params.to.toHexString()
     fill.amount = event.params.amount
     fill.index = event.params.index
     fill.start = event.params.start
-    fill.transaction = transaction.id
     fill.save()
 
     // Save the raw event data
@@ -241,7 +236,6 @@ export function handlePodListingFilled(event: PodListingFilled): void {
 }
 
 export function handlePodOrderCreated(event: PodOrderCreated): void {
-    let transaction = loadTransaction(event.transaction, event.block)
 
     let market = loadPodMarketplace(event.address)
     let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, market.season, event.block.timestamp)
@@ -249,17 +243,16 @@ export function handlePodOrderCreated(event: PodOrderCreated): void {
     let order = loadPodOrder(event.params.id)
     let farmer = loadFarmer(event.params.account)
 
-    if (order.status !== '') { createHistoricalPodOrder(order) }
+    if (order.createdAt !== event.block.timestamp) { createHistoricalPodOrder(order) }
 
     order.farmer = event.params.account.toHexString()
     order.createdAt = event.block.timestamp
     order.updatedAt = event.block.timestamp
-    order.status = 'active'
+    order.status = 'ACTIVE'
     order.amount = event.params.amount
     order.filledAmount = ZERO_BI
     order.maxPlaceInLine = event.params.maxPlaceInLine
     order.pricePerPod = event.params.pricePerPod
-    order.transaction = transaction.id
     order.save()
 
     market.totalOrdersCreated = market.totalOrdersCreated.plus(event.params.amount)
@@ -291,7 +284,6 @@ export function handlePodOrderCreated(event: PodOrderCreated): void {
 }
 
 export function handlePodOrderFilled(event: PodOrderFilled): void {
-    let transaction = loadTransaction(event.transaction, event.block)
 
     let market = loadPodMarketplace(event.address)
     let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, market.season, event.block.timestamp)
@@ -303,16 +295,16 @@ export function handlePodOrderFilled(event: PodOrderFilled): void {
 
     order.updatedAt = event.block.timestamp
     order.filledAmount = order.filledAmount.plus(event.params.amount)
-    order.status = order.amount == order.filledAmount ? 'filled' : 'active'
+    order.status = order.amount == order.filledAmount ? 'FILLED' : 'ACTIVE'
     order.save()
 
+    fill.createdAt = event.block.timestamp
     fill.order = order.id
     fill.from = event.params.from.toHexString()
     fill.to = event.params.to.toHexString()
     fill.amount = event.params.amount
     fill.index = event.params.index
     fill.start = event.params.start
-    fill.transaction = transaction.id
     fill.save()
 
     if (order.filledAmount = order.amount) {
@@ -366,7 +358,7 @@ export function handlePodOrderCancelled(event: PodOrderCancelled): void {
     let marketDaily = loadPodMarketplaceDailySnapshot(event.address, event.block.timestamp)
     let order = loadPodOrder(event.params.id)
 
-    order.status = order.filledAmount == ZERO_BI ? 'cancelled' : 'partial-cancelled'
+    order.status = order.filledAmount == ZERO_BI ? 'CANCELLED' : 'CANCELLED_PARTIAL'
     order.updatedAt = event.block.timestamp
     order.save()
 

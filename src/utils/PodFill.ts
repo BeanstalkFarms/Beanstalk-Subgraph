@@ -8,6 +8,7 @@ export function loadPodFill(diamondAddress: Address, index: BigInt, hash: String
     if (fill == null) {
         fill = new PodFill(id)
         fill.podMarketplace = diamondAddress.toHexString()
+        fill.createdAt = ZERO_BI
         fill.from = ''
         fill.to = ''
         fill.amount = ZERO_BI

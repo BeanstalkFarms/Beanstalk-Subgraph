@@ -13,7 +13,7 @@ export function loadPodListing(account: Address, index: BigInt): PodListing {
         listing.farmer = account.toHexString()
         listing.createdAt = ZERO_BI
         listing.updatedAt = ZERO_BI
-        listing.status = 'active'
+        listing.status = 'ACTIVE'
         listing.originalIndex = index
         listing.index = index
         listing.start = ZERO_BI

@@ -7,7 +7,6 @@ import { loadPodMarketplace, loadPodMarketplaceDailySnapshot, loadPodMarketplace
 import { loadTransaction } from "./utils/Transaction";
 
 export function handlePodListingCreated(event: PodListingCreated): void {
-    let transaction = loadTransaction(event.transaction, event.block)
     let market = loadPodMarketplace(event.address)
     let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, market.season, event.block.timestamp)
     let marketDaily = loadPodMarketplaceDailySnapshot(event.address, event.block.timestamp)
@@ -25,7 +24,7 @@ export function handlePodListingCreated(event: PodListingCreated): void {
     listing.plot = plot.id
     listing.createdAt = listing.createdAt == ZERO_BI ? event.block.timestamp : listing.createdAt
     listing.updatedAt = event.block.timestamp
-    listing.status = 'active'
+    listing.status = 'ACTIVE'
     listing.originalIndex = event.params.index
     listing.start = event.params.start
     listing.amount = event.params.amount
@@ -34,7 +33,6 @@ export function handlePodListingCreated(event: PodListingCreated): void {
     listing.pricePerPod = event.params.pricePerPod
     listing.maxHarvestableIndex = event.params.maxHarvestableIndex
     listing.mode = event.params.mode
-    listing.transaction = transaction.id
     listing.save()
 
     plot.listing = listing.id
