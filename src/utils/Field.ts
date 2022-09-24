@@ -55,6 +55,7 @@ export function loadFieldHourly(diamondAddress: Address, season: i32, timestamp:
         hourly.totalSoil = ZERO_BI
         hourly.podRate = field.podRate
         hourly.blocksToSoldOutSoil = ZERO_BI
+        hourly.soilSoldOut = false
         hourly.blockNumber = ZERO_BI
         hourly.timestamp = timestamp
         hourly.lastUpdated = timestamp

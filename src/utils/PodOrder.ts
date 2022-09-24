@@ -9,7 +9,7 @@ export function loadPodOrder(orderID: Bytes): PodOrder {
         order.farmer = ''
         order.createdAt = ZERO_BI
         order.updatedAt = ZERO_BI
-        order.status = 'ACTIVE'
+        order.status = ''
         order.amount = ZERO_BI
         order.filledAmount = ZERO_BI
         order.maxPlaceInLine = ZERO_BI

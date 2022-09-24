@@ -366,6 +366,7 @@ type FieldHourlySnapshot @entity {
   totalSoil: BigInt!
   podRate: BigDecimal!
   blocksToSoldOutSoil: BigInt!
+  soilSoldOut: Boolean!
   blockNumber: BigInt!
   timestamp: BigInt!
   lastUpdated: BigInt!
@@ -1034,6 +1035,8 @@ type PodOrderFilled implements MarketplaceEvent @entity(immutable: true) {
   logIndex: Int!
   " The protocol this transaction belongs to "
   protocol: Beanstalk!
+  "Order ID filled"
+  orderID: String!
   "Account selling pods"
   from: String!
   "Account buying pods"

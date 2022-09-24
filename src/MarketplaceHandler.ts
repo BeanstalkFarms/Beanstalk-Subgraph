@@ -243,7 +243,7 @@ export function handlePodOrderCreated(event: PodOrderCreated): void {
     let order = loadPodOrder(event.params.id)
     let farmer = loadFarmer(event.params.account)
 
-    if (order.createdAt !== event.block.timestamp) { createHistoricalPodOrder(order) }
+    if (order.status != '') { createHistoricalPodOrder(order) }
 
     order.farmer = event.params.account.toHexString()
     order.createdAt = event.block.timestamp
@@ -342,6 +342,7 @@ export function handlePodOrderFilled(event: PodOrderFilled): void {
     rawEvent.hash = event.transaction.hash.toHexString()
     rawEvent.logIndex = event.logIndex.toI32()
     rawEvent.protocol = event.address.toHexString()
+    rawEvent.orderID = order.id
     rawEvent.from = event.params.from.toHexString()
     rawEvent.to = event.params.to.toHexString()
     rawEvent.index = event.params.index
