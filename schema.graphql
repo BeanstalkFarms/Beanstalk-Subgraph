@@ -572,6 +572,7 @@ type PodOrder @entity {
   createdAt: BigInt!
   updatedAt: BigInt!
   status: MarketStatus!
+  fill: PodFill
   amount: BigInt!
   filledAmount: BigInt!
   maxPlaceInLine: BigInt!

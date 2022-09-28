@@ -7,6 +7,8 @@ export const ADDRESS_ZERO = Address.fromString('0x000000000000000000000000000000
 export const BEAN_ERC20_V1 = Address.fromString('0xDC59ac4FeFa32293A95889Dc396682858d52e5Db')
 export const BEAN_ERC20 = Address.fromString('0xBEA0000029AD1c77D3d5D23Ba2D8893dB9d1Efab')
 export const UNRIPE_BEAN = Address.fromString('0x1bea0050e63e05fbb5d8ba2f10cf5800b6224449')
+export const BEAN_3CRV = Address.fromString('0xc9C32cd16Bf7eFB85Ff14e0c8603cc90F6F2eE49')
+export const UNRIPE_BEAN_3CRV = Address.fromString('0x1BEA3CcD22F4EBd3d37d731BA31Eeca95713716D')
 export const BEANSTALK_FARMS = Address.fromString('0x21de18b6a8f78ede6d16c50a167f6b222dc08df7')
 
 // Protocol Addresses

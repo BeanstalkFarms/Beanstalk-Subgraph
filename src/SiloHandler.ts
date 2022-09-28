@@ -27,7 +27,7 @@ import {
     StalkChange
 } from '../generated/schema'
 import { loadBeanstalk } from './utils/Beanstalk'
-import { BEANSTALK, BEAN_ERC20 } from './utils/Constants'
+import { BEANSTALK, BEAN_ERC20, UNRIPE_BEAN, UNRIPE_BEAN_3CRV } from './utils/Constants'
 
 export function handleAddDeposit(event: AddDeposit): void {
 
@@ -410,28 +410,14 @@ function updateStalkBalances(account: Address, season: i32, stalk: BigInt, roots
             beanstalk.activeFarmers = newFarmers
             beanstalk.save()
 
-            silo.totalFarmers += 1
-            siloHourly.totalFarmers += 1
-            siloHourly.hourlyFarmers += 1
-            siloDaily.totalFarmers += 1
-            siloDaily.dailyFarmers += 1
-            silo.save()
-            siloHourly.save()
-            siloDaily.save()
+            incrementProtocolFarmers(season, timestamp)
 
         } else if (silo.totalStalk == ZERO_BI) {
             let newFarmers = beanstalk.activeFarmers
             newFarmers.splice(farmerIndex, 1)
             beanstalk.activeFarmers = newFarmers
 
-            silo.totalFarmers -= 1
-            siloHourly.totalFarmers -= 1
-            siloHourly.hourlyFarmers -= 1
-            siloDaily.totalFarmers -= 1
-            siloDaily.dailyFarmers -= 1
-            silo.save()
-            siloHourly.save()
-            siloDaily.save()
+            decrementProtocolFarmers(season, timestamp)
         }
     }
 }
@@ -464,6 +450,38 @@ function updateClaimedWithdraw(account: Address, token: Address, season: BigInt)
     withdraw.save()
 }
 
+function incrementProtocolFarmers(season: i32, timestamp: BigInt): void {
+    let silo = loadSilo(BEANSTALK)
+    let siloHourly = loadSiloHourlySnapshot(BEANSTALK, season, timestamp)
+    let siloDaily = loadSiloDailySnapshot(BEANSTALK, timestamp)
+
+    silo.totalFarmers += 1
+    siloHourly.totalFarmers += 1
+    siloHourly.hourlyFarmers += 1
+    siloDaily.totalFarmers += 1
+    siloDaily.dailyFarmers += 1
+    silo.save()
+    siloHourly.save()
+    siloDaily.save()
+
+}
+
+function decrementProtocolFarmers(season: i32, timestamp: BigInt): void {
+    let silo = loadSilo(BEANSTALK)
+    let siloHourly = loadSiloHourlySnapshot(BEANSTALK, season, timestamp)
+    let siloDaily = loadSiloDailySnapshot(BEANSTALK, timestamp)
+
+    silo.totalFarmers -= 1
+    siloHourly.totalFarmers -= 1
+    siloHourly.hourlyFarmers -= 1
+    siloDaily.totalFarmers -= 1
+    siloDaily.dailyFarmers -= 1
+    silo.save()
+    siloHourly.save()
+    siloDaily.save()
+
+}
+
 export function updateStalkWithCalls(season: i32, timestamp: BigInt, blockNumber: BigInt): void {
     // This should be run at sunrise for the previous season to update any farmers stalk/seed/roots balances from silo transfers.
 
@@ -483,7 +501,14 @@ export function updateStalkWithCalls(season: i32, timestamp: BigInt, blockNumber
 export function handleWhitelistToken(event: WhitelistToken): void {
     let silo = loadSilo(event.address)
     let currentList = silo.whitelistedTokens
+    if (currentList.length == 0) {
+        // Push unripe bean and unripe bean:3crv upon the initial whitelisting.
+        currentList.push(UNRIPE_BEAN.toHexString())
+        currentList.push(UNRIPE_BEAN_3CRV.toHexString())
+    }
     currentList.push(event.params.token.toHexString())
+    silo.whitelistedTokens = currentList
+    silo.save()
 
     let id = 'whitelistToken-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
     let rawEvent = new WhitelistTokenEntity(id)
@@ -505,6 +530,8 @@ export function handleDewhitelistToken(event: DewhitelistToken): void {
     let currentList = silo.whitelistedTokens
     let index = currentList.indexOf(event.params.token.toHexString())
     currentList.splice(index, 1)
+    silo.whitelistedTokens = currentList
+    silo.save()
 
     let id = 'dewhitelistToken-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
     let rawEvent = new DewhitelistTokenEntity(id)
