@@ -32,6 +32,7 @@ export function handlePodListingCreated(event: PodListingCreated): void {
         listing.createdAt = ZERO_BI
     }
 
+    listing.historyID = listing.id + '-' + event.block.timestamp.toString()
     listing.plot = plot.id
     listing.createdAt = listing.createdAt == ZERO_BI ? event.block.timestamp : listing.createdAt
     listing.updatedAt = event.block.timestamp
@@ -80,6 +81,7 @@ export function handlePodListingCreated(event: PodListingCreated): void {
     rawEvent.hash = event.transaction.hash.toHexString()
     rawEvent.logIndex = event.logIndex.toI32()
     rawEvent.protocol = event.address.toHexString()
+    rawEvent.historyID = listing.historyID
     rawEvent.account = event.params.account.toHexString()
     rawEvent.index = event.params.index
     rawEvent.start = event.params.start
@@ -124,6 +126,7 @@ export function handlePodListingCancelled(event: PodListingCancelled): void {
     listing.status = 'CANCELLED'
     listing.cancelledAmount = listing.remainingAmount
     listing.remainingAmount = ZERO_BI
+    listing.updatedAt = event.block.timestamp
     listing.save()
 
     // Save the raw event data
@@ -132,6 +135,7 @@ export function handlePodListingCancelled(event: PodListingCancelled): void {
     rawEvent.hash = event.transaction.hash.toHexString()
     rawEvent.logIndex = event.logIndex.toI32()
     rawEvent.protocol = event.address.toHexString()
+    rawEvent.historyID = listing.historyID
     rawEvent.account = event.params.account.toHexString()
     rawEvent.index = event.params.index
     rawEvent.blockNumber = event.block.number
@@ -183,6 +187,7 @@ export function handlePodListingFilled(event: PodListingFilled): void {
     listing.remainingAmount = listing.remainingAmount.minus(event.params.amount)
     listing.totalFilled = listing.totalFilled.plus(event.params.amount)
 
+    let originalHistoryID = listing.historyID
     let listingIndex = market.listingIndexes.indexOf(listing.index)
     market.listingIndexes.splice(listingIndex, 1)
     if (listing.remainingAmount == ZERO_BI) {
@@ -191,6 +196,7 @@ export function handlePodListingFilled(event: PodListingFilled): void {
         listing.status = 'FILLED_PARTIAL'
         let remainingListing = loadPodListing(Address.fromString(listing.farmer), listing.index.plus(event.params.amount).plus(listing.start))
 
+        remainingListing.historyID = remainingListing.id + '-' + event.block.timestamp.toString()
         remainingListing.plot = listing.index.plus(event.params.amount).plus(listing.start).toString()
         remainingListing.createdAt = listing.createdAt
         remainingListing.updatedAt = event.block.timestamp
@@ -225,6 +231,7 @@ export function handlePodListingFilled(event: PodListingFilled): void {
     rawEvent.hash = event.transaction.hash.toHexString()
     rawEvent.logIndex = event.logIndex.toI32()
     rawEvent.protocol = event.address.toHexString()
+    rawEvent.historyID = originalHistoryID
     rawEvent.from = event.params.from.toHexString()
     rawEvent.to = event.params.to.toHexString()
     rawEvent.index = event.params.index
@@ -245,6 +252,7 @@ export function handlePodOrderCreated(event: PodOrderCreated): void {
 
     if (order.status != '') { createHistoricalPodOrder(order) }
 
+    order.historyID = order.id + '-' + event.block.timestamp.toString()
     order.farmer = event.params.account.toHexString()
     order.createdAt = event.block.timestamp
     order.updatedAt = event.block.timestamp
@@ -273,6 +281,7 @@ export function handlePodOrderCreated(event: PodOrderCreated): void {
     rawEvent.hash = event.transaction.hash.toHexString()
     rawEvent.logIndex = event.logIndex.toI32()
     rawEvent.protocol = event.address.toHexString()
+    rawEvent.historyID = order.historyID
     rawEvent.account = event.params.account.toHexString()
     rawEvent.orderId = event.params.id.toHexString()
     rawEvent.amount = event.params.amount
@@ -342,7 +351,7 @@ export function handlePodOrderFilled(event: PodOrderFilled): void {
     rawEvent.hash = event.transaction.hash.toHexString()
     rawEvent.logIndex = event.logIndex.toI32()
     rawEvent.protocol = event.address.toHexString()
-    rawEvent.orderID = order.id
+    rawEvent.historyID = order.historyID
     rawEvent.from = event.params.from.toHexString()
     rawEvent.to = event.params.to.toHexString()
     rawEvent.index = event.params.index
@@ -385,6 +394,7 @@ export function handlePodOrderCancelled(event: PodOrderCancelled): void {
     rawEvent.hash = event.transaction.hash.toHexString()
     rawEvent.logIndex = event.logIndex.toI32()
     rawEvent.protocol = event.address.toHexString()
+    rawEvent.historyID = order.historyID
     rawEvent.account = event.params.account.toHexString()
     rawEvent.orderId = event.params.id.toHexString()
     rawEvent.blockNumber = event.block.number

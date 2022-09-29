@@ -21,6 +21,7 @@ export function handlePodListingCreated(event: PodListingCreated): void {
         listing.createdAt = ZERO_BI
     }
 
+    listing.historyID = listing.id + '-' + event.block.timestamp.toString()
     listing.plot = plot.id
     listing.createdAt = listing.createdAt == ZERO_BI ? event.block.timestamp : listing.createdAt
     listing.updatedAt = event.block.timestamp
@@ -65,11 +66,12 @@ export function handlePodListingCreated(event: PodListingCreated): void {
     marketDaily.save()
 
     // Save the raw event data
-    let id = 'podListingCreated' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+    let id = 'podListingCreated-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
     let rawEvent = new PodListingCreatedEvent(id)
     rawEvent.hash = event.transaction.hash.toHexString()
     rawEvent.logIndex = event.logIndex.toI32()
     rawEvent.protocol = event.address.toHexString()
+    rawEvent.historyID = listing.historyID
     rawEvent.account = event.params.account.toHexString()
     rawEvent.index = event.params.index
     rawEvent.start = event.params.start

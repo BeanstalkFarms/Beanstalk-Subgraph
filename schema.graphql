@@ -42,6 +42,7 @@ enum MarketStatus {
   FILLED_PARTIAL
   CANCELLED
   CANCELLED_PARTIAL
+  EXPIRED
 }
 
 type Token @entity {
@@ -546,6 +547,8 @@ type PodMarketplaceDailySnapshot @entity {
 
 type PodListing @entity {
   id: ID! # the account plus index
+  " Historical ID for joins"
+  historyID: String!
   plot: Plot!
   farmer: Farmer!
   createdAt: BigInt!
@@ -568,6 +571,8 @@ type PodListing @entity {
 
 type PodOrder @entity {
   id: ID!
+  " Historical ID for joins"
+  historyID: String!
   farmer: Farmer!
   createdAt: BigInt!
   updatedAt: BigInt!
@@ -938,6 +943,8 @@ type PodListingCreated implements MarketplaceEvent @entity(immutable: true) {
   logIndex: Int!
   " The protocol this transaction belongs to "
   protocol: Beanstalk!
+  " Historical ID for joins"
+  historyID: String!
   " Account creating the listing"
   account: String!
   " Index of the plot listed"
@@ -967,6 +974,8 @@ type PodListingFilled implements MarketplaceEvent @entity(immutable: true) {
   logIndex: Int!
   " The protocol this transaction belongs to "
   protocol: Beanstalk!
+  " Historical ID for joins"
+  historyID: String!
   "Account selling pods"
   from: String!
   "Account buying pods"
@@ -992,6 +1001,8 @@ type PodListingCancelled implements MarketplaceEvent @entity(immutable: true) {
   logIndex: Int!
   " The protocol this transaction belongs to "
   protocol: Beanstalk!
+  " Historical ID for joins"
+  historyID: String!
   " Account cancelling listing"
   account: String!
   " Index of plot listing being cancelled"
@@ -1011,6 +1022,8 @@ type PodOrderCreated implements MarketplaceEvent @entity(immutable: true) {
   logIndex: Int!
   " The protocol this transaction belongs to "
   protocol: Beanstalk!
+  " Historical ID for joins"
+  historyID: String!
   " Account creating the listing"
   account: String!
   " ID of the pod order"
@@ -1036,8 +1049,8 @@ type PodOrderFilled implements MarketplaceEvent @entity(immutable: true) {
   logIndex: Int!
   " The protocol this transaction belongs to "
   protocol: Beanstalk!
-  "Order ID filled"
-  orderID: String!
+  " Historical ID for joins"
+  historyID: String!
   "Account selling pods"
   from: String!
   "Account buying pods"
@@ -1063,6 +1076,8 @@ type PodOrderCancelled implements MarketplaceEvent @entity(immutable: true) {
   logIndex: Int!
   " The protocol this transaction belongs to "
   protocol: Beanstalk!
+  " Historical ID for joins"
+  historyID: String!
   " Account cancelling listing"
   account: String!
   " ID of order cancelled"
