@@ -186,6 +186,7 @@ export function handlePodListingFilled(event: PodListingFilled): void {
     listing.filledAmount = event.params.amount
     listing.remainingAmount = listing.remainingAmount.minus(event.params.amount)
     listing.totalFilled = listing.totalFilled.plus(event.params.amount)
+    listing.updatedAt = event.block.timestamp
 
     let originalHistoryID = listing.historyID
     let listingIndex = market.listingIndexes.indexOf(listing.index)
