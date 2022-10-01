@@ -54,8 +54,11 @@ export function loadFieldHourly(diamondAddress: Address, season: i32, timestamp:
         hourly.newSoil = ZERO_BI
         hourly.totalSoil = ZERO_BI
         hourly.podRate = field.podRate
+        hourly.blocksToSoldOutSoil = ZERO_BI
+        hourly.soilSoldOut = false
         hourly.blockNumber = ZERO_BI
         hourly.timestamp = timestamp
+        hourly.lastUpdated = timestamp
         hourly.save()
     }
     return hourly
@@ -90,6 +93,7 @@ export function loadFieldDaily(diamondAddress: Address, timestamp: BigInt): Fiel
         daily.podRate = field.podRate
         daily.blockNumber = ZERO_BI
         daily.timestamp = timestamp
+        daily.lastUpdated = timestamp
         daily.save()
     }
     return daily

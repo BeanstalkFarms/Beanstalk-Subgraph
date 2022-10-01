@@ -9,11 +9,12 @@ export function loadPodListing(account: Address, index: BigInt): PodListing {
     let listing = PodListing.load(id)
     if (listing == null) {
         listing = new PodListing(id)
+        listing.historyID = ''
         listing.plot = index.toString()
         listing.farmer = account.toHexString()
         listing.createdAt = ZERO_BI
         listing.updatedAt = ZERO_BI
-        listing.status = 'active'
+        listing.status = 'ACTIVE'
         listing.originalIndex = index
         listing.index = index
         listing.start = ZERO_BI
@@ -57,7 +58,7 @@ export function expirePodListing(diamondAddress: Address, timestamp: BigInt, lis
     marketDaily.totalPodsAvailable = market.totalPodsAvailable
     marketDaily.save()
 
-    listing.status = 'expired'
+    listing.status = 'EXPIRED'
     listing.remainingAmount = ZERO_BI
     listing.save()
 }
@@ -66,10 +67,11 @@ export function createHistoricalPodListing(listing: PodListing): void {
     let created = false
     let id = listing.id
     for (let i = 0; !created; i++) {
-        id = id + '-' + i.toString()
+        id = listing.id + '-' + i.toString()
         let newListing = PodListing.load(id)
         if (newListing == null) {
             newListing = new PodListing(id)
+            newListing.historyID = listing.historyID
             newListing.plot = listing.plot
             newListing.farmer = listing.farmer
             newListing.createdAt = listing.createdAt

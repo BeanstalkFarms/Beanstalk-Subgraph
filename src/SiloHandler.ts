@@ -1,15 +1,33 @@
 import { Address, BigInt, log } from '@graphprotocol/graph-ts'
-import { AddDeposit, StalkBalanceChanged, AddWithdrawal, RemoveDeposit, RemoveDeposits, RemoveWithdrawal, RemoveWithdrawals, Plant } from '../generated/Silo-Replanted/Beanstalk'
+import {
+    AddDeposit,
+    StalkBalanceChanged,
+    AddWithdrawal,
+    RemoveDeposit,
+    RemoveDeposits,
+    RemoveWithdrawal,
+    RemoveWithdrawals,
+    Plant,
+    WhitelistToken,
+    DewhitelistToken
+} from '../generated/Silo-Replanted/Beanstalk'
 import { Beanstalk, TransferDepositCall, TransferDepositsCall } from '../generated/Silo-Calls/Beanstalk'
 import { ZERO_BI } from './utils/Decimals'
 import { loadFarmer } from './utils/Farmer'
 import { loadSilo, loadSiloDailySnapshot, loadSiloHourlySnapshot } from './utils/Silo'
-import { loadSiloAsset as loadSiloAsset, loadSiloAssetDailySnapshot as loadSiloAssetDailySnapshot, loadSiloAssetHourlySnapshot } from './utils/SiloAsset'
+import { loadSiloAsset as loadSiloAsset, loadSiloAssetDailySnapshot, loadSiloAssetHourlySnapshot } from './utils/SiloAsset'
 import { loadSiloDeposit } from './utils/SiloDeposit'
 import { loadSiloWithdraw } from './utils/SiloWithdraw'
-import { AddDeposit as AddDepositEntity, RemoveDeposit as RemoveDepositEntity, SeedChange, StalkChange } from '../generated/schema'
+import {
+    AddDeposit as AddDepositEntity,
+    RemoveDeposit as RemoveDepositEntity,
+    WhitelistToken as WhitelistTokenEntity,
+    DewhitelistToken as DewhitelistTokenEntity,
+    SeedChange,
+    StalkChange
+} from '../generated/schema'
 import { loadBeanstalk } from './utils/Beanstalk'
-import { BEANSTALK, BEAN_ERC20 } from './utils/Constants'
+import { BEANSTALK, BEAN_ERC20, UNRIPE_BEAN, UNRIPE_BEAN_3CRV } from './utils/Constants'
 
 export function handleAddDeposit(event: AddDeposit): void {
 
@@ -392,28 +410,14 @@ function updateStalkBalances(account: Address, season: i32, stalk: BigInt, roots
             beanstalk.activeFarmers = newFarmers
             beanstalk.save()
 
-            silo.totalFarmers += 1
-            siloHourly.totalFarmers += 1
-            siloHourly.hourlyFarmers += 1
-            siloDaily.totalFarmers += 1
-            siloDaily.dailyFarmers += 1
-            silo.save()
-            siloHourly.save()
-            siloDaily.save()
+            incrementProtocolFarmers(season, timestamp)
 
         } else if (silo.totalStalk == ZERO_BI) {
             let newFarmers = beanstalk.activeFarmers
             newFarmers.splice(farmerIndex, 1)
             beanstalk.activeFarmers = newFarmers
 
-            silo.totalFarmers -= 1
-            siloHourly.totalFarmers -= 1
-            siloHourly.hourlyFarmers -= 1
-            siloDaily.totalFarmers -= 1
-            siloDaily.dailyFarmers -= 1
-            silo.save()
-            siloHourly.save()
-            siloDaily.save()
+            decrementProtocolFarmers(season, timestamp)
         }
     }
 }
@@ -446,6 +450,38 @@ function updateClaimedWithdraw(account: Address, token: Address, season: BigInt)
     withdraw.save()
 }
 
+function incrementProtocolFarmers(season: i32, timestamp: BigInt): void {
+    let silo = loadSilo(BEANSTALK)
+    let siloHourly = loadSiloHourlySnapshot(BEANSTALK, season, timestamp)
+    let siloDaily = loadSiloDailySnapshot(BEANSTALK, timestamp)
+
+    silo.totalFarmers += 1
+    siloHourly.totalFarmers += 1
+    siloHourly.hourlyFarmers += 1
+    siloDaily.totalFarmers += 1
+    siloDaily.dailyFarmers += 1
+    silo.save()
+    siloHourly.save()
+    siloDaily.save()
+
+}
+
+function decrementProtocolFarmers(season: i32, timestamp: BigInt): void {
+    let silo = loadSilo(BEANSTALK)
+    let siloHourly = loadSiloHourlySnapshot(BEANSTALK, season, timestamp)
+    let siloDaily = loadSiloDailySnapshot(BEANSTALK, timestamp)
+
+    silo.totalFarmers -= 1
+    siloHourly.totalFarmers -= 1
+    siloHourly.hourlyFarmers -= 1
+    siloDaily.totalFarmers -= 1
+    siloDaily.dailyFarmers -= 1
+    silo.save()
+    siloHourly.save()
+    siloDaily.save()
+
+}
+
 export function updateStalkWithCalls(season: i32, timestamp: BigInt, blockNumber: BigInt): void {
     // This should be run at sunrise for the previous season to update any farmers stalk/seed/roots balances from silo transfers.
 
@@ -460,4 +496,51 @@ export function updateStalkWithCalls(season: i32, timestamp: BigInt, blockNumber
     }
     beanstalk.farmersToUpdate = []
     beanstalk.save()
+}
+
+export function handleWhitelistToken(event: WhitelistToken): void {
+    let silo = loadSilo(event.address)
+    let currentList = silo.whitelistedTokens
+    if (currentList.length == 0) {
+        // Push unripe bean and unripe bean:3crv upon the initial whitelisting.
+        currentList.push(UNRIPE_BEAN.toHexString())
+        currentList.push(UNRIPE_BEAN_3CRV.toHexString())
+    }
+    currentList.push(event.params.token.toHexString())
+    silo.whitelistedTokens = currentList
+    silo.save()
+
+    let id = 'whitelistToken-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+    let rawEvent = new WhitelistTokenEntity(id)
+    rawEvent.hash = event.transaction.hash.toHexString()
+    rawEvent.logIndex = event.logIndex.toI32()
+    rawEvent.protocol = event.address.toHexString()
+    rawEvent.token = event.params.token.toHexString()
+    rawEvent.stalk = event.params.stalk
+    rawEvent.seeds = event.params.seeds
+    rawEvent.selector = event.params.selector.toHexString()
+    rawEvent.blockNumber = event.block.number
+    rawEvent.timestamp = event.block.timestamp
+    rawEvent.save()
+
+}
+
+export function handleDewhitelistToken(event: DewhitelistToken): void {
+    let silo = loadSilo(event.address)
+    let currentList = silo.whitelistedTokens
+    let index = currentList.indexOf(event.params.token.toHexString())
+    currentList.splice(index, 1)
+    silo.whitelistedTokens = currentList
+    silo.save()
+
+    let id = 'dewhitelistToken-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+    let rawEvent = new DewhitelistTokenEntity(id)
+    rawEvent.hash = event.transaction.hash.toHexString()
+    rawEvent.logIndex = event.logIndex.toI32()
+    rawEvent.protocol = event.address.toHexString()
+    rawEvent.token = event.params.token.toHexString()
+    rawEvent.blockNumber = event.block.number
+    rawEvent.timestamp = event.block.timestamp
+    rawEvent.save()
+
 }

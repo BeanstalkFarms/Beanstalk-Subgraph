@@ -41,6 +41,10 @@ dataSources:
           handler: handleStalkBalanceChanged
         - event: Plant(indexed address,uint256)
           handler: handlePlant
+        - event: WhitelistToken(indexed address,bytes4,uint256,uint256)
+          handler: handleWhitelistToken
+        - event: DewhitelistToken(indexed address)
+          handler: handleDewhitelistToken
       file: ./src/SiloHandler.ts
   # Field - Original
   - kind: ethereum/contract

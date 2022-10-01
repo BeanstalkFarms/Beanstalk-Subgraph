@@ -7,7 +7,6 @@ import { loadPodMarketplace, loadPodMarketplaceDailySnapshot, loadPodMarketplace
 import { loadTransaction } from "./utils/Transaction";
 
 export function handlePodListingCreated(event: PodListingCreated): void {
-    let transaction = loadTransaction(event.transaction, event.block)
     let market = loadPodMarketplace(event.address)
     let marketHourly = loadPodMarketplaceHourlySnapshot(event.address, market.season, event.block.timestamp)
     let marketDaily = loadPodMarketplaceDailySnapshot(event.address, event.block.timestamp)
@@ -22,10 +21,11 @@ export function handlePodListingCreated(event: PodListingCreated): void {
         listing.createdAt = ZERO_BI
     }
 
+    listing.historyID = listing.id + '-' + event.block.timestamp.toString()
     listing.plot = plot.id
     listing.createdAt = listing.createdAt == ZERO_BI ? event.block.timestamp : listing.createdAt
     listing.updatedAt = event.block.timestamp
-    listing.status = 'active'
+    listing.status = 'ACTIVE'
     listing.originalIndex = event.params.index
     listing.start = event.params.start
     listing.amount = event.params.amount
@@ -34,7 +34,6 @@ export function handlePodListingCreated(event: PodListingCreated): void {
     listing.pricePerPod = event.params.pricePerPod
     listing.maxHarvestableIndex = event.params.maxHarvestableIndex
     listing.mode = event.params.mode
-    listing.transaction = transaction.id
     listing.save()
 
     plot.listing = listing.id
@@ -67,11 +66,12 @@ export function handlePodListingCreated(event: PodListingCreated): void {
     marketDaily.save()
 
     // Save the raw event data
-    let id = 'podListingCreated' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+    let id = 'podListingCreated-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
     let rawEvent = new PodListingCreatedEvent(id)
     rawEvent.hash = event.transaction.hash.toHexString()
     rawEvent.logIndex = event.logIndex.toI32()
     rawEvent.protocol = event.address.toHexString()
+    rawEvent.historyID = listing.historyID
     rawEvent.account = event.params.account.toHexString()
     rawEvent.index = event.params.index
     rawEvent.start = event.params.start

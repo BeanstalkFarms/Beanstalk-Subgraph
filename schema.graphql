@@ -36,6 +36,15 @@ enum ProtocolType {
   # Will add more
 }
 
+enum MarketStatus {
+  ACTIVE
+  FILLED
+  FILLED_PARTIAL
+  CANCELLED
+  CANCELLED_PARTIAL
+  EXPIRED
+}
+
 type Token @entity {
   " Smart contract address of the token "
   id: ID!
@@ -166,6 +175,7 @@ type Silo @entity {
   id: ID!
   beanstalk: Beanstalk!
   farmer: Farmer
+  whitelistedTokens: [String!]!
   assets: [SiloAsset!]! @derivedFrom(field: "silo")
   totalValueLockedUSD: BigDecimal!
   totalDepositedBDV: BigInt!
@@ -356,8 +366,11 @@ type FieldHourlySnapshot @entity {
   newSoil: BigInt!
   totalSoil: BigInt!
   podRate: BigDecimal!
+  blocksToSoldOutSoil: BigInt!
+  soilSoldOut: Boolean!
   blockNumber: BigInt!
   timestamp: BigInt!
+  lastUpdated: BigInt!
 }
 
 type FieldDailySnapshot @entity {
@@ -384,6 +397,7 @@ type FieldDailySnapshot @entity {
   podRate: BigDecimal!
   blockNumber: BigInt!
   timestamp: BigInt!
+  lastUpdated: BigInt!
 }
 
 # ---===== Farmer Account Entities =====---
@@ -398,6 +412,7 @@ type Farmer @entity {
   field: Field @derivedFrom(field: "farmer")
   plots: [Plot!]! @derivedFrom(field: "farmer")
   listings: [PodListing!]! @derivedFrom(field: "farmer")
+  orders: [PodOrder!]! @derivedFrom(field: "farmer")
   sown: Boolean!
   fertilizers: [FertilizerBalance!]! @derivedFrom(field: "farmer")
 }
@@ -532,11 +547,13 @@ type PodMarketplaceDailySnapshot @entity {
 
 type PodListing @entity {
   id: ID! # the account plus index
+  " Historical ID for joins"
+  historyID: String!
   plot: Plot!
   farmer: Farmer!
   createdAt: BigInt!
   updatedAt: BigInt!
-  status: String!
+  status: MarketStatus!
   fill: PodFill
   originalIndex: BigInt!
   index: BigInt!
@@ -550,25 +567,27 @@ type PodListing @entity {
   pricePerPod: Int!
   maxHarvestableIndex: BigInt!
   mode: Int!
-  transaction: Transaction
 }
 
 type PodOrder @entity {
   id: ID!
+  " Historical ID for joins"
+  historyID: String!
   farmer: Farmer!
   createdAt: BigInt!
   updatedAt: BigInt!
-  status: String!
+  status: MarketStatus!
+  fill: PodFill
   amount: BigInt!
   filledAmount: BigInt!
   maxPlaceInLine: BigInt!
   pricePerPod: Int!
-  transaction: Transaction
 }
 
 type PodFill @entity {
   id: ID!
   podMarketplace: PodMarketplace!
+  createdAt: BigInt!
   listing: PodListing
   order: PodOrder
   from: String!
@@ -576,7 +595,6 @@ type PodFill @entity {
   amount: BigInt!
   index: BigInt!
   start: BigInt!
-  transaction: Transaction
 }
 
 type Transaction @entity {
@@ -925,6 +943,8 @@ type PodListingCreated implements MarketplaceEvent @entity(immutable: true) {
   logIndex: Int!
   " The protocol this transaction belongs to "
   protocol: Beanstalk!
+  " Historical ID for joins"
+  historyID: String!
   " Account creating the listing"
   account: String!
   " Index of the plot listed"
@@ -954,6 +974,8 @@ type PodListingFilled implements MarketplaceEvent @entity(immutable: true) {
   logIndex: Int!
   " The protocol this transaction belongs to "
   protocol: Beanstalk!
+  " Historical ID for joins"
+  historyID: String!
   "Account selling pods"
   from: String!
   "Account buying pods"
@@ -979,6 +1001,8 @@ type PodListingCancelled implements MarketplaceEvent @entity(immutable: true) {
   logIndex: Int!
   " The protocol this transaction belongs to "
   protocol: Beanstalk!
+  " Historical ID for joins"
+  historyID: String!
   " Account cancelling listing"
   account: String!
   " Index of plot listing being cancelled"
@@ -998,6 +1022,8 @@ type PodOrderCreated implements MarketplaceEvent @entity(immutable: true) {
   logIndex: Int!
   " The protocol this transaction belongs to "
   protocol: Beanstalk!
+  " Historical ID for joins"
+  historyID: String!
   " Account creating the listing"
   account: String!
   " ID of the pod order"
@@ -1023,6 +1049,8 @@ type PodOrderFilled implements MarketplaceEvent @entity(immutable: true) {
   logIndex: Int!
   " The protocol this transaction belongs to "
   protocol: Beanstalk!
+  " Historical ID for joins"
+  historyID: String!
   "Account selling pods"
   from: String!
   "Account buying pods"
@@ -1048,10 +1076,52 @@ type PodOrderCancelled implements MarketplaceEvent @entity(immutable: true) {
   logIndex: Int!
   " The protocol this transaction belongs to "
   protocol: Beanstalk!
+  " Historical ID for joins"
+  historyID: String!
   " Account cancelling listing"
   account: String!
   " ID of order cancelled"
   orderId: String!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+}
+
+type WhitelistToken implements SiloEvent @entity(immutable: true) {
+  "whitelistToken-{ Transaction hash }-{ Log index }"
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " The protocol this transaction belongs to "
+  protocol: Beanstalk!
+  "Token address whitelisted"
+  token: String!
+  "Stalk per BDV"
+  stalk: BigInt!
+  "Seeds per BDV"
+  seeds: BigInt!
+  "Selector for token"
+  selector: String!
+  " Block number of this event "
+  blockNumber: BigInt!
+  " Timestamp of this event "
+  timestamp: BigInt!
+}
+
+type DewhitelistToken implements SiloEvent @entity(immutable: true) {
+  "dewhitelistToken-{ Transaction hash }-{ Log index }"
+  id: ID!
+  " Transaction hash of the transaction that emitted this event "
+  hash: String!
+  " Event log index. For transactions that don't emit event, create arbitrary index starting from 0 "
+  logIndex: Int!
+  " The protocol this transaction belongs to "
+  protocol: Beanstalk!
+  "Token address dewhitelisted"
+  token: String!
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
