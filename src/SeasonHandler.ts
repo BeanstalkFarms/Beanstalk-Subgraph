@@ -117,9 +117,10 @@ export function handleReward(event: Reward): void {
     let silo = loadSilo(event.address)
     let siloHourly = loadSiloHourlySnapshot(event.address, season.season, event.block.timestamp)
     let siloDaily = loadSiloDailySnapshot(event.address, event.block.timestamp)
+    let newPlantableStalk = event.params.toSilo.times(BigInt.fromI32(10000)) // Stalk has 10 decimals
 
     silo.totalBeanMints = silo.totalBeanMints.plus(event.params.toSilo)
-    silo.totalPlantableStalk = silo.totalPlantableStalk.plus(event.params.toSilo)
+    silo.totalPlantableStalk = silo.totalPlantableStalk.plus(newPlantableStalk)
     silo.totalDepositedBDV = silo.totalDepositedBDV.plus(event.params.toSilo)
     silo.save()
 
@@ -127,7 +128,7 @@ export function handleReward(event: Reward): void {
     siloHourly.totalPlantableStalk = silo.totalPlantableStalk
     siloHourly.totalDepositedBDV = silo.totalDepositedBDV
     siloHourly.hourlyBeanMints = siloHourly.hourlyBeanMints.plus(event.params.toSilo)
-    siloHourly.hourlyPlantableStalkDelta = siloHourly.hourlyPlantableStalkDelta.plus(event.params.toSilo)
+    siloHourly.hourlyPlantableStalkDelta = siloHourly.hourlyPlantableStalkDelta.plus(newPlantableStalk)
     siloHourly.hourlyDepositedBDV = siloHourly.hourlyDepositedBDV.plus(event.params.toSilo)
     siloHourly.save()
 
@@ -135,7 +136,7 @@ export function handleReward(event: Reward): void {
     siloDaily.totalPlantableStalk = silo.totalPlantableStalk
     siloDaily.totalDepositedBDV = silo.totalDepositedBDV
     siloDaily.dailyBeanMints = siloDaily.dailyBeanMints.plus(event.params.toSilo)
-    siloDaily.dailyPlantableStalkDelta = siloDaily.dailyPlantableStalkDelta.plus(event.params.toSilo)
+    siloDaily.dailyPlantableStalkDelta = siloDaily.dailyPlantableStalkDelta.plus(newPlantableStalk)
     siloDaily.dailyDepositedBDV = siloDaily.dailyDepositedBDV.plus(event.params.toSilo)
     siloDaily.save()
 
