@@ -171,6 +171,8 @@ export function handleRemoveWithdrawals(event: RemoveWithdrawals): void {
 }
 
 export function handleStalkBalanceChanged(event: StalkBalanceChanged): void {
+    // Exclude BIP-24 emission of missed past events
+    if (event.transaction.hash.toHexString() == '0xa89638aeb0d6c4afb4f367ea7a806a4c8b3b2a6eeac773e8cc4eda10bfa804fc') return
 
     let beanstalk = loadBeanstalk(event.address) // get current season
     updateStalkBalances(event.address, beanstalk.lastSeason, event.params.delta, event.params.deltaRoots, event.block.timestamp, event.block.number)
@@ -190,6 +192,8 @@ export function handleStalkBalanceChanged(event: StalkBalanceChanged): void {
 }
 
 export function handleSeedsBalanceChanged(event: StalkBalanceChanged): void {
+    // Exclude BIP-24 emission of missed past events
+    if (event.transaction.hash.toHexString() == '0xa89638aeb0d6c4afb4f367ea7a806a4c8b3b2a6eeac773e8cc4eda10bfa804fc') return
 
     let beanstalk = loadBeanstalk(event.address) // get current season
     updateSeedsBalances(event.address, beanstalk.lastSeason, event.params.delta, event.block.timestamp, event.block.number)
@@ -216,14 +220,15 @@ export function handlePlant(event: Plant): void {
     let silo = loadSilo(event.address)
     let siloHourly = loadSiloHourlySnapshot(event.address, beanstalk.lastSeason, event.block.timestamp)
     let siloDaily = loadSiloDailySnapshot(event.address, event.block.timestamp)
+    let newPlantableStalk = event.params.beans.times(BigInt.fromI32(10000))
 
-    silo.totalPlantableStalk = silo.totalPlantableStalk.minus(event.params.beans)
+    silo.totalPlantableStalk = silo.totalPlantableStalk.minus(newPlantableStalk)
     silo.totalDepositedBDV = silo.totalDepositedBDV.minus(event.params.beans)
     silo.save()
 
     siloHourly.totalPlantableStalk = silo.totalPlantableStalk
     siloHourly.totalDepositedBDV = silo.totalDepositedBDV
-    siloHourly.hourlyPlantableStalkDelta = siloHourly.hourlyPlantableStalkDelta.minus(event.params.beans)
+    siloHourly.hourlyPlantableStalkDelta = siloHourly.hourlyPlantableStalkDelta.minus(newPlantableStalk)
     siloHourly.hourlyDepositedBDV = siloHourly.hourlyDepositedBDV.minus(event.params.beans)
     siloHourly.blockNumber = event.block.number
     siloHourly.lastUpdated = event.block.timestamp
@@ -231,7 +236,7 @@ export function handlePlant(event: Plant): void {
 
     siloDaily.totalPlantableStalk = silo.totalPlantableStalk
     siloDaily.totalDepositedBDV = silo.totalDepositedBDV
-    siloDaily.dailyPlantableStalkDelta = siloDaily.dailyPlantableStalkDelta.minus(event.params.beans)
+    siloDaily.dailyPlantableStalkDelta = siloDaily.dailyPlantableStalkDelta.minus(newPlantableStalk)
     siloDaily.dailyDepositedBDV = siloDaily.dailyDepositedBDV.minus(event.params.beans)
     siloDaily.blockNumber = event.block.number
     siloDaily.lastUpdated = event.block.timestamp
