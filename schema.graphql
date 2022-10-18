@@ -423,10 +423,12 @@ type SiloDeposit @entity {
   farmer: Farmer!
   token: String!
   season: Int!
-  tokenAmount: BigInt!
-  removedTokenAmount: BigInt!
+  amount: BigInt!
+  amountAdded: BigInt!
+  amountRemoved: BigInt!
   bdv: BigInt!
-  removedBDV: BigInt!
+  bdvAdded: BigInt!
+  bdvRemoved: BigInt!
   stalk: BigInt!
   seeds: BigInt!
   hashes: [String!]!
@@ -441,8 +443,8 @@ type SiloWithdraw @entity {
   token: String!
   withdrawSeason: Int!
   claimableSeason: Int!
-  claimed: Boolean!
   amount: BigInt!
+  claimed: Boolean!
   hash: String!
   createdAt: BigInt!
 }
