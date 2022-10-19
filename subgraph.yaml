@@ -17,7 +17,7 @@ dataSources:
         - Silo-Replanted
       abis:
         - name: Beanstalk
-          file: ./abis/Beanstalk-Replanted.json
+          file: ./abis/Beanstalk-BIP28.json
         - name: UniswapV2Pair
           file: ./abis/UniswapV2Pair.json
         - name: ERC20
@@ -252,7 +252,7 @@ dataSources:
         - Replant
       abis:
         - name: Beanstalk
-          file: ./abis/Beanstalk-Replanted.json
+          file: ./abis/Beanstalk-BIP28.json
         - name: UniswapV2Pair
           file: ./abis/UniswapV2Pair.json
         - name: ERC20
@@ -276,7 +276,7 @@ dataSources:
         - Season-Replanted
       abis:
         - name: Beanstalk
-          file: ./abis/Beanstalk-Replanted.json
+          file: ./abis/Beanstalk-BIP28.json
         - name: UniswapV2Pair
           file: ./abis/UniswapV2Pair.json
         - name: ERC20
@@ -308,7 +308,7 @@ dataSources:
         - name: Fertilizer
           file: ./abis/Fertilizer.json
         - name: Beanstalk
-          file: ./abis/Beanstalk-Replanted.json
+          file: ./abis/Beanstalk-BIP28.json
       eventHandlers:
         - event: TransferBatch(indexed address,indexed address,indexed address,uint256[],uint256[])
           handler: handleTransferBatch
@@ -330,7 +330,7 @@ dataSources:
         - Farm
       abis:
         - name: Beanstalk
-          file: ./abis/Beanstalk-Replanted.json
+          file: ./abis/Beanstalk-BIP28.json
         - name: ERC20
           file: ./abis/ERC20.json
       eventHandlers:
@@ -361,3 +361,33 @@ dataSources:
         - function: transferDeposits(address,address,uint32[],uint256[])
           handler: handleTransferDepositsCall
       file: ./src/SiloHandler.ts
+  - kind: ethereum/contract
+    name: BIP28-PodMarketplace
+    network: mainnet
+    source:
+      address: "0xC1E088fC1323b20BCBee9bd1B9fC9546db5624C5"
+      abi: Beanstalk
+      startBlock: 15277986
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - PodMarketplaceV2
+      abis:
+        - name: Beanstalk
+          file: ./abis/Beanstalk-BIP28.json
+        - name: UniswapV2Pair
+          file: ./abis/UniswapV2Pair.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: PodListingCreated(indexed address,uint256,uint256,uint256,uint24,uint256,bytes,uint8,uint8)
+          handler: handlePodListingCreatedV2
+        - event: PodListingFilled(indexed address,indexed address,uint256,uint256,uint256,uint256)
+          handler: handlePodListingFilledV2
+        - event: PodOrderCreated(indexed address,bytes32,uint256,uint24,uint256,bytes,uint8)
+          handler: handlePodOrderCreatedV2
+        - event: PodOrderFilled(indexed address,indexed address,bytes32,uint256,uint256,uint256,uint256)
+          handler: handlePodOrderFilledV2
+      file: ./src/MarketplaceHandler.ts
