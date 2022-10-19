@@ -3094,7 +3094,7 @@
                     },
                     {
                         "internalType": "uint32",
-                        "name": "yield",
+                        "name": "weatherYield",
                         "type": "uint32"
                     },
                     {
