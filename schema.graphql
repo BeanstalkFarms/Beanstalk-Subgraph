@@ -515,6 +515,7 @@ type PodMarketplaceHourlySnapshot @entity {
   totalBeanVolume: BigInt!
   blockNumber: BigInt!
   timestamp: BigInt!
+  lastUpdated: BigInt!
 }
 
 type PodMarketplaceDailySnapshot @entity {
@@ -543,6 +544,7 @@ type PodMarketplaceDailySnapshot @entity {
   totalBeanVolume: BigInt!
   blockNumber: BigInt!
   timestamp: BigInt!
+  lastUpdated: BigInt!
 }
 
 type PodListing @entity {
@@ -566,8 +568,9 @@ type PodListing @entity {
   cancelledAmount: BigInt!
   pricePerPod: Int!
   maxHarvestableIndex: BigInt!
+  pricingFunction:Bytes
   mode: Int!
-  pricingType: BigInt
+  pricingType: Int
 }
 
 type PodOrder @entity {
@@ -584,7 +587,7 @@ type PodOrder @entity {
   maxPlaceInLine: BigInt!
   pricePerPod: Int!
   pricingFunction: Bytes
-  pricingType: BigInt
+  pricingType: Int
 }
 
 type PodFill @entity {
@@ -966,7 +969,7 @@ type PodListingCreated implements MarketplaceEvent @entity(immutable: true) {
   "Pricing Function Data"
   pricingFunction: Bytes
   "Pricing Type"
-  pricingType: BigInt
+  pricingType: Int
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
@@ -1047,7 +1050,7 @@ type PodOrderCreated implements MarketplaceEvent @entity(immutable: true) {
   "Pricing Function Data"
   pricingFunction: Bytes
   "Pricing Type"
-  pricingType: BigInt
+  pricingType: Int
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "

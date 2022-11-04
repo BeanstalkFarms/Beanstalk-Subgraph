@@ -171,8 +171,8 @@ dataSources:
           file: ./abis/ERC20.json
       eventHandlers:
         - event: PodListingCreated(indexed address,uint256,uint256,uint256,uint24,uint256,uint8)
-          handler: handlePodListingCreated
-      file: ./src/MarketplaceReplantedHandler.ts
+          handler: handlePodListingCreated_v1_1
+      file: ./src/MarketplaceHandler.ts
   - kind: ethereum/contract
     name: Diamond
     network: mainnet
@@ -383,11 +383,11 @@ dataSources:
           file: ./abis/ERC20.json
       eventHandlers:
         - event: PodListingCreated(indexed address,uint256,uint256,uint256,uint24,uint256,bytes,uint8,uint8)
-          handler: handlePodListingCreatedV2
+          handler: handlePodListingCreated_v2
         - event: PodListingFilled(indexed address,indexed address,uint256,uint256,uint256,uint256)
-          handler: handlePodListingFilledV2
+          handler: handlePodListingFilled_v2
         - event: PodOrderCreated(indexed address,bytes32,uint256,uint24,uint256,bytes,uint8)
-          handler: handlePodOrderCreatedV2
+          handler: handlePodOrderCreated_v2
         - event: PodOrderFilled(indexed address,indexed address,bytes32,uint256,uint256,uint256,uint256)
-          handler: handlePodOrderFilledV2
+          handler: handlePodOrderFilled_v2
       file: ./src/MarketplaceHandler.ts

@@ -59,6 +59,7 @@ export function loadPodMarketplaceHourlySnapshot(diamondAddress: Address, season
         snapshot.totalBeanVolume = marketplace.totalBeanVolume
         snapshot.blockNumber = ZERO_BI
         snapshot.timestamp = timestamp
+        snapshot.lastUpdated = timestamp
         snapshot.save()
     }
     return snapshot
@@ -95,6 +96,7 @@ export function loadPodMarketplaceDailySnapshot(diamondAddress: Address, timesta
         snapshot.totalBeanVolume = marketplace.totalBeanVolume
         snapshot.blockNumber = ZERO_BI
         snapshot.timestamp = timestamp
+        snapshot.lastUpdated = timestamp
         snapshot.save()
     }
     return snapshot
