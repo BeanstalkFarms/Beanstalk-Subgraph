@@ -14,8 +14,6 @@ export function loadSiloDeposit(account: Address, token: Address, season: BigInt
         deposit.removedTokenAmount = ZERO_BI
         deposit.bdv = ZERO_BI
         deposit.removedBDV = ZERO_BI
-        deposit.stalk = ZERO_BI
-        deposit.seeds = ZERO_BI
         deposit.hashes = []
         deposit.createdAt = ZERO_BI
         deposit.updatedAt = ZERO_BI

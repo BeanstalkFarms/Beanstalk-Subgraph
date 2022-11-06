@@ -12,12 +12,8 @@ export function loadSiloAsset(account: Address, token: Address): SiloAsset {
         asset = new SiloAsset(id)
         asset.silo = account.toHexString()
         asset.token = token.toHexString()
-        asset.totalValueLockedUSD = ZERO_BD
         asset.totalDepositedBDV = ZERO_BI
         asset.totalDepositedAmount = ZERO_BI
-        asset.cumulativeDepositedUSD = ZERO_BD
-        asset.totalStalk = ZERO_BI
-        asset.totalSeeds = ZERO_BI
         asset.totalFarmAmount = ZERO_BI
         asset.save()
     }
@@ -33,19 +29,12 @@ export function loadSiloAssetHourlySnapshot(account: Address, token: Address, se
         snapshot = new SiloAssetHourlySnapshot(id)
         snapshot.season = season
         snapshot.siloAsset = asset.id
-        snapshot.totalValueLockedUSD = asset.totalValueLockedUSD
         snapshot.totalDepositedBDV = asset.totalDepositedBDV
         snapshot.totalDepositedAmount = asset.totalDepositedAmount
-        snapshot.totalStalk = asset.totalStalk
-        snapshot.totalSeeds = asset.totalSeeds
-        snapshot.cumulativeDepositedUSD = asset.cumulativeDepositedUSD
         snapshot.totalFarmAmount = asset.totalFarmAmount
-        snapshot.hourlyDepositedUSD = ZERO_BD
         snapshot.hourlyDepositedBDV = ZERO_BI
         snapshot.hourlyDepositedAmount = ZERO_BI
         snapshot.hourlyWithdrawnAmount = ZERO_BI
-        snapshot.hourlyStalkDelta = ZERO_BI
-        snapshot.hourlySeedsDelta = ZERO_BI
         snapshot.hourlyFarmAmountDelta = ZERO_BI
         snapshot.blockNumber = ZERO_BI
         snapshot.timestamp = BigInt.fromString(hour)
@@ -64,19 +53,12 @@ export function loadSiloAssetDailySnapshot(account: Address, token: Address, tim
         snapshot = new SiloAssetDailySnapshot(id)
         snapshot.season = 0
         snapshot.siloAsset = asset.id
-        snapshot.totalValueLockedUSD = asset.totalValueLockedUSD
         snapshot.totalDepositedBDV = asset.totalDepositedBDV
         snapshot.totalDepositedAmount = asset.totalDepositedAmount
-        snapshot.totalStalk = asset.totalStalk
-        snapshot.totalSeeds = asset.totalSeeds
-        snapshot.cumulativeDepositedUSD = asset.cumulativeDepositedUSD
         snapshot.totalFarmAmount = asset.totalFarmAmount
-        snapshot.dailyDepositedUSD = ZERO_BD
         snapshot.dailyDepositedBDV = ZERO_BI
         snapshot.dailyDepositedAmount = ZERO_BI
         snapshot.dailyWithdrawnAmount = ZERO_BI
-        snapshot.dailyStalkDelta = ZERO_BI
-        snapshot.dailySeedsDelta = ZERO_BI
         snapshot.dailyFarmAmountDelta = ZERO_BI
         snapshot.blockNumber = ZERO_BI
         snapshot.timestamp = BigInt.fromString(day)

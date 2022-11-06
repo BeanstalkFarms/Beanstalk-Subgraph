@@ -9,7 +9,7 @@ export function loadField(diamondAddress: Address): Field {
         field = new Field(diamondAddress.toHexString())
         field.beanstalk = diamondAddress.toHexString()
         field.season = 1
-        field.weather = 1
+        field.temperature = 1
         field.realRateOfReturn = ZERO_BD
         field.totalNumberOfSowers = 0
         field.totalNumberOfSows = 0
@@ -36,7 +36,7 @@ export function loadFieldHourly(diamondAddress: Address, season: i32, timestamp:
         hourly = new FieldHourlySnapshot(id)
         hourly.field = field.id
         hourly.season = season
-        hourly.weather = field.weather
+        hourly.temperature = field.temperature
         hourly.realRateOfReturn = ZERO_BD
         hourly.podIndex = field.podIndex
         hourly.numberOfSowers = 0
@@ -73,7 +73,7 @@ export function loadFieldDaily(diamondAddress: Address, timestamp: BigInt): Fiel
         daily = new FieldDailySnapshot(id)
         daily.field = field.id
         daily.season = field.season
-        daily.weather = field.weather
+        daily.temperature = field.temperature
         daily.realRateOfReturn = ZERO_BD
         daily.podIndex = field.podIndex
         daily.numberOfSowers = 0

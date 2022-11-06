@@ -16,9 +16,9 @@ export function handleWeatherChange(event: WeatherChange): void {
     let fieldHourly = loadFieldHourly(event.address, event.params.season.toI32(), event.block.timestamp)
     let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)
 
-    field.weather += event.params.change
-    fieldHourly.weather += event.params.change
-    fieldDaily.weather += event.params.change
+    field.temperature += event.params.change
+    fieldHourly.temperature += event.params.change
+    fieldDaily.temperature += event.params.change
 
     // Real Rate of Return
 
@@ -26,7 +26,7 @@ export function handleWeatherChange(event: WeatherChange): void {
     let curvePrice = CurvePrice.bind(CURVE_PRICE)
     let currentPrice = season.price == ZERO_BD ? toDecimal(curvePrice.getCurve().price, 6) : season.price
 
-    field.realRateOfReturn = (ONE_BD.plus(BigDecimal.fromString((field.weather / 100).toString()))).div(currentPrice)
+    field.realRateOfReturn = (ONE_BD.plus(BigDecimal.fromString((field.temperature / 100).toString()))).div(currentPrice)
     fieldHourly.realRateOfReturn = field.realRateOfReturn
     fieldHourly.realRateOfReturn = field.realRateOfReturn
 
@@ -63,7 +63,7 @@ export function handleSow(event: Sow): void {
     field.plotIndexes = newIndexes
 
     plot.farmer = event.params.account.toHexString()
-    plot.source = 'sow'
+    plot.source = 'SOW'
     plot.season = field.season
     plot.creationHash = event.transaction.hash.toHexString()
     plot.createdAt = event.block.timestamp
@@ -71,7 +71,7 @@ export function handleSow(event: Sow): void {
     plot.beans = event.params.beans
     plot.pods = event.params.pods
     plot.sownPods = event.params.pods
-    plot.weather = field.weather
+    plot.temperature = field.temperature
     plot.save()
 
     let newSowers = 0
@@ -140,7 +140,7 @@ export function handleHarvest(event: Harvest): void {
 
             let remainingPlot = loadPlot(event.address, remainingIndex)
             remainingPlot.farmer = plot.farmer
-            remainingPlot.source = 'harvest'
+            remainingPlot.source = 'HARVEST'
             remainingPlot.season = beanstalk.lastSeason
             remainingPlot.creationHash = event.transaction.hash.toHexString()
             remainingPlot.createdAt = event.block.timestamp
@@ -148,7 +148,7 @@ export function handleHarvest(event: Harvest): void {
             remainingPlot.index = remainingIndex
             remainingPlot.beans = ZERO_BI
             remainingPlot.pods = remainingPods
-            remainingPlot.weather = plot.weather
+            remainingPlot.temperature = plot.temperature
             remainingPlot.save()
 
             plot.harvestedPods = harvestablePods
@@ -252,14 +252,14 @@ export function handlePlotTransfer(event: PlotTransfer): void {
         sourcePlot.save()
 
         remainderPlot.farmer = event.params.from.toHexString()
-        remainderPlot.source = 'transfer'
+        remainderPlot.source = 'TRANSFER'
         remainderPlot.season = field.season
         remainderPlot.creationHash = event.transaction.hash.toHexString()
         remainderPlot.createdAt = event.block.timestamp
         remainderPlot.updatedAt = event.block.timestamp
         remainderPlot.index = remainderIndex
         remainderPlot.pods = sourceEndIndex.minus(transferEndIndex)
-        remainderPlot.weather = sourcePlot.weather
+        remainderPlot.temperature = sourcePlot.temperature
         remainderPlot.save()
 
         log.debug("\nPodTransfer: sourceIndex == transferIndex\n", [])
@@ -277,14 +277,14 @@ export function handlePlotTransfer(event: PlotTransfer): void {
         sourcePlot.save()
 
         toPlot.farmer = event.params.to.toHexString()
-        toPlot.source = 'transfer'
+        toPlot.source = 'TRANSFER'
         toPlot.season = field.season
         toPlot.creationHash = event.transaction.hash.toHexString()
         toPlot.createdAt = event.block.timestamp
         toPlot.updatedAt = event.block.timestamp
         toPlot.index = event.params.id
         toPlot.pods = event.params.pods
-        toPlot.weather = sourcePlot.weather
+        toPlot.temperature = sourcePlot.temperature
         toPlot.save()
 
         log.debug("\nPodTransfer: sourceEndIndex == transferEndIndex\n", [])
@@ -304,25 +304,25 @@ export function handlePlotTransfer(event: PlotTransfer): void {
         sourcePlot.save()
 
         toPlot.farmer = event.params.to.toHexString()
-        toPlot.source = 'transfer'
+        toPlot.source = 'TRANSFER'
         toPlot.season = field.season
         toPlot.creationHash = event.transaction.hash.toHexString()
         toPlot.createdAt = event.block.timestamp
         toPlot.updatedAt = event.block.timestamp
         toPlot.index = event.params.id
         toPlot.pods = event.params.pods
-        toPlot.weather = sourcePlot.weather
+        toPlot.temperature = sourcePlot.temperature
         toPlot.save()
 
         remainderPlot.farmer = event.params.from.toHexString()
-        remainderPlot.source = 'transfer'
+        remainderPlot.source = 'TRANSFER'
         remainderPlot.season = field.season
         remainderPlot.creationHash = event.transaction.hash.toHexString()
         remainderPlot.createdAt = event.block.timestamp
         remainderPlot.updatedAt = event.block.timestamp
         remainderPlot.index = remainderIndex
         remainderPlot.pods = sourceEndIndex.minus(transferEndIndex)
-        remainderPlot.weather = sourcePlot.weather
+        remainderPlot.temperature = sourcePlot.temperature
         remainderPlot.save()
 
         log.debug("\nPodTransfer: split source twice\n", [])
