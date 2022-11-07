@@ -1,13 +1,15 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { Field, FieldDailySnapshot, FieldHourlySnapshot } from "../../generated/schema"
+import { BEANSTALK } from "./Constants";
 import { dayFromTimestamp, hourFromTimestamp } from "./Dates";
 import { ZERO_BD, ZERO_BI } from "./Decimals"
 
-export function loadField(diamondAddress: Address): Field {
-    let field = Field.load(diamondAddress.toHexString())
+export function loadField(account: Address): Field {
+    let field = Field.load(account.toHexString())
     if (field == null) {
-        field = new Field(diamondAddress.toHexString())
-        field.beanstalk = diamondAddress.toHexString()
+        field = new Field(account.toHexString())
+        field.beanstalk = BEANSTALK.toHexString()
+        if (account !== BEANSTALK) { field.farmer = account.toHexString() }
         field.season = 1
         field.temperature = 1
         field.realRateOfReturn = ZERO_BD
@@ -26,13 +28,13 @@ export function loadField(diamondAddress: Address): Field {
     return field
 }
 
-export function loadFieldHourly(diamondAddress: Address, season: i32, timestamp: BigInt): FieldHourlySnapshot {
+export function loadFieldHourly(account: Address, season: i32, timestamp: BigInt): FieldHourlySnapshot {
     // Hourly for Beanstalk is assumed to be by season. To keep other data correctly divided
     // by season, we elect to use the season number for the hour number.
-    let id = diamondAddress.toHexString() + '-' + season.toString()
+    let id = account.toHexString() + '-' + season.toString()
     let hourly = FieldHourlySnapshot.load(id)
     if (hourly == null) {
-        let field = loadField(diamondAddress)
+        let field = loadField(account)
         hourly = new FieldHourlySnapshot(id)
         hourly.field = field.id
         hourly.season = season
@@ -64,12 +66,12 @@ export function loadFieldHourly(diamondAddress: Address, season: i32, timestamp:
     return hourly
 }
 
-export function loadFieldDaily(diamondAddress: Address, timestamp: BigInt): FieldDailySnapshot {
+export function loadFieldDaily(account: Address, timestamp: BigInt): FieldDailySnapshot {
     let hour = dayFromTimestamp(timestamp)
-    let id = diamondAddress.toHexString() + '-' + hour.toString()
+    let id = account.toHexString() + '-' + hour.toString()
     let daily = FieldDailySnapshot.load(id)
     if (daily == null) {
-        let field = loadField(diamondAddress)
+        let field = loadField(account)
         daily = new FieldDailySnapshot(id)
         daily.field = field.id
         daily.season = field.season
