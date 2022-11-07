@@ -400,9 +400,7 @@ export function handlePodListingFilled_v2(event: PodListingFilled_v2): void {
 
     let listing = loadPodListing(event.params.from, event.params.index)
 
-    let beanAmount = BigInt.fromI32(listing.pricePerPod).times(event.params.amount).div(BigInt.fromI32(1000000))
-
-    updateMarketListingBalances(event.address, event.params.index, ZERO_BI, ZERO_BI, event.params.amount, beanAmount, event.block.number, event.block.timestamp)
+    updateMarketListingBalances(event.address, event.params.index, ZERO_BI, ZERO_BI, event.params.amount, event.params.costInBeans, event.block.number, event.block.timestamp)
 
     listing.filledAmount = event.params.amount
     listing.remainingAmount = listing.remainingAmount.minus(event.params.amount)
@@ -509,8 +507,6 @@ export function handlePodOrderFilled_v2(event: PodOrderFilled_v2): void {
     let order = loadPodOrder(event.params.id)
     let fill = loadPodFill(event.address, event.params.index, event.transaction.hash.toHexString())
 
-    let beanAmount = BigInt.fromI32(order.pricePerPod).times(event.params.amount).div(BigInt.fromI32(1000000))
-
     order.updatedAt = event.block.timestamp
     order.filledAmount = order.filledAmount.plus(event.params.amount)
     order.status = order.amount == order.filledAmount ? 'FILLED' : 'ACTIVE'
@@ -526,7 +522,7 @@ export function handlePodOrderFilled_v2(event: PodOrderFilled_v2): void {
     fill.costInBeans = event.params.costInBeans
     fill.save()
 
-    updateMarketOrderBalances(event.address, order.id, ZERO_BI, ZERO_BI, event.params.amount, beanAmount, event.block.number, event.block.timestamp)
+    updateMarketOrderBalances(event.address, order.id, ZERO_BI, ZERO_BI, event.params.amount, event.params.costInBeans, event.block.number, event.block.timestamp)
 
     if (order.filledAmount = order.amount) {
         let market = loadPodMarketplace(event.address)
