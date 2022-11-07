@@ -1,7 +1,7 @@
-import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as/assembly/index";
 
-import { AddDeposit, RemoveDeposit } from "../../generated/Silo-Replanted/Beanstalk";
+import { AddDeposit, RemoveDeposit, RemoveDeposits } from "../../generated/Silo-Replanted/Beanstalk";
 import { handleAddDeposit } from "../../src/SiloHandler";
 import { BEAN_DECIMALS } from "../../src/utils/Constants";
 
@@ -29,13 +29,13 @@ export function createAddDepositEvent(account: string, token: string, season: i3
     return addDepositEvent as AddDeposit
 }
 
-export function createRemoveDepositEvent(account: string, token: string, season: i32, amount: i32, tokenDecimals: i32): RemoveDeposit {
+export function createRemoveDepositEvent(account: string, token: string, season: i32, amount: BigInt): RemoveDeposit {
     let removeDepositEvent = changetype<RemoveDeposit>(newMockEvent())
     removeDepositEvent.parameters = new Array()
     let accountParam = new ethereum.EventParam("account", ethereum.Value.fromAddress(Address.fromString(account)))
     let tokenParam = new ethereum.EventParam("token", ethereum.Value.fromAddress(Address.fromString(token)))
     let seasonParam = new ethereum.EventParam("season", ethereum.Value.fromI32(season))
-    let amountParam = new ethereum.EventParam("amount", ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(amount).times(BigInt.fromI32(10 ** tokenDecimals))))
+    let amountParam = new ethereum.EventParam("amount", ethereum.Value.fromUnsignedBigInt(amount))
 
     removeDepositEvent.parameters.push(accountParam)
     removeDepositEvent.parameters.push(tokenParam)
@@ -44,3 +44,13 @@ export function createRemoveDepositEvent(account: string, token: string, season:
 
     return removeDepositEvent as RemoveDeposit
 }
+
+export function createRemoveDepositsEvent(account: string, token: string, seasons: i32[], amounts: BigInt[], amount: BigInt): void { }
+export function createAddWithdrawalEvent(account: string, token: string, season: i32, amount: BigInt): void { }
+export function createRemoveWithdrawalEvent(account: string, token: string, season: i32, amount: BigInt): void { }
+export function createRemoveWithdrawalsEvent(account: string, token: string, seasons: i32[], amount: BigInt): void { }
+export function createSeedsBalanceChangedEvent(account: string, delta: BigInt): void { }
+export function createStalkBalanceChangedEvent(account: string, delta: BigInt, rootDelta: BigInt): void { }
+export function createPlantEvent(account: string, amount: BigInt): void { }
+export function createWhitelistTokenEvent(token: string, selector: Bytes, seeds: BigInt, stalk: BigInt): void { }
+export function createDeWhitelistTokenEvent(token: string): void { }

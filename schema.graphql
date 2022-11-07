@@ -285,6 +285,8 @@ type SiloAssetDailySnapshot @entity {
   totalDepositedBDV: BigInt!
   "Point in time current Token amount of deposits"
   totalDepositedAmount: BigInt!
+  "Point in time current Token amount of silo withdrawals"
+  totalWithdrawnAmount: BigInt!
   "Point in time current internal (farm) balance of the asset"
   totalFarmAmount: BigInt!
   "Point in time delta BDV of deposits"

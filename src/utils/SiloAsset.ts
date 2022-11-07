@@ -14,6 +14,7 @@ export function loadSiloAsset(account: Address, token: Address): SiloAsset {
         asset.token = token.toHexString()
         asset.totalDepositedBDV = ZERO_BI
         asset.totalDepositedAmount = ZERO_BI
+        asset.totalWithdrawnAmount = ZERO_BI
         asset.totalFarmAmount = ZERO_BI
         asset.save()
     }
@@ -31,6 +32,7 @@ export function loadSiloAssetHourlySnapshot(account: Address, token: Address, se
         snapshot.siloAsset = asset.id
         snapshot.totalDepositedBDV = asset.totalDepositedBDV
         snapshot.totalDepositedAmount = asset.totalDepositedAmount
+        snapshot.totalWithdrawnAmount = asset.totalWithdrawnAmount
         snapshot.totalFarmAmount = asset.totalFarmAmount
         snapshot.hourlyDepositedBDV = ZERO_BI
         snapshot.hourlyDepositedAmount = ZERO_BI
@@ -55,6 +57,7 @@ export function loadSiloAssetDailySnapshot(account: Address, token: Address, tim
         snapshot.siloAsset = asset.id
         snapshot.totalDepositedBDV = asset.totalDepositedBDV
         snapshot.totalDepositedAmount = asset.totalDepositedAmount
+        snapshot.totalWithdrawnAmount = asset.totalWithdrawnAmount
         snapshot.totalFarmAmount = asset.totalFarmAmount
         snapshot.dailyDepositedBDV = ZERO_BI
         snapshot.dailyDepositedAmount = ZERO_BI
