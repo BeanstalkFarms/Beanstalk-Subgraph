@@ -12,7 +12,6 @@ export function loadSilo(account: Address): Silo {
         if (account !== BEANSTALK) { silo.farmer = account.toHexString() }
         silo.whitelistedTokens = []
         silo.totalDepositedBDV = ZERO_BI
-        silo.totalWithdrawnBDV = ZERO_BI
         silo.totalStalk = ZERO_BI
         silo.totalPlantableStalk = ZERO_BI
         silo.totalSeeds = ZERO_BI
@@ -34,7 +33,6 @@ export function loadSiloHourlySnapshot(account: Address, season: i32, timestamp:
         snapshot.season = season
         snapshot.silo = account.toHexString()
         snapshot.totalDepositedBDV = silo.totalDepositedBDV
-        snapshot.totalWithdrawnBDV = silo.totalWithdrawnBDV
         snapshot.totalStalk = silo.totalStalk
         snapshot.totalPlantableStalk = silo.totalPlantableStalk
         snapshot.totalSeeds = silo.totalSeeds
@@ -42,7 +40,6 @@ export function loadSiloHourlySnapshot(account: Address, season: i32, timestamp:
         snapshot.totalBeanMints = silo.totalBeanMints
         snapshot.totalFarmers = silo.totalFarmers
         snapshot.hourlyDepositedBDV = ZERO_BI
-        snapshot.hourlyWithdrawnBDV = ZERO_BI
         snapshot.hourlyStalkDelta = ZERO_BI
         snapshot.hourlyPlantableStalkDelta = ZERO_BI
         snapshot.hourlySeedsDelta = ZERO_BI
@@ -67,7 +64,6 @@ export function loadSiloDailySnapshot(account: Address, timestamp: BigInt): Silo
         snapshot.season = 0
         snapshot.silo = account.toHexString()
         snapshot.totalDepositedBDV = silo.totalDepositedBDV
-        snapshot.totalWithdrawnBDV = silo.totalWithdrawnBDV
         snapshot.totalStalk = silo.totalStalk
         snapshot.totalPlantableStalk = silo.totalPlantableStalk
         snapshot.totalSeeds = silo.totalSeeds
@@ -75,7 +71,6 @@ export function loadSiloDailySnapshot(account: Address, timestamp: BigInt): Silo
         snapshot.totalBeanMints = silo.totalBeanMints
         snapshot.totalFarmers = silo.totalFarmers
         snapshot.dailyDepositedBDV = ZERO_BI
-        snapshot.dailyWithdrawnBDV = ZERO_BI
         snapshot.dailyStalkDelta = ZERO_BI
         snapshot.dailyPlantableStalkDelta = ZERO_BI
         snapshot.dailySeedsDelta = ZERO_BI

@@ -155,8 +155,8 @@ export function handleAddWithdrawal(event: AddWithdrawal): void {
     withdraw.createdAt = event.block.timestamp
     withdraw.save()
 
-    addWithdrawToFarmAsset(event.address, event.params.token, event.params.season.toI32(), event.params.amount, event.block.timestamp, event.block.number)
-    addWithdrawToFarmAsset(event.params.account, event.params.token, event.params.season.toI32(), event.params.amount, event.block.timestamp, event.block.number)
+    addWithdrawToSiloAsset(event.address, event.params.token, event.params.season.toI32(), event.params.amount, event.block.timestamp, event.block.number)
+    addWithdrawToSiloAsset(event.params.account, event.params.token, event.params.season.toI32(), event.params.amount, event.block.timestamp, event.block.number)
 }
 
 export function handleRemoveWithdrawal(event: RemoveWithdrawal): void {
@@ -362,7 +362,7 @@ function removeDepositFromSiloAsset(account: Address, token: Address, season: i3
     assetDaily.save()
 }
 
-function addWithdrawToFarmAsset(account: Address, token: Address, season: i32, tokenAmount: BigInt, timestamp: BigInt, blockNumber: BigInt): void {
+function addWithdrawToSiloAsset(account: Address, token: Address, season: i32, tokenAmount: BigInt, timestamp: BigInt, blockNumber: BigInt): void {
     let assetHourly = loadSiloAssetHourlySnapshot(account, token, season, timestamp)
     let assetDaily = loadSiloAssetDailySnapshot(account, token, timestamp)
 

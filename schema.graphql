@@ -108,8 +108,6 @@ type Silo @entity {
   assets: [SiloAsset!]! @derivedFrom(field: "silo")
   "Current BDV of all deposited assets"
   totalDepositedBDV: BigInt!
-  "Current withdrawn BDV of all deposited assets"
-  totalWithdrawnBDV: BigInt!
   "Current stalk balance"
   totalStalk: BigInt!
   "Current plantable stalk for bean seigniorage not yet claimed"
@@ -137,8 +135,6 @@ type SiloHourlySnapshot @entity {
   silo: Silo!
   "Point in time current BDV of all deposited assets"
   totalDepositedBDV: BigInt!
-  "Point in time current withdrawn BDV of all deposited assets"
-  totalWithdrawnBDV: BigInt!
   "Point in time current stalk balance"
   totalStalk: BigInt!
   "Point in time current plantable stalk for bean seigniorage not yet claimed"
@@ -153,8 +149,6 @@ type SiloHourlySnapshot @entity {
   totalFarmers: Int!
   "Point in time delta BDV of all deposited assets"
   hourlyDepositedBDV: BigInt!
-  "Point in time delta withdrawn BDV of all deposited assets"
-  hourlyWithdrawnBDV: BigInt!
   "Point in time delta stalk balance"
   hourlyStalkDelta: BigInt!
   "Point in time current plantable stalk for bean seigniorage not yet claimed"
@@ -184,8 +178,6 @@ type SiloDailySnapshot @entity {
   silo: Silo!
   "Point in time current BDV of all deposited assets"
   totalDepositedBDV: BigInt!
-  "Point in time current withdrawn BDV of all deposited assets"
-  totalWithdrawnBDV: BigInt!
   "Point in time current stalk balance"
   totalStalk: BigInt!
   "Point in time current plantable stalk for bean seigniorage not yet claimed"
@@ -200,8 +192,6 @@ type SiloDailySnapshot @entity {
   totalFarmers: Int!
   "Point in time delta BDV of all deposited assets"
   dailyDepositedBDV: BigInt!
-  "Point in time delta withdrawn BDV of all deposited assets"
-  dailyWithdrawnBDV: BigInt!
   "Point in time delta stalk balance"
   dailyStalkDelta: BigInt!
   "Point in time current plantable stalk for bean seigniorage not yet claimed"
