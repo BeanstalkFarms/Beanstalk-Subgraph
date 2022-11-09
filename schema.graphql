@@ -747,6 +747,8 @@ type PodListing @entity {
   cancelledAmount: BigInt!
   "Market v1 price per pod"
   pricePerPod: Int!
+  "Minimum amount needed to fill this listing"
+  minFillAmount: BigInt!
   "Max harvestable index before listing expires"
   maxHarvestableIndex: BigInt!
   "Market v2 pricing function"
@@ -776,6 +778,8 @@ type PodOrder @entity {
   amount: BigInt!
   "Current filled amount"
   filledAmount: BigInt!
+  "Minimum amount needed to fill this order"
+  minFillAmount: BigInt!
   "Max place in line for pods to fulfill the order"
   maxPlaceInLine: BigInt!
   "Market v1 price per pod"

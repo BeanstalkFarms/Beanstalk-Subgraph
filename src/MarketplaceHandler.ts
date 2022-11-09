@@ -13,7 +13,7 @@ import {
     PodListingFilled as PodListingFilled_v2,
     PodOrderCreated as PodOrderCreated_v2,
     PodOrderFilled as PodOrderFilled_v2
-} from "../generated/BIP28-PodMarketplace/Beanstalk";
+} from "../generated/BIP29-PodMarketplace/Beanstalk";
 
 import {
     Plot,
@@ -364,6 +364,7 @@ export function handlePodListingCreated_v2(event: PodListingCreated_v2): void {
     listing.totalAmount = event.params.amount
     listing.remainingAmount = listing.totalAmount
     listing.pricePerPod = event.params.pricePerPod
+    listing.minFillAmount = event.params.minFillAmount
     listing.maxHarvestableIndex = event.params.maxHarvestableIndex
     listing.pricingFunction = event.params.pricingFunction
     listing.mode = event.params.mode === true ? 0 : 1
@@ -476,6 +477,7 @@ export function handlePodOrderCreated_v2(event: PodOrderCreated_v2): void {
     order.status = 'ACTIVE'
     order.amount = event.params.amount
     order.filledAmount = ZERO_BI
+    order.minFillAmount = event.params.minFillAmount
     order.maxPlaceInLine = event.params.maxPlaceInLine
     order.pricePerPod = event.params.pricePerPod
     order.pricingFunction = event.params.pricingFunction

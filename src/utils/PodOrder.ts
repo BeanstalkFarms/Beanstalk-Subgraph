@@ -13,6 +13,7 @@ export function loadPodOrder(orderID: Bytes): PodOrder {
         order.status = ''
         order.amount = ZERO_BI
         order.filledAmount = ZERO_BI
+        order.minFillAmount = ZERO_BI
         order.maxPlaceInLine = ZERO_BI
         order.pricePerPod = 0
         order.save()
@@ -35,6 +36,7 @@ export function createHistoricalPodOrder(order: PodOrder): void {
             newOrder.status = order.status
             newOrder.amount = order.amount
             newOrder.filledAmount = order.filledAmount
+            newOrder.minFillAmount = order.minFillAmount
             newOrder.maxPlaceInLine = order.maxPlaceInLine
             newOrder.pricePerPod = order.pricePerPod
             newOrder.save()
