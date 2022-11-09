@@ -1,5 +1,6 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { PodListing } from "../../generated/schema";
+import { BEANSTALK } from "./Constants";
 import { ZERO_BI } from "./Decimals";
 import { loadPlot } from "./Plot";
 import { loadPodMarketplace, loadPodMarketplaceDailySnapshot, loadPodMarketplaceHourlySnapshot } from "./PodMarketplace";
@@ -9,6 +10,7 @@ export function loadPodListing(account: Address, index: BigInt): PodListing {
     let listing = PodListing.load(id)
     if (listing == null) {
         listing = new PodListing(id)
+        listing.podMarketplace = BEANSTALK.toHexString()
         listing.historyID = ''
         listing.plot = index.toString()
         listing.farmer = account.toHexString()
@@ -72,6 +74,7 @@ export function createHistoricalPodListing(listing: PodListing): void {
         let newListing = PodListing.load(id)
         if (newListing == null) {
             newListing = new PodListing(id)
+            newListing.podMarketplace = listing.podMarketplace
             newListing.historyID = listing.historyID
             newListing.plot = listing.plot
             newListing.farmer = listing.farmer

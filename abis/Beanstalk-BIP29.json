@@ -1754,6 +1754,12 @@
             },
             {
                 "indexed": false,
+                "internalType": "uint256",
+                "name": "minFillAmount",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
                 "internalType": "bytes",
                 "name": "pricingFunction",
                 "type": "bytes"
@@ -1867,6 +1873,12 @@
                 "indexed": false,
                 "internalType": "uint256",
                 "name": "maxPlaceInLine",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "minFillAmount",
                 "type": "uint256"
             },
             {
@@ -2002,6 +2014,11 @@
                 "type": "uint256"
             },
             {
+                "internalType": "uint256",
+                "name": "minFillAmount",
+                "type": "uint256"
+            },
+            {
                 "internalType": "enum LibTransfer.To",
                 "name": "mode",
                 "type": "uint8"
@@ -2017,6 +2034,11 @@
             {
                 "internalType": "uint256",
                 "name": "maxPlaceInLine",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "minFillAmount",
                 "type": "uint256"
             },
             {
@@ -2063,6 +2085,11 @@
                 "type": "uint256"
             },
             {
+                "internalType": "uint256",
+                "name": "minFillAmount",
+                "type": "uint256"
+            },
+            {
                 "internalType": "enum LibTransfer.To",
                 "name": "mode",
                 "type": "uint8"
@@ -2093,6 +2120,11 @@
             {
                 "internalType": "uint256",
                 "name": "maxHarvestableIndex",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "minFillAmount",
                 "type": "uint256"
             },
             {
@@ -2129,6 +2161,11 @@
                 "type": "uint256"
             },
             {
+                "internalType": "uint256",
+                "name": "minFillAmount",
+                "type": "uint256"
+            },
+            {
                 "internalType": "enum LibTransfer.From",
                 "name": "mode",
                 "type": "uint8"
@@ -2155,6 +2192,11 @@
             {
                 "internalType": "uint256",
                 "name": "maxPlaceInLine",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "minFillAmount",
                 "type": "uint256"
             },
             {
@@ -2211,6 +2253,11 @@
                     {
                         "internalType": "uint256",
                         "name": "maxHarvestableIndex",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "minFillAmount",
                         "type": "uint256"
                     },
                     {
@@ -2274,6 +2321,11 @@
                         "type": "uint256"
                     },
                     {
+                        "internalType": "uint256",
+                        "name": "minFillAmount",
+                        "type": "uint256"
+                    },
+                    {
                         "internalType": "enum LibTransfer.To",
                         "name": "mode",
                         "type": "uint8"
@@ -2321,6 +2373,11 @@
                     {
                         "internalType": "uint256",
                         "name": "maxPlaceInLine",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "minFillAmount",
                         "type": "uint256"
                     }
                 ],
@@ -2371,6 +2428,11 @@
                     {
                         "internalType": "uint256",
                         "name": "maxPlaceInLine",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "minFillAmount",
                         "type": "uint256"
                     }
                 ],
@@ -2507,6 +2569,11 @@
                 "internalType": "uint256",
                 "name": "maxPlaceInLine",
                 "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "minFillAmount",
+                "type": "uint256"
             }
         ],
         "name": "podOrder",
@@ -2549,6 +2616,11 @@
             {
                 "internalType": "uint256",
                 "name": "maxPlaceInLine",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "minFillAmount",
                 "type": "uint256"
             },
             {

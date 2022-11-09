@@ -1,11 +1,13 @@
 import { Bytes } from "@graphprotocol/graph-ts";
 import { PodOrder } from "../../generated/schema";
+import { BEANSTALK } from "./Constants";
 import { ZERO_BI } from "./Decimals";
 
 export function loadPodOrder(orderID: Bytes): PodOrder {
     let order = PodOrder.load(orderID.toHexString())
     if (order == null) {
         order = new PodOrder(orderID.toHexString())
+        order.podMarketplace = BEANSTALK.toHexString()
         order.historyID = ''
         order.farmer = ''
         order.createdAt = ZERO_BI
@@ -29,6 +31,7 @@ export function createHistoricalPodOrder(order: PodOrder): void {
         let newOrder = PodOrder.load(id)
         if (newOrder == null) {
             newOrder = new PodOrder(id)
+            newOrder.podMarketplace = order.podMarketplace
             newOrder.historyID = order.historyID
             newOrder.farmer = order.farmer
             newOrder.createdAt = order.createdAt

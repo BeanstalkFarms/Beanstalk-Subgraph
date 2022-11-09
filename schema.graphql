@@ -572,6 +572,10 @@ type PodMarketplace @entity {
   listingIndexes: [BigInt!]!
   "Active pod order IDs"
   orders: [PodOrder!]!
+  "All historical listings"
+  allListings: [PodListing!]! @derivedFrom(field: "podMarketplace")
+  "All historical orders"
+  allOrders: [PodOrder!]! @derivedFrom(field: "podMarketplace")
   "All historical marketplace fills"
   fills: [PodFill!]! @derivedFrom(field: "podMarketplace")
   "Current cumulative pods listed for sale"
@@ -713,6 +717,8 @@ type PodMarketplaceDailySnapshot @entity {
 type PodListing @entity {
   "Account - Plot Index"
   id: ID!
+  "Marketplace used for listing"
+  podMarketplace: PodMarketplace!
   " Historical ID for joins on frontend"
   historyID: String!
   "Plot being listed"
@@ -762,6 +768,8 @@ type PodListing @entity {
 type PodOrder @entity {
   "Order ID emitted by event"
   id: ID!
+  "Marketplace used for order"
+  podMarketplace: PodMarketplace!
   " Historical ID for joins"
   historyID: String!
   "Farmer placing the order"
