@@ -816,7 +816,7 @@ type Fertilizer @entity {
   "Token address for fert"
   id: ID!
   "Total overall suppy of fert tokens"
-  totalSupply: BigInt!
+  supply: BigInt!
   tokens: [FertilizerToken!]! @derivedFrom(field: "fertilizer")
 }
 
