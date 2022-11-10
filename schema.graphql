@@ -521,7 +521,7 @@ type SiloWithdraw @entity {
   "Token amount withdrawn"
   amount: BigInt!
   "Transaction hash of withdrawal"
-  hash: String!
+  hashes: [String!]!
   "Timestamp created"
   createdAt: BigInt!
 }

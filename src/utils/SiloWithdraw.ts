@@ -13,7 +13,7 @@ export function loadSiloWithdraw(account: Address, token: Address, season: i32):
         withdraw.claimableSeason = season + 1
         withdraw.claimed = false
         withdraw.amount = ZERO_BI
-        withdraw.hash = ''
+        withdraw.hashes = []
         withdraw.createdAt = ZERO_BI
         withdraw.save()
     }

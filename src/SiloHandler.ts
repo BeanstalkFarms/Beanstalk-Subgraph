@@ -151,7 +151,9 @@ export function handleRemoveDeposits(event: RemoveDeposits): void {
 export function handleAddWithdrawal(event: AddWithdrawal): void {
     let withdraw = loadSiloWithdraw(event.params.account, event.params.token, event.params.season.toI32())
     withdraw.amount = event.params.amount
-    withdraw.hash = event.transaction.hash.toHexString()
+    let withdrawHashes = withdraw.hashes
+    withdrawHashes.push(event.transaction.hash.toHexString())
+    withdraw.hashes = withdrawHashes
     withdraw.createdAt = event.block.timestamp
     withdraw.save()
 
