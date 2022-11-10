@@ -43,24 +43,24 @@ export function handlePodListingCreated(event: PodListingCreated): void {
 
     market.listingIndexes.push(plot.index)
     market.listingIndexes.sort()
-    market.totalPodsListed = market.totalPodsListed.plus(event.params.amount)
-    market.totalPodsAvailable = market.totalPodsAvailable.plus(event.params.amount)
+    market.listedPods = market.listedPods.plus(event.params.amount)
+    market.availableListedPods = market.availableListedPods.plus(event.params.amount)
     market.save()
 
     marketHourly.season = market.season
-    marketHourly.newPodsListed = marketHourly.newPodsListed.plus(event.params.amount)
-    marketHourly.totalPodsListed = market.totalPodsListed
-    marketHourly.newPodsAvailable = marketHourly.newPodsAvailable.plus(event.params.amount)
-    marketHourly.totalPodsAvailable = market.totalPodsAvailable
+    marketHourly.deltaListedPods = marketHourly.deltaListedPods.plus(event.params.amount)
+    marketHourly.listedPods = market.listedPods
+    marketHourly.deltaAvailableListedPods = marketHourly.deltaAvailableListedPods.plus(event.params.amount)
+    marketHourly.availableListedPods = market.availableListedPods
     marketHourly.blockNumber = event.block.number
     marketHourly.timestamp = event.block.timestamp
     marketHourly.save()
 
     marketDaily.season = market.season
-    marketDaily.newPodsListed = marketDaily.newPodsListed.plus(event.params.amount)
-    marketDaily.totalPodsListed = market.totalPodsListed
-    marketDaily.newPodsAvailable = marketDaily.newPodsAvailable.plus(event.params.amount)
-    marketDaily.totalPodsAvailable = market.totalPodsAvailable
+    marketDaily.deltaListedPods = marketDaily.deltaListedPods.plus(event.params.amount)
+    marketDaily.listedPods = market.listedPods
+    marketDaily.deltaAvailableListedPods = marketDaily.deltaAvailableListedPods.plus(event.params.amount)
+    marketDaily.availableListedPods = market.availableListedPods
     marketDaily.blockNumber = event.block.number
     marketDaily.timestamp = event.block.timestamp
     marketDaily.save()

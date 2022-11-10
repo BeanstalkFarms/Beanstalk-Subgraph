@@ -43,22 +43,22 @@ export function expirePodListing(diamondAddress: Address, timestamp: BigInt, lis
     let plot = loadPlot(diamondAddress, listingIndex)
     let listing = loadPodListing(Address.fromString(plot.farmer), listingIndex)
 
-    market.totalPodsExpired = market.totalPodsExpired.plus(listing.remainingAmount)
-    market.totalPodsAvailable = market.totalPodsAvailable.minus(listing.remainingAmount)
+    market.expiredListedPods = market.expiredListedPods.plus(listing.remainingAmount)
+    market.availableListedPods = market.availableListedPods.minus(listing.remainingAmount)
     market.save()
 
     marketHourly.season = market.season
-    marketHourly.newPodsExpired = marketHourly.newPodsExpired.plus(listing.remainingAmount)
-    marketHourly.totalPodsExpired = market.totalPodsExpired
-    marketHourly.newPodsAvailable = marketHourly.newPodsAvailable.minus(listing.remainingAmount)
-    marketHourly.totalPodsAvailable = market.totalPodsAvailable
+    marketHourly.deltaExpiredListedPods = marketHourly.deltaExpiredListedPods.plus(listing.remainingAmount)
+    marketHourly.expiredListedPods = market.expiredListedPods
+    marketHourly.deltaAvailableListedPods = marketHourly.deltaAvailableListedPods.minus(listing.remainingAmount)
+    marketHourly.availableListedPods = market.availableListedPods
     marketHourly.save()
 
     marketDaily.season = market.season
-    marketDaily.newPodsExpired = marketDaily.newPodsExpired.plus(listing.remainingAmount)
-    marketDaily.totalPodsExpired = market.totalPodsExpired
-    marketDaily.newPodsAvailable = marketDaily.newPodsAvailable.minus(listing.remainingAmount)
-    marketDaily.totalPodsAvailable = market.totalPodsAvailable
+    marketDaily.deltaExpiredListedPods = marketDaily.deltaExpiredListedPods.plus(listing.remainingAmount)
+    marketDaily.expiredListedPods = market.expiredListedPods
+    marketDaily.deltaAvailableListedPods = marketDaily.deltaAvailableListedPods.minus(listing.remainingAmount)
+    marketDaily.availableListedPods = market.availableListedPods
     marketDaily.save()
 
     listing.status = 'EXPIRED'

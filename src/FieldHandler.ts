@@ -42,7 +42,7 @@ export function handleSow(event: Sow): void {
 
     if (event.params.account == BEANSTALK_FARMS) {
         let startingField = loadField(event.address)
-        sownBeans = startingField.totalSoil
+        sownBeans = startingField.soil
     }
 
     // Update Beanstalk Totals
@@ -86,20 +86,20 @@ export function handleSow(event: Sow): void {
     fieldDaily.save()
 
     // Update sower counts
-    field.totalNumberOfSows += 1
-    field.totalNumberOfSowers += newSowers
+    field.numberOfSows += 1
+    field.numberOfSowers += newSowers
     field.save()
 
-    fieldHourly.totalNumberOfSowers = field.totalNumberOfSowers
-    fieldHourly.totalNumberOfSows = field.totalNumberOfSows
-    fieldHourly.numberOfSows += 1
-    fieldHourly.numberOfSowers += newSowers
+    fieldHourly.numberOfSowers = field.numberOfSowers
+    fieldHourly.numberOfSows = field.numberOfSows
+    fieldHourly.deltaNumberOfSows += 1
+    fieldHourly.deltaNumberOfSowers += newSowers
     fieldHourly.save()
 
-    fieldDaily.totalNumberOfSowers = field.totalNumberOfSowers
-    fieldDaily.totalNumberOfSows = field.totalNumberOfSows
-    fieldDaily.numberOfSows += 1
-    fieldDaily.numberOfSowers += newSowers
+    fieldDaily.numberOfSowers = field.numberOfSowers
+    fieldDaily.numberOfSows = field.numberOfSows
+    fieldDaily.deltaNumberOfSows += 1
+    fieldDaily.deltaNumberOfSowers += newSowers
     fieldDaily.save()
 }
 
@@ -179,7 +179,7 @@ export function handleHarvest(event: Harvest): void {
     harvest.plots = event.params.plots
     harvest.beans = event.params.beans
     harvest.blockNumber = event.block.number
-    harvest.timestamp = event.block.timestamp
+    harvest.createdAt = event.block.timestamp
     harvest.save()
 }
 
@@ -384,46 +384,46 @@ function updateFieldTotals(
     let fieldDaily = loadFieldDaily(account, timestamp)
 
     field.season = season
-    field.totalSoil = field.totalSoil.plus(soil).minus(sownBeans)
-    field.totalSownBeans = field.totalSownBeans.plus(sownBeans)
-    field.totalPods = field.totalPods.plus(sownPods).minus(harvestablePods).plus(transferredPods)
-    field.totalHarvestablePods = field.totalHarvestablePods.plus(harvestablePods)
-    field.totalHarvestedPods = field.totalHarvestedPods.plus(harvestedPods)
+    field.soil = field.soil.plus(soil).minus(sownBeans)
+    field.sownBeans = field.sownBeans.plus(sownBeans)
+    field.unharvestablePods = field.unharvestablePods.plus(sownPods).minus(harvestablePods).plus(transferredPods)
+    field.harvestablePods = field.harvestablePods.plus(harvestablePods)
+    field.harvestedPods = field.harvestedPods.plus(harvestedPods)
     field.podIndex = field.podIndex.plus(sownPods)
     field.save()
 
-    fieldHourly.totalSoil = field.totalSoil
-    fieldHourly.totalSownBeans = field.totalSownBeans
-    fieldHourly.totalPods = field.totalPods
-    fieldHourly.totalHarvestablePods = field.totalHarvestablePods
-    fieldHourly.totalHarvestedPods = field.totalHarvestedPods
+    fieldHourly.soil = field.soil
+    fieldHourly.sownBeans = field.sownBeans
+    fieldHourly.unharvestablePods = field.unharvestablePods
+    fieldHourly.harvestablePods = field.harvestablePods
+    fieldHourly.harvestedPods = field.harvestedPods
     fieldHourly.podIndex = field.podIndex
-    fieldHourly.newSoil = fieldHourly.newSoil.plus(soil)
-    fieldHourly.sownBeans = fieldHourly.sownBeans.plus(sownBeans)
-    fieldHourly.newPods = fieldHourly.newPods.plus(sownPods).minus(harvestablePods).plus(transferredPods)
-    fieldHourly.newHarvestablePods = fieldHourly.newHarvestablePods.plus(harvestablePods)
-    fieldHourly.newHarvestedPods = fieldHourly.newHarvestedPods.plus(harvestedPods)
+    fieldHourly.issuedSoil = fieldHourly.issuedSoil.plus(soil)
+    fieldHourly.deltaSownBeans = fieldHourly.deltaSownBeans.plus(sownBeans)
+    fieldHourly.deltaUnharvestablePods = fieldHourly.deltaUnharvestablePods.plus(sownPods).minus(harvestablePods).plus(transferredPods)
+    fieldHourly.deltaHarvestablePods = fieldHourly.deltaHarvestablePods.plus(harvestablePods)
+    fieldHourly.deltaHarvestedPods = fieldHourly.deltaHarvestedPods.plus(harvestedPods)
     fieldHourly.blockNumber = fieldHourly.blockNumber == ZERO_BI ? blockNumber : fieldHourly.blockNumber
-    fieldHourly.lastUpdated = timestamp
-    if (field.totalSoil == ZERO_BI) {
+    fieldHourly.updatedAt = timestamp
+    if (field.soil == ZERO_BI) {
         fieldHourly.blocksToSoldOutSoil = blockNumber.minus(fieldHourly.blockNumber)
         fieldHourly.soilSoldOut = true
     }
     fieldHourly.save()
 
-    fieldDaily.totalSoil = field.totalSoil
-    fieldDaily.totalSownBeans = field.totalSownBeans
-    fieldDaily.totalPods = field.totalPods
-    fieldDaily.totalHarvestablePods = field.totalHarvestablePods
-    fieldDaily.totalHarvestedPods = field.totalHarvestedPods
+    fieldDaily.soil = field.soil
+    fieldDaily.sownBeans = field.sownBeans
+    fieldDaily.unharvestablePods = field.unharvestablePods
+    fieldDaily.harvestablePods = field.harvestablePods
+    fieldDaily.harvestedPods = field.harvestedPods
     fieldDaily.podIndex = field.podIndex
-    fieldDaily.newSoil = fieldDaily.newSoil.plus(soil)
-    fieldDaily.sownBeans = fieldDaily.sownBeans.plus(sownBeans)
-    fieldDaily.newPods = fieldDaily.newPods.plus(sownPods).minus(harvestablePods).plus(transferredPods)
-    fieldDaily.newHarvestablePods = fieldDaily.newHarvestablePods.plus(harvestablePods)
-    fieldDaily.newHarvestedPods = fieldDaily.newHarvestedPods.plus(harvestedPods)
+    fieldDaily.issuedSoil = fieldDaily.issuedSoil.plus(soil)
+    fieldDaily.deltaSownBeans = fieldDaily.deltaSownBeans.plus(sownBeans)
+    fieldDaily.deltaUnharvestablePods = fieldDaily.deltaUnharvestablePods.plus(sownPods).minus(harvestablePods).plus(transferredPods)
+    fieldDaily.deltaHarvestablePods = fieldDaily.deltaHarvestablePods.plus(harvestablePods)
+    fieldDaily.deltaHarvestedPods = fieldDaily.deltaHarvestedPods.plus(harvestedPods)
     fieldDaily.blockNumber = fieldDaily.blockNumber == ZERO_BI ? blockNumber : fieldDaily.blockNumber
-    fieldDaily.lastUpdated = timestamp
+    fieldDaily.updatedAt = timestamp
     fieldDaily.save()
 }
 
@@ -443,9 +443,9 @@ export function updateHarvestablePlots(harvestableIndex: BigInt, timestamp: BigI
         plot.harvestablePods = harvestablePods >= plot.pods ? plot.pods : harvestablePods
         plot.save()
 
-        let newHarvestablePods = oldHarvestablePods == ZERO_BI ? plot.harvestablePods : plot.harvestablePods.minus(oldHarvestablePods)
+        let deltaHarvestablePods = oldHarvestablePods == ZERO_BI ? plot.harvestablePods : plot.harvestablePods.minus(oldHarvestablePods)
 
-        updateFieldTotals(BEANSTALK, field.season, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, newHarvestablePods, ZERO_BI, timestamp, blockNumber)
-        updateFieldTotals(Address.fromString(plot.farmer), field.season, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, newHarvestablePods, ZERO_BI, timestamp, blockNumber)
+        updateFieldTotals(BEANSTALK, field.season, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, deltaHarvestablePods, ZERO_BI, timestamp, blockNumber)
+        updateFieldTotals(Address.fromString(plot.farmer), field.season, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, deltaHarvestablePods, ZERO_BI, timestamp, blockNumber)
     }
 }

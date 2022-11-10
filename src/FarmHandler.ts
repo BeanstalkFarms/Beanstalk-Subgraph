@@ -22,19 +22,19 @@ function updateFarmTotals(account: Address, token: Address, season: i32, delta: 
     let assetHourly = loadSiloAssetHourlySnapshot(account, token, season, timestamp)
     let assetDaily = loadSiloAssetDailySnapshot(account, token, timestamp)
 
-    asset.totalFarmAmount = asset.totalFarmAmount.plus(delta)
+    asset.farmAmount = asset.farmAmount.plus(delta)
     asset.save()
 
-    assetHourly.totalFarmAmount = asset.totalFarmAmount
-    assetHourly.hourlyFarmAmountDelta = assetHourly.hourlyFarmAmountDelta.plus(delta)
+    assetHourly.farmAmount = asset.farmAmount
+    assetHourly.deltaFarmAmount = assetHourly.deltaFarmAmount.plus(delta)
     assetHourly.blockNumber = blockNumber
-    assetHourly.lastUpdated = timestamp
+    assetHourly.updatedAt = timestamp
     assetHourly.save()
 
     assetDaily.season = season
-    assetDaily.totalFarmAmount = asset.totalFarmAmount
-    assetDaily.dailyFarmAmountDelta = assetDaily.dailyFarmAmountDelta.plus(delta)
+    assetDaily.farmAmount = asset.farmAmount
+    assetDaily.deltaFarmAmount = assetDaily.deltaFarmAmount.plus(delta)
     assetDaily.blockNumber = blockNumber
-    assetDaily.lastUpdated = timestamp
+    assetDaily.updatedAt = timestamp
     assetDaily.save()
 }

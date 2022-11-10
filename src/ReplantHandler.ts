@@ -12,6 +12,6 @@ export function handleChop(event: Chop): void {
     chop.amount = event.params.amount
     chop.underlying = event.params.underlying.toHexString()
     chop.blockNumber = event.block.number
-    chop.timestamp = event.block.timestamp
+    chop.createdAt = event.block.timestamp
     chop.save()
 }

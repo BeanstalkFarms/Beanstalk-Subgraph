@@ -81,7 +81,7 @@ export function handlePodListingCreated(event: PodListingCreated_v1): void {
     rawEvent.maxHarvestableIndex = event.params.maxHarvestableIndex
     rawEvent.mode = event.params.toWallet
     rawEvent.blockNumber = event.block.number
-    rawEvent.timestamp = event.block.timestamp
+    rawEvent.createdAt = event.block.timestamp
     rawEvent.save()
 }
 
@@ -107,7 +107,7 @@ export function handlePodListingCancelled(event: PodListingCancelled): void {
     rawEvent.account = event.params.account.toHexString()
     rawEvent.index = event.params.index
     rawEvent.blockNumber = event.block.number
-    rawEvent.timestamp = event.block.timestamp
+    rawEvent.createdAt = event.block.timestamp
     rawEvent.save()
 }
 
@@ -174,7 +174,7 @@ export function handlePodListingFilled(event: PodListingFilled_v1): void {
     rawEvent.start = event.params.start
     rawEvent.amount = event.params.amount
     rawEvent.blockNumber = event.block.number
-    rawEvent.timestamp = event.block.timestamp
+    rawEvent.createdAt = event.block.timestamp
     rawEvent.save()
 }
 
@@ -210,7 +210,7 @@ export function handlePodOrderCreated(event: PodOrderCreated_v1): void {
     rawEvent.pricePerPod = event.params.pricePerPod
     rawEvent.maxPlaceInLine = event.params.maxPlaceInLine
     rawEvent.blockNumber = event.block.number
-    rawEvent.timestamp = event.block.timestamp
+    rawEvent.createdAt = event.block.timestamp
     rawEvent.save()
 }
 
@@ -258,7 +258,7 @@ export function handlePodOrderFilled(event: PodOrderFilled_v1): void {
     rawEvent.start = event.params.start
     rawEvent.amount = event.params.amount
     rawEvent.blockNumber = event.block.number
-    rawEvent.timestamp = event.block.timestamp
+    rawEvent.createdAt = event.block.timestamp
     rawEvent.save()
 }
 
@@ -281,7 +281,7 @@ export function handlePodOrderCancelled(event: PodOrderCancelled): void {
     rawEvent.account = event.params.account.toHexString()
     rawEvent.orderId = event.params.id.toHexString()
     rawEvent.blockNumber = event.block.number
-    rawEvent.timestamp = event.block.timestamp
+    rawEvent.createdAt = event.block.timestamp
     rawEvent.save()
 }
 
@@ -335,7 +335,7 @@ export function handlePodListingCreated_v1_1(event: PodListingCreated_v1_1): voi
     rawEvent.maxHarvestableIndex = event.params.maxHarvestableIndex
     rawEvent.mode = event.params.mode
     rawEvent.blockNumber = event.block.number
-    rawEvent.timestamp = event.block.timestamp
+    rawEvent.createdAt = event.block.timestamp
     rawEvent.save()
 }
 
@@ -393,7 +393,7 @@ export function handlePodListingCreated_v2(event: PodListingCreated_v2): void {
     rawEvent.pricingFunction = event.params.pricingFunction
     rawEvent.pricingType = event.params.pricingType
     rawEvent.blockNumber = event.block.number
-    rawEvent.timestamp = event.block.timestamp
+    rawEvent.createdAt = event.block.timestamp
     rawEvent.save()
 }
 
@@ -460,7 +460,7 @@ export function handlePodListingFilled_v2(event: PodListingFilled_v2): void {
     rawEvent.amount = event.params.amount
     rawEvent.costInBeans = event.params.costInBeans
     rawEvent.blockNumber = event.block.number
-    rawEvent.timestamp = event.block.timestamp
+    rawEvent.createdAt = event.block.timestamp
     rawEvent.save()
 }
 
@@ -501,7 +501,7 @@ export function handlePodOrderCreated_v2(event: PodOrderCreated_v2): void {
     rawEvent.pricingFunction = event.params.pricingFunction
     rawEvent.pricingType = event.params.priceType
     rawEvent.blockNumber = event.block.number
-    rawEvent.timestamp = event.block.timestamp
+    rawEvent.createdAt = event.block.timestamp
     rawEvent.save()
 }
 
@@ -549,7 +549,7 @@ export function handlePodOrderFilled_v2(event: PodOrderFilled_v2): void {
     rawEvent.amount = event.params.amount
     rawEvent.costInBeans = event.params.costInBeans
     rawEvent.blockNumber = event.block.number
-    rawEvent.timestamp = event.block.timestamp
+    rawEvent.createdAt = event.block.timestamp
     rawEvent.save()
 }
 
@@ -578,46 +578,46 @@ function updateMarketListingBalances(
         let listingIndex = market.listingIndexes.indexOf(plotIndex)
         market.listingIndexes.splice(listingIndex, 1)
     }
-    market.totalPodsListed = market.totalPodsListed.plus(newPodAmount)
-    market.totalPodsAvailable = market.totalPodsAvailable.plus(newPodAmount).minus(cancelledPodAmount).minus(filledPodAmount)
-    market.totalPodsCancelled = market.totalPodsCancelled.plus(cancelledPodAmount)
-    market.totalPodsFilled = market.totalPodsFilled.plus(filledPodAmount)
-    market.totalPodVolume = market.totalPodVolume.plus(filledPodAmount)
-    market.totalBeanVolume = market.totalBeanVolume.plus(filledBeanAmount)
+    market.listedPods = market.listedPods.plus(newPodAmount)
+    market.availableListedPods = market.availableListedPods.plus(newPodAmount).minus(cancelledPodAmount).minus(filledPodAmount)
+    market.cancelledListedPods = market.cancelledListedPods.plus(cancelledPodAmount)
+    market.filledListedPods = market.filledListedPods.plus(filledPodAmount)
+    market.podVolume = market.podVolume.plus(filledPodAmount)
+    market.beanVolume = market.beanVolume.plus(filledBeanAmount)
     market.save()
 
     marketHourly.season = market.season
-    marketHourly.newPodsListed = marketHourly.newPodsListed.plus(newPodAmount)
-    marketHourly.totalPodsListed = market.totalPodsListed
-    marketHourly.newPodsCancelled = marketHourly.newPodsCancelled.plus(cancelledPodAmount)
-    marketHourly.totalPodsCancelled = market.totalPodsCancelled
-    marketHourly.newPodsAvailable = marketHourly.newPodsAvailable.plus(newPodAmount).minus(cancelledPodAmount).minus(filledPodAmount)
-    marketHourly.totalPodsAvailable = market.totalPodsAvailable
-    marketHourly.newPodsFilled = marketHourly.newPodsFilled.plus(filledPodAmount)
-    marketHourly.totalPodsFilled = market.totalPodsFilled
-    marketHourly.newPodVolume = marketHourly.newPodVolume.plus(filledPodAmount)
-    marketHourly.totalPodVolume = market.totalPodVolume
-    marketHourly.newBeanVolume = marketHourly.newBeanVolume.plus(filledBeanAmount)
-    marketHourly.totalBeanVolume = market.totalBeanVolume
+    marketHourly.deltaListedPods = marketHourly.deltaListedPods.plus(newPodAmount)
+    marketHourly.listedPods = market.listedPods
+    marketHourly.deltaCancelledListedPods = marketHourly.deltaCancelledListedPods.plus(cancelledPodAmount)
+    marketHourly.cancelledListedPods = market.cancelledListedPods
+    marketHourly.deltaAvailableListedPods = marketHourly.deltaAvailableListedPods.plus(newPodAmount).minus(cancelledPodAmount).minus(filledPodAmount)
+    marketHourly.availableListedPods = market.availableListedPods
+    marketHourly.deltafilledListedPods = marketHourly.deltafilledListedPods.plus(filledPodAmount)
+    marketHourly.filledListedPods = market.filledListedPods
+    marketHourly.deltaPodVolume = marketHourly.deltaPodVolume.plus(filledPodAmount)
+    marketHourly.podVolume = market.podVolume
+    marketHourly.deltaBeanVolume = marketHourly.deltaBeanVolume.plus(filledBeanAmount)
+    marketHourly.beanVolume = market.beanVolume
     marketHourly.blockNumber = blockNumber
-    marketHourly.lastUpdated = timestamp
+    marketHourly.updatedAt = timestamp
     marketHourly.save()
 
     marketDaily.season = market.season
-    marketDaily.newPodsListed = marketDaily.newPodsListed.plus(newPodAmount)
-    marketDaily.totalPodsListed = market.totalPodsListed
-    marketDaily.newPodsCancelled = marketDaily.newPodsCancelled.plus(cancelledPodAmount)
-    marketDaily.totalPodsCancelled = market.totalPodsCancelled
-    marketDaily.newPodsAvailable = marketDaily.newPodsAvailable.plus(newPodAmount).minus(cancelledPodAmount).minus(filledPodAmount)
-    marketDaily.totalPodsAvailable = market.totalPodsAvailable
-    marketDaily.newPodsFilled = marketDaily.newPodsFilled.plus(filledPodAmount)
-    marketDaily.totalPodsFilled = market.totalPodsFilled
-    marketDaily.newPodVolume = marketDaily.newPodVolume.plus(filledPodAmount)
-    marketDaily.totalPodVolume = market.totalPodVolume
-    marketDaily.newBeanVolume = marketDaily.newBeanVolume.plus(filledBeanAmount)
-    marketDaily.totalBeanVolume = market.totalBeanVolume
+    marketDaily.deltaListedPods = marketDaily.deltaListedPods.plus(newPodAmount)
+    marketDaily.listedPods = market.listedPods
+    marketDaily.deltaCancelledListedPods = marketDaily.deltaCancelledListedPods.plus(cancelledPodAmount)
+    marketDaily.cancelledListedPods = market.cancelledListedPods
+    marketDaily.deltaAvailableListedPods = marketDaily.deltaAvailableListedPods.plus(newPodAmount).minus(cancelledPodAmount).minus(filledPodAmount)
+    marketDaily.availableListedPods = market.availableListedPods
+    marketDaily.deltafilledListedPods = marketDaily.deltafilledListedPods.plus(filledPodAmount)
+    marketDaily.filledListedPods = market.filledListedPods
+    marketDaily.deltaPodVolume = marketDaily.deltaPodVolume.plus(filledPodAmount)
+    marketDaily.podVolume = market.podVolume
+    marketDaily.deltaBeanVolume = marketDaily.deltaBeanVolume.plus(filledBeanAmount)
+    marketDaily.beanVolume = market.beanVolume
     marketDaily.blockNumber = blockNumber
-    marketDaily.lastUpdated = timestamp
+    marketDaily.updatedAt = timestamp
     marketDaily.save()
 }
 
@@ -643,38 +643,38 @@ function updateMarketOrderBalances(
         let orderIndex = market.orders.indexOf(orderID)
         market.listingIndexes.splice(orderIndex, 1)
     }
-    market.totalOrdersCreated = market.totalOrdersCreated.plus(newPodAmount)
-    market.totalOrdersFilled = market.totalOrdersFilled.plus(filledPodAmount)
-    market.totalPodVolume = market.totalPodVolume.plus(filledPodAmount)
-    market.totalBeanVolume = market.totalBeanVolume.plus(filledBeanAmount)
-    market.totalOrdersCancelled = market.totalOrdersCancelled.plus(cancelledPodAmount)
+    market.orderedPods = market.orderedPods.plus(newPodAmount)
+    market.filledOrderedPods = market.filledOrderedPods.plus(filledPodAmount)
+    market.podVolume = market.podVolume.plus(filledPodAmount)
+    market.beanVolume = market.beanVolume.plus(filledBeanAmount)
+    market.cancelledOrderedPods = market.cancelledOrderedPods.plus(cancelledPodAmount)
     market.save()
 
-    marketHourly.newOrdersCreated = marketHourly.newOrdersCreated.plus(newPodAmount)
-    marketHourly.totalOrdersCreated = market.totalOrdersCreated
-    marketHourly.newOrdersFilled = marketHourly.newOrdersFilled.plus(filledPodAmount)
-    marketHourly.totalOrdersFilled = market.totalOrdersFilled
-    marketHourly.newPodVolume = marketHourly.newPodVolume.plus(filledPodAmount)
-    marketHourly.totalPodVolume = market.totalPodVolume
-    marketHourly.newBeanVolume = marketHourly.newBeanVolume.plus(filledBeanAmount)
-    marketHourly.totalBeanVolume = market.totalBeanVolume
-    marketHourly.newOrdersCancelled = marketHourly.newOrdersCancelled.plus(cancelledPodAmount)
-    marketHourly.totalOrdersCancelled = market.totalOrdersCancelled
+    marketHourly.deltaOrderedPods = marketHourly.deltaOrderedPods.plus(newPodAmount)
+    marketHourly.orderedPods = market.orderedPods
+    marketHourly.deltaFilledOrderedPods = marketHourly.deltaFilledOrderedPods.plus(filledPodAmount)
+    marketHourly.filledOrderedPods = market.filledOrderedPods
+    marketHourly.deltaPodVolume = marketHourly.deltaPodVolume.plus(filledPodAmount)
+    marketHourly.podVolume = market.podVolume
+    marketHourly.deltaBeanVolume = marketHourly.deltaBeanVolume.plus(filledBeanAmount)
+    marketHourly.beanVolume = market.beanVolume
+    marketHourly.deltaCancelledOrderedPods = marketHourly.deltaCancelledOrderedPods.plus(cancelledPodAmount)
+    marketHourly.cancelledOrderedPods = market.cancelledOrderedPods
     marketHourly.blockNumber = blockNumber
-    marketHourly.lastUpdated = timestamp
+    marketHourly.updatedAt = timestamp
     marketHourly.save()
 
-    marketDaily.newOrdersCreated = marketDaily.newOrdersCreated.plus(newPodAmount)
-    marketDaily.totalOrdersCreated = market.totalOrdersCreated
-    marketDaily.newOrdersFilled = marketDaily.newOrdersFilled.plus(filledPodAmount)
-    marketDaily.totalOrdersFilled = market.totalOrdersFilled
-    marketDaily.newPodVolume = marketDaily.newPodVolume.plus(filledPodAmount)
-    marketDaily.totalPodVolume = market.totalPodVolume
-    marketDaily.newBeanVolume = marketDaily.newBeanVolume.plus(filledBeanAmount)
-    marketDaily.totalBeanVolume = market.totalBeanVolume
-    marketDaily.newOrdersCancelled = marketDaily.newOrdersCancelled.plus(cancelledPodAmount)
-    marketDaily.totalOrdersCancelled = market.totalOrdersCancelled
+    marketDaily.deltaOrderedPods = marketDaily.deltaOrderedPods.plus(newPodAmount)
+    marketDaily.orderedPods = market.orderedPods
+    marketDaily.deltaFilledOrderedPods = marketDaily.deltaFilledOrderedPods.plus(filledPodAmount)
+    marketDaily.filledOrderedPods = market.filledOrderedPods
+    marketDaily.deltaPodVolume = marketDaily.deltaPodVolume.plus(filledPodAmount)
+    marketDaily.podVolume = market.podVolume
+    marketDaily.deltaBeanVolume = marketDaily.deltaBeanVolume.plus(filledBeanAmount)
+    marketDaily.beanVolume = market.beanVolume
+    marketDaily.deltaCancelledOrderedPods = marketDaily.deltaCancelledOrderedPods.plus(cancelledPodAmount)
+    marketDaily.cancelledOrderedPods = market.cancelledOrderedPods
     marketDaily.blockNumber = blockNumber
-    marketDaily.lastUpdated = timestamp
+    marketDaily.updatedAt = timestamp
     marketDaily.save()
 }

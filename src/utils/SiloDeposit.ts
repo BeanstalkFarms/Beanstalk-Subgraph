@@ -10,10 +10,10 @@ export function loadSiloDeposit(account: Address, token: Address, season: BigInt
         deposit.farmer = account.toHexString()
         deposit.token = token.toHexString()
         deposit.season = season.toI32()
-        deposit.tokenAmount = ZERO_BI
-        deposit.removedTokenAmount = ZERO_BI
+        deposit.amount = ZERO_BI
+        deposit.withdrawnAmount = ZERO_BI
         deposit.bdv = ZERO_BI
-        deposit.removedBDV = ZERO_BI
+        deposit.withdrawnBDV = ZERO_BI
         deposit.hashes = []
         deposit.createdAt = ZERO_BI
         deposit.updatedAt = ZERO_BI

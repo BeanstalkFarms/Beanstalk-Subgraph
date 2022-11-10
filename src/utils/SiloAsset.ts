@@ -12,10 +12,10 @@ export function loadSiloAsset(account: Address, token: Address): SiloAsset {
         asset = new SiloAsset(id)
         asset.silo = account.toHexString()
         asset.token = token.toHexString()
-        asset.totalDepositedBDV = ZERO_BI
-        asset.totalDepositedAmount = ZERO_BI
-        asset.totalWithdrawnAmount = ZERO_BI
-        asset.totalFarmAmount = ZERO_BI
+        asset.depositedBDV = ZERO_BI
+        asset.depositedAmount = ZERO_BI
+        asset.withdrawnAmount = ZERO_BI
+        asset.farmAmount = ZERO_BI
         asset.save()
     }
     return asset as SiloAsset
@@ -30,17 +30,17 @@ export function loadSiloAssetHourlySnapshot(account: Address, token: Address, se
         snapshot = new SiloAssetHourlySnapshot(id)
         snapshot.season = season
         snapshot.siloAsset = asset.id
-        snapshot.totalDepositedBDV = asset.totalDepositedBDV
-        snapshot.totalDepositedAmount = asset.totalDepositedAmount
-        snapshot.totalWithdrawnAmount = asset.totalWithdrawnAmount
-        snapshot.totalFarmAmount = asset.totalFarmAmount
-        snapshot.hourlyDepositedBDV = ZERO_BI
-        snapshot.hourlyDepositedAmount = ZERO_BI
-        snapshot.hourlyWithdrawnAmount = ZERO_BI
-        snapshot.hourlyFarmAmountDelta = ZERO_BI
+        snapshot.depositedBDV = asset.depositedBDV
+        snapshot.depositedAmount = asset.depositedAmount
+        snapshot.withdrawnAmount = asset.withdrawnAmount
+        snapshot.farmAmount = asset.farmAmount
+        snapshot.deltaDepositedBDV = ZERO_BI
+        snapshot.deltaDepositedAmount = ZERO_BI
+        snapshot.deltaWithdrawnAmount = ZERO_BI
+        snapshot.deltaFarmAmount = ZERO_BI
         snapshot.blockNumber = ZERO_BI
-        snapshot.timestamp = BigInt.fromString(hour)
-        snapshot.lastUpdated = ZERO_BI
+        snapshot.createdAt = BigInt.fromString(hour)
+        snapshot.updatedAt = ZERO_BI
         snapshot.save()
     }
     return snapshot as SiloAssetHourlySnapshot
@@ -55,17 +55,17 @@ export function loadSiloAssetDailySnapshot(account: Address, token: Address, tim
         snapshot = new SiloAssetDailySnapshot(id)
         snapshot.season = 0
         snapshot.siloAsset = asset.id
-        snapshot.totalDepositedBDV = asset.totalDepositedBDV
-        snapshot.totalDepositedAmount = asset.totalDepositedAmount
-        snapshot.totalWithdrawnAmount = asset.totalWithdrawnAmount
-        snapshot.totalFarmAmount = asset.totalFarmAmount
-        snapshot.dailyDepositedBDV = ZERO_BI
-        snapshot.dailyDepositedAmount = ZERO_BI
-        snapshot.dailyWithdrawnAmount = ZERO_BI
-        snapshot.dailyFarmAmountDelta = ZERO_BI
+        snapshot.depositedBDV = asset.depositedBDV
+        snapshot.depositedAmount = asset.depositedAmount
+        snapshot.withdrawnAmount = asset.withdrawnAmount
+        snapshot.farmAmount = asset.farmAmount
+        snapshot.deltaDepositedBDV = ZERO_BI
+        snapshot.deltaDepositedAmount = ZERO_BI
+        snapshot.deltaWithdrawnAmount = ZERO_BI
+        snapshot.deltaFarmAmount = ZERO_BI
         snapshot.blockNumber = ZERO_BI
-        snapshot.timestamp = BigInt.fromString(day)
-        snapshot.lastUpdated = ZERO_BI
+        snapshot.createdAt = BigInt.fromString(day)
+        snapshot.updatedAt = ZERO_BI
         snapshot.save()
     }
     return snapshot as SiloAssetDailySnapshot

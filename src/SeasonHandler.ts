@@ -27,7 +27,7 @@ export function handleSunrise(event: Sunrise): void {
     // Update season metrics
     //season.harvestableIndex = beanstalkContract.harvestableIndex()
     if (event.params.season == BigInt.fromI32(6075)) { season.price = BigDecimal.fromString('1.07') } // Replant oracle initialization
-    season.timestamp = event.block.timestamp
+    season.createdAt = event.block.timestamp
     season.save()
 
     // Update field metrics
@@ -37,7 +37,7 @@ export function handleSunrise(event: Sunrise): void {
 
     // -- Field level totals
     field.season = currentSeason
-    field.podRate = season.beans == ZERO_BI ? ZERO_BD : toDecimal(field.totalPods, 6).div(toDecimal(season.beans, 6))
+    field.podRate = season.beans == ZERO_BI ? ZERO_BD : toDecimal(field.unharvestablePods, 6).div(toDecimal(season.beans, 6))
     fieldHourly.podRate = field.podRate
     fieldDaily.season = currentSeason
     fieldDaily.podRate = field.podRate
@@ -105,7 +105,7 @@ export function handleReward(event: Reward): void {
     reward.toSilo = event.params.toSilo
     reward.toFertilizer = event.params.toFertilizer
     reward.blockNumber = event.block.number
-    reward.timestamp = event.block.timestamp
+    reward.createdAt = event.block.timestamp
     reward.save()
 
     let season = loadSeason(event.address, event.params.season)
@@ -119,25 +119,25 @@ export function handleReward(event: Reward): void {
     let siloDaily = loadSiloDailySnapshot(event.address, event.block.timestamp)
     let newPlantableStalk = event.params.toSilo.times(BigInt.fromI32(10000)) // Stalk has 10 decimals
 
-    silo.totalBeanMints = silo.totalBeanMints.plus(event.params.toSilo)
-    silo.totalPlantableStalk = silo.totalPlantableStalk.plus(newPlantableStalk)
-    silo.totalDepositedBDV = silo.totalDepositedBDV.plus(event.params.toSilo)
+    silo.beanMints = silo.beanMints.plus(event.params.toSilo)
+    silo.plantableStalk = silo.plantableStalk.plus(newPlantableStalk)
+    silo.depositedBDV = silo.depositedBDV.plus(event.params.toSilo)
     silo.save()
 
-    siloHourly.totalBeanMints = silo.totalBeanMints
-    siloHourly.totalPlantableStalk = silo.totalPlantableStalk
-    siloHourly.totalDepositedBDV = silo.totalDepositedBDV
-    siloHourly.hourlyBeanMints = siloHourly.hourlyBeanMints.plus(event.params.toSilo)
-    siloHourly.hourlyPlantableStalkDelta = siloHourly.hourlyPlantableStalkDelta.plus(newPlantableStalk)
-    siloHourly.hourlyDepositedBDV = siloHourly.hourlyDepositedBDV.plus(event.params.toSilo)
+    siloHourly.beanMints = silo.beanMints
+    siloHourly.plantableStalk = silo.plantableStalk
+    siloHourly.depositedBDV = silo.depositedBDV
+    siloHourly.deltaBeanMints = siloHourly.deltaBeanMints.plus(event.params.toSilo)
+    siloHourly.deltaPlantableStalk = siloHourly.deltaPlantableStalk.plus(newPlantableStalk)
+    siloHourly.deltaDepositedBDV = siloHourly.deltaDepositedBDV.plus(event.params.toSilo)
     siloHourly.save()
 
-    siloDaily.totalBeanMints = silo.totalBeanMints
-    siloDaily.totalPlantableStalk = silo.totalPlantableStalk
-    siloDaily.totalDepositedBDV = silo.totalDepositedBDV
-    siloDaily.dailyBeanMints = siloDaily.dailyBeanMints.plus(event.params.toSilo)
-    siloDaily.dailyPlantableStalkDelta = siloDaily.dailyPlantableStalkDelta.plus(newPlantableStalk)
-    siloDaily.dailyDepositedBDV = siloDaily.dailyDepositedBDV.plus(event.params.toSilo)
+    siloDaily.beanMints = silo.beanMints
+    siloDaily.plantableStalk = silo.plantableStalk
+    siloDaily.depositedBDV = silo.depositedBDV
+    siloDaily.deltaBeanMints = siloDaily.deltaBeanMints.plus(event.params.toSilo)
+    siloDaily.deltaPlantableStalk = siloDaily.deltaPlantableStalk.plus(newPlantableStalk)
+    siloDaily.deltaDepositedBDV = siloDaily.deltaDepositedBDV.plus(event.params.toSilo)
     siloDaily.save()
 
     addDepositToSiloAsset(event.address, BEAN_ERC20, event.params.season.toI32(), event.params.toSilo, event.params.toSilo, event.block.timestamp, event.block.number)
@@ -155,7 +155,7 @@ export function handleMetapoolOracle(event: MetapoolOracle): void {
     oracle.balanceA = event.params.balances[0]
     oracle.balanceB = event.params.balances[1]
     oracle.blockNumber = event.block.number
-    oracle.timestamp = event.block.timestamp
+    oracle.createdAt = event.block.timestamp
     oracle.save()
 
     let curvePrice = CurvePrice.bind(CURVE_PRICE)
@@ -174,19 +174,19 @@ export function handleSoil(event: Soil): void {
     let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)
 
     field.season = event.params.season.toI32()
-    field.totalSoil = event.params.soil
+    field.soil = event.params.soil
     field.save()
 
-    fieldHourly.totalSoil = field.totalSoil
-    fieldHourly.newSoil = fieldHourly.newSoil.plus(event.params.soil)
+    fieldHourly.soil = field.soil
+    fieldHourly.issuedSoil = fieldHourly.issuedSoil.plus(event.params.soil)
     fieldHourly.blockNumber = event.block.number
-    fieldHourly.timestamp = event.block.timestamp
+    fieldHourly.updatedAt = event.block.timestamp
     fieldHourly.save()
 
-    fieldDaily.totalSoil = field.totalSoil
-    fieldDaily.newSoil = fieldDaily.newSoil.plus(event.params.soil)
+    fieldDaily.soil = field.soil
+    fieldDaily.issuedSoil = fieldDaily.issuedSoil.plus(event.params.soil)
     fieldDaily.blockNumber = event.block.number
-    fieldDaily.timestamp = event.block.timestamp
+    fieldDaily.updatedAt = event.block.timestamp
     fieldDaily.save()
 }
 
@@ -200,7 +200,7 @@ export function handleIncentive(event: Incentivization): void {
     incentive.caller = event.params.account.toHexString()
     incentive.amount = event.params.beans
     incentive.blockNumber = event.block.number
-    incentive.timestamp = event.block.timestamp
+    incentive.createdAt = event.block.timestamp
     incentive.save()
 
     // Update market cap for season
