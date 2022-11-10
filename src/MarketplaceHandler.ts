@@ -54,8 +54,8 @@ export function handlePodListingCreated(event: PodListingCreated_v1): void {
     listing.originalIndex = event.params.index
     listing.start = event.params.start
     listing.amount = event.params.amount
-    listing.totalAmount = event.params.amount
-    listing.remainingAmount = listing.totalAmount
+    listing.originalAmount = event.params.amount
+    listing.remainingAmount = listing.originalAmount
     listing.pricePerPod = event.params.pricePerPod
     listing.maxHarvestableIndex = event.params.maxHarvestableIndex
     listing.mode = event.params.toWallet === true ? 0 : 1
@@ -121,7 +121,7 @@ export function handlePodListingFilled(event: PodListingFilled_v1): void {
 
     listing.filledAmount = event.params.amount
     listing.remainingAmount = listing.remainingAmount.minus(event.params.amount)
-    listing.totalFilled = listing.totalFilled.plus(event.params.amount)
+    listing.filled = listing.filled.plus(event.params.amount)
     listing.updatedAt = event.block.timestamp
 
     let originalHistoryID = listing.historyID
@@ -140,8 +140,8 @@ export function handlePodListingFilled(event: PodListingFilled_v1): void {
         remainingListing.originalIndex = listing.originalIndex
         remainingListing.start = ZERO_BI
         remainingListing.amount = listing.remainingAmount
-        remainingListing.totalAmount = listing.totalAmount
-        remainingListing.totalFilled = listing.totalFilled
+        remainingListing.originalAmount = listing.originalAmount
+        remainingListing.filled = listing.filled
         remainingListing.remainingAmount = listing.remainingAmount
         remainingListing.pricePerPod = listing.pricePerPod
         remainingListing.maxHarvestableIndex = listing.maxHarvestableIndex
@@ -308,8 +308,8 @@ export function handlePodListingCreated_v1_1(event: PodListingCreated_v1_1): voi
     listing.originalIndex = event.params.index
     listing.start = event.params.start
     listing.amount = event.params.amount
-    listing.totalAmount = event.params.amount
-    listing.remainingAmount = listing.totalAmount
+    listing.originalAmount = event.params.amount
+    listing.remainingAmount = listing.originalAmount
     listing.pricePerPod = event.params.pricePerPod
     listing.maxHarvestableIndex = event.params.maxHarvestableIndex
     listing.mode = event.params.mode
@@ -361,8 +361,8 @@ export function handlePodListingCreated_v2(event: PodListingCreated_v2): void {
     listing.originalIndex = event.params.index
     listing.start = event.params.start
     listing.amount = event.params.amount
-    listing.totalAmount = event.params.amount
-    listing.remainingAmount = listing.totalAmount
+    listing.originalAmount = event.params.amount
+    listing.remainingAmount = listing.originalAmount
     listing.pricePerPod = event.params.pricePerPod
     listing.minFillAmount = event.params.minFillAmount
     listing.maxHarvestableIndex = event.params.maxHarvestableIndex
@@ -405,7 +405,7 @@ export function handlePodListingFilled_v2(event: PodListingFilled_v2): void {
 
     listing.filledAmount = event.params.amount
     listing.remainingAmount = listing.remainingAmount.minus(event.params.amount)
-    listing.totalFilled = listing.totalFilled.plus(event.params.amount)
+    listing.filled = listing.filled.plus(event.params.amount)
     listing.updatedAt = event.block.timestamp
 
     let originalHistoryID = listing.historyID
@@ -424,8 +424,8 @@ export function handlePodListingFilled_v2(event: PodListingFilled_v2): void {
         remainingListing.originalIndex = listing.originalIndex
         remainingListing.start = ZERO_BI
         remainingListing.amount = listing.remainingAmount
-        remainingListing.totalAmount = listing.totalAmount
-        remainingListing.totalFilled = listing.totalFilled
+        remainingListing.originalAmount = listing.originalAmount
+        remainingListing.filled = listing.filled
         remainingListing.remainingAmount = listing.remainingAmount
         remainingListing.pricePerPod = listing.pricePerPod
         remainingListing.maxHarvestableIndex = listing.maxHarvestableIndex

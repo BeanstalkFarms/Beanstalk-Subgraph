@@ -726,13 +726,13 @@ type PodListing @entity {
   "Amount of pods listed"
   amount: BigInt!
   "Total amount of original listing"
-  totalAmount: BigInt!
+  originalAmount: BigInt!
   "Remaining amount left to be filled"
   remainingAmount: BigInt!
   "Amount filled on this listing"
   filledAmount: BigInt!
   "Total amount filled from original listing"
-  totalFilled: BigInt!
+  filled: BigInt!
   "Amount cancelled"
   cancelledAmount: BigInt!
   "Market v1 price per pod"

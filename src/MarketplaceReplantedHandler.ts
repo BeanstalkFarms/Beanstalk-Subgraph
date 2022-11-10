@@ -29,8 +29,8 @@ export function handlePodListingCreated(event: PodListingCreated): void {
     listing.originalIndex = event.params.index
     listing.start = event.params.start
     listing.amount = event.params.amount
-    listing.totalAmount = event.params.amount
-    listing.remainingAmount = listing.totalAmount
+    listing.originalAmount = event.params.amount
+    listing.remainingAmount = listing.originalAmount
     listing.pricePerPod = event.params.pricePerPod
     listing.maxHarvestableIndex = event.params.maxHarvestableIndex
     listing.mode = event.params.mode
