@@ -53,14 +53,13 @@ export function handleSow(event: Sow): void {
 
 
     let field = loadField(event.address)
-    let fieldHourly = loadFieldHourly(event.address, field.season, event.block.timestamp)
-    let fieldDaily = loadFieldDaily(event.address, event.block.timestamp)
     let farmer = loadFarmer(event.params.account)
     let plot = loadPlot(event.address, event.params.index)
 
     let newIndexes = field.plotIndexes
     newIndexes.push(plot.index)
     field.plotIndexes = newIndexes
+    field.save()
 
     plot.farmer = event.params.account.toHexString()
     plot.source = 'SOW'
@@ -74,33 +73,11 @@ export function handleSow(event: Sow): void {
     plot.temperature = field.temperature
     plot.save()
 
-    let newSowers = 0
-    if (!farmer.sown) {
-        farmer.sown = true
-        newSowers = 1
-        farmer.save()
-    }
+    // Increment protocol amounts
+    incrementSows(event.address, field.season, event.block.timestamp)
 
-    field.save()
-    fieldHourly.save()
-    fieldDaily.save()
-
-    // Update sower counts
-    field.numberOfSows += 1
-    field.numberOfSowers += newSowers
-    field.save()
-
-    fieldHourly.numberOfSowers = field.numberOfSowers
-    fieldHourly.numberOfSows = field.numberOfSows
-    fieldHourly.deltaNumberOfSows += 1
-    fieldHourly.deltaNumberOfSowers += newSowers
-    fieldHourly.save()
-
-    fieldDaily.numberOfSowers = field.numberOfSowers
-    fieldDaily.numberOfSows = field.numberOfSows
-    fieldDaily.deltaNumberOfSows += 1
-    fieldDaily.deltaNumberOfSowers += newSowers
-    fieldDaily.save()
+    // Increment farmer amounts
+    incrementSows(event.params.account, field.season, event.block.timestamp)
 }
 
 export function handleHarvest(event: Harvest): void {
@@ -447,4 +424,55 @@ export function updateHarvestablePlots(harvestableIndex: BigInt, timestamp: BigI
         updateFieldTotals(BEANSTALK, field.season, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, deltaHarvestablePods, ZERO_BI, timestamp, blockNumber)
         updateFieldTotals(Address.fromString(plot.farmer), field.season, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, deltaHarvestablePods, ZERO_BI, timestamp, blockNumber)
     }
+}
+
+function incrementSowers(
+    account: Address,
+    season: i32,
+    timestamp: BigInt
+): void {
+    // Increment total number of sowers by one
+    let field = loadField(account)
+    let fieldHourly = loadFieldHourly(account, season, timestamp)
+    let fieldDaily = loadFieldDaily(account, timestamp)
+
+    field.numberOfSowers += 1
+    field.save()
+
+    fieldHourly.numberOfSowers = field.numberOfSowers
+    fieldHourly.deltaNumberOfSowers += 1
+    fieldHourly.save()
+
+    fieldDaily.numberOfSowers = field.numberOfSowers
+    fieldDaily.deltaNumberOfSowers += 1
+    fieldDaily.save()
+}
+
+function incrementSows(
+    account: Address,
+    season: i32,
+    timestamp: BigInt
+): void {
+    // Increment total sows by one
+    let field = loadField(account)
+    let fieldHourly = loadFieldHourly(account, season, timestamp)
+    let fieldDaily = loadFieldDaily(account, timestamp)
+
+    // Add to protocol numberOfSowers if needed
+    if (
+        account != BEANSTALK
+        && field.numberOfSows == 0
+    ) incrementSowers(BEANSTALK, season, timestamp)
+
+    // Update sower counts
+    field.numberOfSows += 1
+    field.save()
+
+    fieldHourly.numberOfSows = field.numberOfSows
+    fieldHourly.deltaNumberOfSows += 1
+    fieldHourly.save()
+
+    fieldDaily.numberOfSows = field.numberOfSows
+    fieldDaily.deltaNumberOfSows += 1
+    fieldDaily.save()
 }
