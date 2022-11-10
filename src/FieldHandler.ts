@@ -422,7 +422,6 @@ function updateFieldTotals(
     fieldDaily.deltaUnharvestablePods = fieldDaily.deltaUnharvestablePods.plus(sownPods).minus(harvestablePods).plus(transferredPods)
     fieldDaily.deltaHarvestablePods = fieldDaily.deltaHarvestablePods.plus(harvestablePods)
     fieldDaily.deltaHarvestedPods = fieldDaily.deltaHarvestedPods.plus(harvestedPods)
-    fieldDaily.blockNumber = fieldDaily.blockNumber == ZERO_BI ? blockNumber : fieldDaily.blockNumber
     fieldDaily.updatedAt = timestamp
     fieldDaily.save()
 }

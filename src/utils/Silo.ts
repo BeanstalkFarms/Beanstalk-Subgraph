@@ -46,7 +46,6 @@ export function loadSiloHourlySnapshot(account: Address, season: i32, timestamp:
         snapshot.deltaRoots = ZERO_BI
         snapshot.deltaBeanMints = ZERO_BI
         snapshot.deltaActiveFarmers = 0
-        snapshot.blockNumber = ZERO_BI
         snapshot.createdAt = BigInt.fromString(hour)
         snapshot.updatedAt = timestamp
         snapshot.save()
@@ -77,7 +76,6 @@ export function loadSiloDailySnapshot(account: Address, timestamp: BigInt): Silo
         snapshot.deltaRoots = ZERO_BI
         snapshot.deltaBeanMints = ZERO_BI
         snapshot.deltaActiveFarmers = 0
-        snapshot.blockNumber = ZERO_BI
         snapshot.createdAt = BigInt.fromString(day)
         snapshot.updatedAt = timestamp
         snapshot.save()

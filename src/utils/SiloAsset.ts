@@ -38,7 +38,6 @@ export function loadSiloAssetHourlySnapshot(account: Address, token: Address, se
         snapshot.deltaDepositedAmount = ZERO_BI
         snapshot.deltaWithdrawnAmount = ZERO_BI
         snapshot.deltaFarmAmount = ZERO_BI
-        snapshot.blockNumber = ZERO_BI
         snapshot.createdAt = BigInt.fromString(hour)
         snapshot.updatedAt = ZERO_BI
         snapshot.save()
@@ -63,7 +62,6 @@ export function loadSiloAssetDailySnapshot(account: Address, token: Address, tim
         snapshot.deltaDepositedAmount = ZERO_BI
         snapshot.deltaWithdrawnAmount = ZERO_BI
         snapshot.deltaFarmAmount = ZERO_BI
-        snapshot.blockNumber = ZERO_BI
         snapshot.createdAt = BigInt.fromString(day)
         snapshot.updatedAt = ZERO_BI
         snapshot.save()

@@ -93,7 +93,6 @@ export function loadFieldDaily(account: Address, timestamp: BigInt): FieldDailyS
         daily.issuedSoil = ZERO_BI
         daily.soil = ZERO_BI
         daily.podRate = field.podRate
-        daily.blockNumber = ZERO_BI
         daily.createdAt = timestamp
         daily.updatedAt = timestamp
         daily.save()

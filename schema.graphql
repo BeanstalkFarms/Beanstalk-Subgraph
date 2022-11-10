@@ -161,8 +161,6 @@ type SiloHourlySnapshot @entity {
   deltaBeanMints: BigInt!
   "Point in time delta number of active farmers deposited in the silo"
   deltaActiveFarmers: Int!
-  "Block number of last update"
-  blockNumber: BigInt!
   "Timestamp of initial snapshot creation"
   createdAt: BigInt!
   "Timestamp of last entity update"
@@ -204,8 +202,6 @@ type SiloDailySnapshot @entity {
   deltaBeanMints: BigInt!
   "Point in time delta number of active farmers deposited in the silo"
   deltaActiveFarmers: Int!
-  "Block number of last update"
-  blockNumber: BigInt!
   "Timestamp of initial snapshot creation"
   createdAt: BigInt!
   "Timestamp of last entity update"
@@ -256,8 +252,6 @@ type SiloAssetHourlySnapshot @entity {
   deltaWithdrawnAmount: BigInt!
   "Point in time delta internal (farm) balance of the asset"
   deltaFarmAmount: BigInt!
-  "Block number of last update"
-  blockNumber: BigInt!
   "Timestamp of initial snapshot creation"
   createdAt: BigInt!
   "Timestamp of last entity update"
@@ -287,8 +281,6 @@ type SiloAssetDailySnapshot @entity {
   deltaWithdrawnAmount: BigInt!
   "Point in time delta internal (farm) balance of the asset"
   deltaFarmAmount: BigInt!
-  "Block number of last update"
-  blockNumber: BigInt!
   "Timestamp of initial snapshot creation"
   createdAt: BigInt!
   "Timestamp of last entity update"
@@ -404,7 +396,7 @@ type FieldHourlySnapshot @entity {
   blocksToSoldOutSoil: BigInt!
   "Bool flag if soil sold out for the season"
   soilSoldOut: Boolean!
-  "Block number of last update"
+  "Creation Block Number"
   blockNumber: BigInt!
   "Timestamp of initial snapshot creation"
   createdAt: BigInt!
@@ -455,8 +447,6 @@ type FieldDailySnapshot @entity {
   deltaHarvestedPods: BigInt!
   "Point in time amount of soil issued"
   issuedSoil: BigInt!
-  "Block number of last update"
-  blockNumber: BigInt!
   "Timestamp of initial snapshot creation"
   createdAt: BigInt!
   "Timestamp of last entity update"
@@ -651,8 +641,6 @@ type PodMarketplaceHourlySnapshot @entity {
   deltaPodVolume: BigInt!
   "Point in time current delta bean volume between listings and orders"
   deltaBeanVolume: BigInt!
-  "Block number of last update"
-  blockNumber: BigInt!
   "Timestamp of initial snapshot creation"
   createdAt: BigInt!
   "Timestamp of last entity update"
@@ -706,8 +694,6 @@ type PodMarketplaceDailySnapshot @entity {
   deltaPodVolume: BigInt!
   "Point in time current delta bean volume between listings and orders"
   deltaBeanVolume: BigInt!
-  "Block number of last update"
-  blockNumber: BigInt!
   "Timestamp of initial snapshot creation"
   createdAt: BigInt!
   "Timestamp of last entity update"

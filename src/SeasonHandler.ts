@@ -179,13 +179,11 @@ export function handleSoil(event: Soil): void {
 
     fieldHourly.soil = field.soil
     fieldHourly.issuedSoil = fieldHourly.issuedSoil.plus(event.params.soil)
-    fieldHourly.blockNumber = event.block.number
     fieldHourly.updatedAt = event.block.timestamp
     fieldHourly.save()
 
     fieldDaily.soil = field.soil
     fieldDaily.issuedSoil = fieldDaily.issuedSoil.plus(event.params.soil)
-    fieldDaily.blockNumber = event.block.number
     fieldDaily.updatedAt = event.block.timestamp
     fieldDaily.save()
 }

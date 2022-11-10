@@ -232,7 +232,6 @@ export function handlePlant(event: Plant): void {
     siloHourly.depositedBDV = silo.depositedBDV
     siloHourly.deltaPlantableStalk = siloHourly.deltaPlantableStalk.minus(newPlantableStalk)
     siloHourly.deltaDepositedBDV = siloHourly.deltaDepositedBDV.minus(event.params.beans)
-    siloHourly.blockNumber = event.block.number
     siloHourly.updatedAt = event.block.timestamp
     siloHourly.save()
 
@@ -240,7 +239,6 @@ export function handlePlant(event: Plant): void {
     siloDaily.depositedBDV = silo.depositedBDV
     siloDaily.deltaPlantableStalk = siloDaily.deltaPlantableStalk.minus(newPlantableStalk)
     siloDaily.deltaDepositedBDV = siloDaily.deltaDepositedBDV.minus(event.params.beans)
-    siloDaily.blockNumber = event.block.number
     siloDaily.updatedAt = event.block.timestamp
     siloDaily.save()
 
@@ -276,14 +274,12 @@ function addDepositToSilo(account: Address, season: i32, bdv: BigInt, timestamp:
 
     siloHourly.deltaDepositedBDV = siloHourly.deltaDepositedBDV.plus(bdv)
     siloHourly.depositedBDV = silo.depositedBDV
-    siloHourly.blockNumber = blockNumber
     siloHourly.updatedAt = timestamp
     siloHourly.save()
 
     siloDaily.season = season
     siloDaily.deltaDepositedBDV = siloDaily.deltaDepositedBDV.plus(bdv)
     siloDaily.depositedBDV = silo.depositedBDV
-    siloDaily.blockNumber = blockNumber
     siloDaily.updatedAt = timestamp
     siloDaily.save()
 }
@@ -298,14 +294,12 @@ function removeDepositFromSilo(account: Address, season: i32, bdv: BigInt, times
 
     siloHourly.deltaDepositedBDV = siloHourly.deltaDepositedBDV.minus(bdv)
     siloHourly.depositedBDV = silo.depositedBDV
-    siloHourly.blockNumber = blockNumber
     siloHourly.updatedAt = timestamp
     siloHourly.save()
 
     siloDaily.season = season
     siloDaily.deltaDepositedBDV = siloDaily.deltaDepositedBDV.minus(bdv)
     siloDaily.depositedBDV = silo.depositedBDV
-    siloDaily.blockNumber = blockNumber
     siloDaily.updatedAt = timestamp
     siloDaily.save()
 }
@@ -323,7 +317,6 @@ export function addDepositToSiloAsset(account: Address, token: Address, season: 
     assetHourly.depositedBDV = asset.depositedBDV
     assetHourly.deltaDepositedAmount = assetHourly.deltaDepositedAmount.plus(amount)
     assetHourly.depositedAmount = asset.depositedAmount
-    assetHourly.blockNumber = blockNumber
     assetHourly.updatedAt = timestamp
     assetHourly.save()
 
@@ -332,7 +325,6 @@ export function addDepositToSiloAsset(account: Address, token: Address, season: 
     assetDaily.depositedBDV = asset.depositedBDV
     assetDaily.deltaDepositedAmount = assetDaily.deltaDepositedAmount.plus(amount)
     assetDaily.depositedAmount = asset.depositedAmount
-    assetDaily.blockNumber = blockNumber
     assetDaily.updatedAt = timestamp
     assetDaily.save()
 }
@@ -350,7 +342,6 @@ function removeDepositFromSiloAsset(account: Address, token: Address, season: i3
     assetHourly.depositedBDV = asset.depositedBDV
     assetHourly.deltaDepositedAmount = assetHourly.deltaDepositedAmount.minus(amount)
     assetHourly.depositedAmount = asset.depositedAmount
-    assetHourly.blockNumber = blockNumber
     assetHourly.updatedAt = timestamp
     assetHourly.save()
 
@@ -359,7 +350,6 @@ function removeDepositFromSiloAsset(account: Address, token: Address, season: i3
     assetDaily.depositedBDV = asset.depositedBDV
     assetDaily.deltaDepositedAmount = assetDaily.deltaDepositedAmount.minus(amount)
     assetDaily.depositedAmount = asset.depositedAmount
-    assetDaily.blockNumber = blockNumber
     assetDaily.updatedAt = timestamp
     assetDaily.save()
 }
@@ -370,13 +360,11 @@ function addWithdrawToSiloAsset(account: Address, token: Address, season: i32, a
 
 
     assetHourly.deltaWithdrawnAmount = assetHourly.deltaWithdrawnAmount.plus(amount)
-    assetHourly.blockNumber = blockNumber
     assetHourly.updatedAt = timestamp
     assetHourly.save()
 
     assetDaily.season = season
     assetDaily.deltaWithdrawnAmount = assetDaily.deltaWithdrawnAmount.plus(amount)
-    assetDaily.blockNumber = blockNumber
     assetDaily.updatedAt = timestamp
     assetDaily.save()
 }
@@ -394,7 +382,6 @@ function updateStalkBalances(account: Address, season: i32, stalk: BigInt, roots
     siloHourly.roots = silo.roots
     siloHourly.deltaStalk = siloHourly.deltaStalk.plus(stalk)
     siloHourly.deltaRoots = siloHourly.deltaRoots.plus(roots)
-    siloHourly.blockNumber = blockNumber
     siloHourly.updatedAt = timestamp
     siloHourly.save()
 
@@ -403,7 +390,6 @@ function updateStalkBalances(account: Address, season: i32, stalk: BigInt, roots
     siloDaily.roots = silo.roots
     siloDaily.deltaStalk = siloDaily.deltaStalk.plus(stalk)
     siloDaily.deltaRoots = siloDaily.deltaRoots.plus(roots)
-    siloDaily.blockNumber = blockNumber
     siloDaily.updatedAt = timestamp
     siloDaily.save()
 
@@ -439,14 +425,12 @@ function updateSeedsBalances(account: Address, season: i32, seeds: BigInt, times
 
     siloHourly.seeds = silo.seeds
     siloHourly.deltaSeeds = siloHourly.deltaSeeds.plus(seeds)
-    siloHourly.blockNumber = blockNumber
     siloHourly.updatedAt = timestamp
     siloHourly.save()
 
     siloDaily.season = season
     siloDaily.seeds = silo.seeds
     siloDaily.deltaSeeds = siloDaily.deltaSeeds.plus(seeds)
-    siloDaily.blockNumber = blockNumber
     siloDaily.updatedAt = timestamp
     siloDaily.save()
 }

@@ -64,7 +64,7 @@ export function handlePodListingCreated(event: PodListingCreated_v1): void {
     plot.listing = listing.id
     plot.save()
 
-    updateMarketListingBalances(event.address, plot.index, event.params.amount, ZERO_BI, ZERO_BI, ZERO_BI, event.block.number, event.block.timestamp)
+    updateMarketListingBalances(event.address, plot.index, event.params.amount, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp)
 
     // Save the raw event data
     let id = 'podListingCreated-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
@@ -89,7 +89,7 @@ export function handlePodListingCancelled(event: PodListingCancelled): void {
 
     let listing = loadPodListing(event.params.account, event.params.index)
 
-    updateMarketListingBalances(event.address, event.params.index, ZERO_BI, ZERO_BI, ZERO_BI, listing.remainingAmount, event.block.number, event.block.timestamp)
+    updateMarketListingBalances(event.address, event.params.index, ZERO_BI, ZERO_BI, ZERO_BI, listing.remainingAmount, event.block.timestamp)
 
     listing.status = 'CANCELLED'
     listing.cancelledAmount = listing.remainingAmount
@@ -117,7 +117,7 @@ export function handlePodListingFilled(event: PodListingFilled_v1): void {
 
     let beanAmount = BigInt.fromI32(listing.pricePerPod).times(event.params.amount).div(BigInt.fromI32(1000000))
 
-    updateMarketListingBalances(event.address, event.params.index, ZERO_BI, ZERO_BI, event.params.amount, beanAmount, event.block.number, event.block.timestamp)
+    updateMarketListingBalances(event.address, event.params.index, ZERO_BI, ZERO_BI, event.params.amount, beanAmount, event.block.timestamp)
 
     listing.filledAmount = event.params.amount
     listing.remainingAmount = listing.remainingAmount.minus(event.params.amount)
@@ -195,7 +195,7 @@ export function handlePodOrderCreated(event: PodOrderCreated_v1): void {
     order.pricePerPod = event.params.pricePerPod
     order.save()
 
-    updateMarketOrderBalances(event.address, order.id, event.params.amount, ZERO_BI, ZERO_BI, ZERO_BI, event.block.number, event.block.timestamp)
+    updateMarketOrderBalances(event.address, order.id, event.params.amount, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp)
 
     // Save the raw event data
     let id = 'podOrderCreated-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
@@ -234,7 +234,7 @@ export function handlePodOrderFilled(event: PodOrderFilled_v1): void {
     fill.start = event.params.start
     fill.save()
 
-    updateMarketOrderBalances(event.address, order.id, ZERO_BI, ZERO_BI, event.params.amount, beanAmount, event.block.number, event.block.timestamp)
+    updateMarketOrderBalances(event.address, order.id, ZERO_BI, ZERO_BI, event.params.amount, beanAmount, event.block.timestamp)
 
     if (order.filledAmount = order.amount) {
         let market = loadPodMarketplace(event.address)
@@ -269,7 +269,7 @@ export function handlePodOrderCancelled(event: PodOrderCancelled): void {
     order.updatedAt = event.block.timestamp
     order.save()
 
-    updateMarketOrderBalances(event.address, order.id, ZERO_BI, order.amount.minus(order.filledAmount), ZERO_BI, ZERO_BI, event.block.number, event.block.timestamp)
+    updateMarketOrderBalances(event.address, order.id, ZERO_BI, order.amount.minus(order.filledAmount), ZERO_BI, ZERO_BI, event.block.timestamp)
 
     // Save the raw event data
     let id = 'podOrderCancelled-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
@@ -318,7 +318,7 @@ export function handlePodListingCreated_v1_1(event: PodListingCreated_v1_1): voi
     plot.listing = listing.id
     plot.save()
 
-    updateMarketListingBalances(event.address, plot.index, event.params.amount, ZERO_BI, ZERO_BI, ZERO_BI, event.block.number, event.block.timestamp)
+    updateMarketListingBalances(event.address, plot.index, event.params.amount, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp)
 
     // Save the raw event data
     let id = 'podListingCreated-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
@@ -374,7 +374,7 @@ export function handlePodListingCreated_v2(event: PodListingCreated_v2): void {
     plot.listing = listing.id
     plot.save()
 
-    updateMarketListingBalances(event.address, plot.index, event.params.amount, ZERO_BI, ZERO_BI, ZERO_BI, event.block.number, event.block.timestamp)
+    updateMarketListingBalances(event.address, plot.index, event.params.amount, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp)
 
     // Save the raw event data
     let id = 'podListingCreated-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
@@ -401,7 +401,7 @@ export function handlePodListingFilled_v2(event: PodListingFilled_v2): void {
 
     let listing = loadPodListing(event.params.from, event.params.index)
 
-    updateMarketListingBalances(event.address, event.params.index, ZERO_BI, ZERO_BI, event.params.amount, event.params.costInBeans, event.block.number, event.block.timestamp)
+    updateMarketListingBalances(event.address, event.params.index, ZERO_BI, ZERO_BI, event.params.amount, event.params.costInBeans, event.block.timestamp)
 
     listing.filledAmount = event.params.amount
     listing.remainingAmount = listing.remainingAmount.minus(event.params.amount)
@@ -484,7 +484,7 @@ export function handlePodOrderCreated_v2(event: PodOrderCreated_v2): void {
     order.pricingType = event.params.priceType
     order.save()
 
-    updateMarketOrderBalances(event.address, order.id, event.params.amount, ZERO_BI, ZERO_BI, ZERO_BI, event.block.number, event.block.timestamp)
+    updateMarketOrderBalances(event.address, order.id, event.params.amount, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp)
 
     // Save the raw event data
     let id = 'podOrderCreated-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
@@ -524,7 +524,7 @@ export function handlePodOrderFilled_v2(event: PodOrderFilled_v2): void {
     fill.costInBeans = event.params.costInBeans
     fill.save()
 
-    updateMarketOrderBalances(event.address, order.id, ZERO_BI, ZERO_BI, event.params.amount, event.params.costInBeans, event.block.number, event.block.timestamp)
+    updateMarketOrderBalances(event.address, order.id, ZERO_BI, ZERO_BI, event.params.amount, event.params.costInBeans, event.block.timestamp)
 
     if (order.filledAmount = order.amount) {
         let market = loadPodMarketplace(event.address)
@@ -562,7 +562,6 @@ function updateMarketListingBalances(
     cancelledPodAmount: BigInt,
     filledPodAmount: BigInt,
     filledBeanAmount: BigInt,
-    blockNumber: BigInt,
     timestamp: BigInt
 ): void {
     let market = loadPodMarketplace(marketAddress)
@@ -599,7 +598,6 @@ function updateMarketListingBalances(
     marketHourly.podVolume = market.podVolume
     marketHourly.deltaBeanVolume = marketHourly.deltaBeanVolume.plus(filledBeanAmount)
     marketHourly.beanVolume = market.beanVolume
-    marketHourly.blockNumber = blockNumber
     marketHourly.updatedAt = timestamp
     marketHourly.save()
 
@@ -616,7 +614,6 @@ function updateMarketListingBalances(
     marketDaily.podVolume = market.podVolume
     marketDaily.deltaBeanVolume = marketDaily.deltaBeanVolume.plus(filledBeanAmount)
     marketDaily.beanVolume = market.beanVolume
-    marketDaily.blockNumber = blockNumber
     marketDaily.updatedAt = timestamp
     marketDaily.save()
 }
@@ -628,7 +625,6 @@ function updateMarketOrderBalances(
     cancelledPodAmount: BigInt,
     filledPodAmount: BigInt,
     filledBeanAmount: BigInt,
-    blockNumber: BigInt,
     timestamp: BigInt
 ): void {
 
@@ -660,7 +656,6 @@ function updateMarketOrderBalances(
     marketHourly.beanVolume = market.beanVolume
     marketHourly.deltaCancelledOrderedPods = marketHourly.deltaCancelledOrderedPods.plus(cancelledPodAmount)
     marketHourly.cancelledOrderedPods = market.cancelledOrderedPods
-    marketHourly.blockNumber = blockNumber
     marketHourly.updatedAt = timestamp
     marketHourly.save()
 
@@ -674,7 +669,6 @@ function updateMarketOrderBalances(
     marketDaily.beanVolume = market.beanVolume
     marketDaily.deltaCancelledOrderedPods = marketDaily.deltaCancelledOrderedPods.plus(cancelledPodAmount)
     marketDaily.cancelledOrderedPods = market.cancelledOrderedPods
-    marketDaily.blockNumber = blockNumber
     marketDaily.updatedAt = timestamp
     marketDaily.save()
 }
