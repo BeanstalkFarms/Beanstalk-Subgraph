@@ -622,7 +622,7 @@ type PodMarketplaceHourlySnapshot @entity {
   "Point in time current delta pods listed for sale"
   deltaListedPods: BigInt!
   "Point in time current delta pod listings filled"
-  deltafilledListedPods: BigInt!
+  deltaFilledListedPods: BigInt!
   "Point in time current delta pod listings that expired"
   deltaExpiredListedPods: BigInt!
   "Point in time current delta pod listings that were cancelled"
@@ -675,7 +675,7 @@ type PodMarketplaceDailySnapshot @entity {
   "Point in time current delta pods listed for sale"
   deltaListedPods: BigInt!
   "Point in time current delta pod listings filled"
-  deltafilledListedPods: BigInt!
+  deltaFilledListedPods: BigInt!
   "Point in time current delta pod listings that expired"
   deltaExpiredListedPods: BigInt!
   "Point in time current delta pod listings that were cancelled"

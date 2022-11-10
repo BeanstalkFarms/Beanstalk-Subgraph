@@ -592,7 +592,7 @@ function updateMarketListingBalances(
     marketHourly.cancelledListedPods = market.cancelledListedPods
     marketHourly.deltaAvailableListedPods = marketHourly.deltaAvailableListedPods.plus(newPodAmount).minus(cancelledPodAmount).minus(filledPodAmount)
     marketHourly.availableListedPods = market.availableListedPods
-    marketHourly.deltafilledListedPods = marketHourly.deltafilledListedPods.plus(filledPodAmount)
+    marketHourly.deltaFilledListedPods = marketHourly.deltaFilledListedPods.plus(filledPodAmount)
     marketHourly.filledListedPods = market.filledListedPods
     marketHourly.deltaPodVolume = marketHourly.deltaPodVolume.plus(filledPodAmount)
     marketHourly.podVolume = market.podVolume
@@ -608,7 +608,7 @@ function updateMarketListingBalances(
     marketDaily.cancelledListedPods = market.cancelledListedPods
     marketDaily.deltaAvailableListedPods = marketDaily.deltaAvailableListedPods.plus(newPodAmount).minus(cancelledPodAmount).minus(filledPodAmount)
     marketDaily.availableListedPods = market.availableListedPods
-    marketDaily.deltafilledListedPods = marketDaily.deltafilledListedPods.plus(filledPodAmount)
+    marketDaily.deltaFilledListedPods = marketDaily.deltaFilledListedPods.plus(filledPodAmount)
     marketDaily.filledListedPods = market.filledListedPods
     marketDaily.deltaPodVolume = marketDaily.deltaPodVolume.plus(filledPodAmount)
     marketDaily.podVolume = market.podVolume

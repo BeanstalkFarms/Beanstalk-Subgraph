@@ -39,7 +39,7 @@ export function loadPodMarketplaceHourlySnapshot(diamondAddress: Address, season
         snapshot.podMarketplace = diamondAddress.toHexString()
         snapshot.deltaListedPods = ZERO_BI
         snapshot.listedPods = marketplace.listedPods
-        snapshot.deltafilledListedPods = ZERO_BI
+        snapshot.deltaFilledListedPods = ZERO_BI
         snapshot.filledListedPods = marketplace.filledListedPods
         snapshot.deltaExpiredListedPods = ZERO_BI
         snapshot.expiredListedPods = marketplace.expiredListedPods
@@ -75,7 +75,7 @@ export function loadPodMarketplaceDailySnapshot(diamondAddress: Address, timesta
         snapshot.podMarketplace = diamondAddress.toHexString()
         snapshot.deltaListedPods = ZERO_BI
         snapshot.listedPods = marketplace.listedPods
-        snapshot.deltafilledListedPods = ZERO_BI
+        snapshot.deltaFilledListedPods = ZERO_BI
         snapshot.filledListedPods = marketplace.filledListedPods
         snapshot.deltaExpiredListedPods = ZERO_BI
         snapshot.expiredListedPods = marketplace.expiredListedPods
