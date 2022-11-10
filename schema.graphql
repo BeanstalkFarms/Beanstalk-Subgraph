@@ -465,8 +465,6 @@ type Farmer @entity {
   plots: [Plot!]! @derivedFrom(field: "farmer")
   listings: [PodListing!]! @derivedFrom(field: "farmer")
   orders: [PodOrder!]! @derivedFrom(field: "farmer")
-  "Flag for if this farmer has sown into the field"
-  sown: Boolean!
   fertilizers: [FertilizerBalance!]! @derivedFrom(field: "farmer")
 }
 
