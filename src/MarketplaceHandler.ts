@@ -159,6 +159,7 @@ export function handlePodListingFilled(event: PodListingFilled_v1): void {
     fill.amount = event.params.amount
     fill.index = event.params.index
     fill.start = event.params.start
+    fill.costInBeans = beanAmount
     fill.save()
 
     // Save the raw event data
@@ -232,6 +233,7 @@ export function handlePodOrderFilled(event: PodOrderFilled_v1): void {
     fill.amount = event.params.amount
     fill.index = event.params.index
     fill.start = event.params.start
+    fill.costInBeans = beanAmount
     fill.save()
 
     updateMarketOrderBalances(event.address, order.id, ZERO_BI, ZERO_BI, event.params.amount, beanAmount, event.block.timestamp)
