@@ -11,6 +11,7 @@ export function loadSiloDeposit(account: Address, token: Address, season: BigInt
         deposit.token = token.toHexString()
         deposit.season = season.toI32()
         deposit.amount = ZERO_BI
+        deposit.depositedAmount = ZERO_BI
         deposit.withdrawnAmount = ZERO_BI
         deposit.bdv = ZERO_BI
         deposit.withdrawnBDV = ZERO_BI

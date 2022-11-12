@@ -34,6 +34,7 @@ export function handleAddDeposit(event: AddDeposit): void {
 
     let deposit = loadSiloDeposit(event.params.account, event.params.token, event.params.season)
     deposit.amount = deposit.amount.plus(event.params.amount)
+    deposit.depositedAmount = deposit.depositedAmount.plus(event.params.amount)
     deposit.bdv = deposit.bdv.plus(event.params.bdv)
     let depositHashes = deposit.hashes
     depositHashes.push(event.transaction.hash.toHexString())
@@ -76,7 +77,7 @@ export function handleRemoveDeposit(event: RemoveDeposit): void {
 
     let beanstalk = loadBeanstalk(event.address) // get current season
     let deposit = loadSiloDeposit(event.params.account, event.params.token, event.params.season)
-    let remainingTokenAmount = deposit.amount.minus(deposit.withdrawnAmount)
+    let remainingTokenAmount = deposit.depositedAmount.minus(deposit.withdrawnAmount)
     let remainingBDV = deposit.bdv.minus(deposit.withdrawnBDV)
 
     let withdrawnBDV = remainingTokenAmount == ZERO_BI ? ZERO_BI : event.params.amount.times(remainingBDV).div(remainingTokenAmount)
@@ -84,6 +85,7 @@ export function handleRemoveDeposit(event: RemoveDeposit): void {
     // Update deposit
     deposit.withdrawnBDV = deposit.withdrawnBDV.plus(withdrawnBDV)
     deposit.withdrawnAmount = deposit.withdrawnAmount.plus(event.params.amount)
+    deposit.amount = deposit.amount.minus(event.params.amount)
     deposit.save()
 
     // Update protocol totals
@@ -115,7 +117,7 @@ export function handleRemoveDeposits(event: RemoveDeposits): void {
     for (let i = 0; i < event.params.seasons.length; i++) {
 
         let deposit = loadSiloDeposit(event.params.account, event.params.token, event.params.seasons[i])
-        let remainingTokenAmount = deposit.amount.minus(deposit.withdrawnAmount)
+        let remainingTokenAmount = deposit.depositedAmount.minus(deposit.withdrawnAmount)
         let remainingBDV = deposit.bdv.minus(deposit.withdrawnBDV)
 
         let withdrawnBDV = remainingTokenAmount == ZERO_BI ? ZERO_BI : event.params.amounts[i].times(remainingBDV).div(remainingTokenAmount)
@@ -123,6 +125,7 @@ export function handleRemoveDeposits(event: RemoveDeposits): void {
         // Update deposit
         deposit.withdrawnBDV = deposit.withdrawnBDV.plus(withdrawnBDV)
         deposit.withdrawnAmount = deposit.withdrawnAmount.plus(event.params.amounts[i])
+        deposit.amount = deposit.amount.minus(event.params.amounts[i])
         deposit.save()
 
         // Update protocol totals
