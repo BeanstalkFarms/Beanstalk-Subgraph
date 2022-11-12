@@ -567,6 +567,7 @@ type PodListing @entity {
   pricePerPod: Int!
   maxHarvestableIndex: BigInt!
   mode: Int!
+  minFillAmount: BigInt!
 }
 
 type PodOrder @entity {
@@ -582,6 +583,7 @@ type PodOrder @entity {
   filledAmount: BigInt!
   maxPlaceInLine: BigInt!
   pricePerPod: Int!
+  minFillAmount: BigInt!
 }
 
 type PodFill @entity {
