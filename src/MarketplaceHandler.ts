@@ -487,7 +487,7 @@ export function handlePodOrderCreated_v2(event: PodOrderCreated_v2): void {
     order.pricingType = event.params.priceType
     order.save()
 
-    updateMarketOrderBalances(event.address, order.id, event.params.amount, ZERO_BI, event.params.amount, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp)
+    updateMarketOrderBalances(event.address, order.id, ZERO_BI, ZERO_BI, event.params.amount, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp)
 
     // Save the raw event data
     let id = 'podOrderCreated-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
