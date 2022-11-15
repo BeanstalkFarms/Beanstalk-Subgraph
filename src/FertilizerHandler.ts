@@ -27,7 +27,7 @@ function handleTransfer(from: Address, to: Address, id: BigInt, amount: BigInt, 
         fromFertilizerBalance.save()
     } else {
         fertilizerToken.supply = fertilizerToken.supply.plus(amount)
-        fertilizer.totalSupply = fertilizer.totalSupply.plus(amount)
+        fertilizer.supply = fertilizer.supply.plus(amount)
         fertilizer.save()
         fertilizerToken.save()
     }

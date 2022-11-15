@@ -8,7 +8,7 @@ export function loadFertilizer(fertilizerAddress: Address): Fertilizer {
     let fertilizer = Fertilizer.load(fertilizerAddress.toHexString())
     if (fertilizer == null) {
         fertilizer = new Fertilizer(fertilizerAddress.toHexString())
-        fertilizer.totalSupply = ZERO_BI
+        fertilizer.supply = ZERO_BI
         fertilizer.save()
     }
     return fertilizer

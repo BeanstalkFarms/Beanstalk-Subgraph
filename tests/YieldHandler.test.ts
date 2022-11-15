@@ -7,11 +7,11 @@ describe("APY Calculations", () => {
     const apy = YieldHandler.calculateAPY(
       BigDecimal.fromString('0'),           // n
       BigDecimal.fromString('2'),           // seedsPerBDV
-      BigInt.fromString('10000000000000'),  // totalStalk
-      BigInt.fromString('2000000000'),      // totalSeeds
+      BigInt.fromString('10000000000000'),  // stalk
+      BigInt.fromString('2000000000'),      // seeds
     )
 
-    log.info(`bean apy: {}`,  [apy[0].toString()])
+    log.info(`bean apy: {}`, [apy[0].toString()])
     log.info(`stalk apy: {}`, [apy[1].toString()])
     assert.assertTrue((apy[0] as BigDecimal).equals(BigDecimal.fromString('0')))
     assert.assertTrue((apy[1] as BigDecimal).gt(BigDecimal.fromString('0')))
@@ -33,8 +33,8 @@ describe("APY Calculations", () => {
       BigInt.fromString('2000000000'),
     )
 
-    log.info(`bean apy (2 seeds): {}`,  [(apy2[0] as BigDecimal).toString()])
-    log.info(`bean apy (4 seeds): {}`,  [(apy4[0] as BigDecimal).toString()])
+    log.info(`bean apy (2 seeds): {}`, [(apy2[0] as BigDecimal).toString()])
+    log.info(`bean apy (4 seeds): {}`, [(apy4[0] as BigDecimal).toString()])
     log.info(`stalk apy (2 seeds): {}`, [(apy2[1] as BigDecimal).toString()])
     log.info(`stalk apy (4 seeds): {}`, [(apy4[1] as BigDecimal).toString()])
     assert.assertTrue((apy4[0] as BigDecimal).gt(apy2[0] as BigDecimal))

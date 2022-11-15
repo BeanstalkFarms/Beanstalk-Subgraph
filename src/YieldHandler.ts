@@ -25,27 +25,27 @@ export function updateBeanEMA(t: i32, timestamp: BigInt): void {
         // Recalculate EMA from initial season since beta has changed
         for (let i = 6075; i <= t; i++) {
             let season = loadSiloHourlySnapshot(BEANSTALK, i, timestamp)
-            currentEMA = ((toDecimal(season.hourlyBeanMints).minus(priorEMA)).times(siloYield.beta)).plus(priorEMA)
+            currentEMA = ((toDecimal(season.deltaBeanMints).minus(priorEMA)).times(siloYield.beta)).plus(priorEMA)
             priorEMA = currentEMA
         }
     } else {
         // Beta has become stable
         let season = loadSiloHourlySnapshot(BEANSTALK, t, timestamp)
         let priorYield = loadSiloYield(t - 1)
-        currentEMA = ((toDecimal(season.hourlyBeanMints).minus(priorYield.beansPerSeasonEMA)).times(siloYield.beta)).plus(priorYield.beansPerSeasonEMA)
+        currentEMA = ((toDecimal(season.deltaBeanMints).minus(priorYield.beansPerSeasonEMA)).times(siloYield.beta)).plus(priorYield.beansPerSeasonEMA)
     }
 
     siloYield.beansPerSeasonEMA = currentEMA
-    siloYield.timestamp = timestamp
+    siloYield.createdAt = timestamp
     siloYield.save()
 
     // This iterates through 8760 times to calculate the silo APY
     let silo = loadSilo(BEANSTALK)
 
-    let twoSeedAPY = calculateAPY(currentEMA, BigDecimal.fromString('2'), silo.totalStalk, silo.totalSeeds)
+    let twoSeedAPY = calculateAPY(currentEMA, BigDecimal.fromString('2'), silo.stalk, silo.seeds)
     siloYield.twoSeedBeanAPY = twoSeedAPY[0]
     siloYield.twoSeedStalkAPY = twoSeedAPY[1]
-    let fourSeedAPY = calculateAPY(currentEMA, BigDecimal.fromString('4'), silo.totalStalk, silo.totalSeeds)
+    let fourSeedAPY = calculateAPY(currentEMA, BigDecimal.fromString('4'), silo.stalk, silo.seeds)
     siloYield.fourSeedBeanAPY = fourSeedAPY[0]
     siloYield.fourSeedStalkAPY = fourSeedAPY[1]
     siloYield.save()
@@ -62,12 +62,12 @@ export function updateBeanEMA(t: i32, timestamp: BigInt): void {
 export function calculateAPY(
     n: BigDecimal,
     seedsPerBDV: BigDecimal,
-    totalStalk: BigInt,
-    totalSeeds: BigInt
+    stalk: BigInt,
+    seeds: BigInt
 ): StaticArray<BigDecimal> {
     // Initialize sequence
-    let C = toDecimal(totalSeeds)              // Init: Total Seeds
-    let K = toDecimal(totalStalk, 10)          // Init: Total Stalk
+    let C = toDecimal(seeds)              // Init: Total Seeds
+    let K = toDecimal(stalk, 10)          // Init: Total Stalk
     let b = seedsPerBDV.div(BigDecimal.fromString('2')) // Init: User BDV
     let k = BigDecimal.fromString('1')         // Init: User Stalk
 

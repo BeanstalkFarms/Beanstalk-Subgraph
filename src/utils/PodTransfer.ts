@@ -12,6 +12,6 @@ export function savePodTransfer(event: PlotTransfer): void {
     transfer.index = event.params.id
     transfer.pods = event.params.pods
     transfer.blockNumber = event.block.number
-    transfer.timestamp = event.block.timestamp
+    transfer.createdAt = event.block.timestamp
     transfer.save()
 }

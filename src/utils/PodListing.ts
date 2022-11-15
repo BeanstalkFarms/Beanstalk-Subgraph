@@ -1,5 +1,6 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { PodListing } from "../../generated/schema";
+import { BEANSTALK } from "./Constants";
 import { ZERO_BI } from "./Decimals";
 import { loadPlot } from "./Plot";
 import { loadPodMarketplace, loadPodMarketplaceDailySnapshot, loadPodMarketplaceHourlySnapshot } from "./PodMarketplace";
@@ -9,6 +10,7 @@ export function loadPodListing(account: Address, index: BigInt): PodListing {
     let listing = PodListing.load(id)
     if (listing == null) {
         listing = new PodListing(id)
+        listing.podMarketplace = BEANSTALK.toHexString()
         listing.historyID = ''
         listing.plot = index.toString()
         listing.farmer = account.toHexString()
@@ -19,12 +21,13 @@ export function loadPodListing(account: Address, index: BigInt): PodListing {
         listing.index = index
         listing.start = ZERO_BI
         listing.amount = ZERO_BI
-        listing.totalAmount = ZERO_BI
+        listing.originalAmount = ZERO_BI
         listing.remainingAmount = ZERO_BI
         listing.filledAmount = ZERO_BI
-        listing.totalFilled = ZERO_BI
+        listing.filled = ZERO_BI
         listing.cancelledAmount = ZERO_BI
         listing.pricePerPod = 0
+        listing.minFillAmount = ZERO_BI
         listing.maxHarvestableIndex = ZERO_BI
         listing.mode = 0
         listing.save()
@@ -40,22 +43,22 @@ export function expirePodListing(diamondAddress: Address, timestamp: BigInt, lis
     let plot = loadPlot(diamondAddress, listingIndex)
     let listing = loadPodListing(Address.fromString(plot.farmer), listingIndex)
 
-    market.totalPodsExpired = market.totalPodsExpired.plus(listing.remainingAmount)
-    market.totalPodsAvailable = market.totalPodsAvailable.minus(listing.remainingAmount)
+    market.expiredListedPods = market.expiredListedPods.plus(listing.remainingAmount)
+    market.availableListedPods = market.availableListedPods.minus(listing.remainingAmount)
     market.save()
 
     marketHourly.season = market.season
-    marketHourly.newPodsExpired = marketHourly.newPodsExpired.plus(listing.remainingAmount)
-    marketHourly.totalPodsExpired = market.totalPodsExpired
-    marketHourly.newPodsAvailable = marketHourly.newPodsAvailable.minus(listing.remainingAmount)
-    marketHourly.totalPodsAvailable = market.totalPodsAvailable
+    marketHourly.deltaExpiredListedPods = marketHourly.deltaExpiredListedPods.plus(listing.remainingAmount)
+    marketHourly.expiredListedPods = market.expiredListedPods
+    marketHourly.deltaAvailableListedPods = marketHourly.deltaAvailableListedPods.minus(listing.remainingAmount)
+    marketHourly.availableListedPods = market.availableListedPods
     marketHourly.save()
 
     marketDaily.season = market.season
-    marketDaily.newPodsExpired = marketDaily.newPodsExpired.plus(listing.remainingAmount)
-    marketDaily.totalPodsExpired = market.totalPodsExpired
-    marketDaily.newPodsAvailable = marketDaily.newPodsAvailable.minus(listing.remainingAmount)
-    marketDaily.totalPodsAvailable = market.totalPodsAvailable
+    marketDaily.deltaExpiredListedPods = marketDaily.deltaExpiredListedPods.plus(listing.remainingAmount)
+    marketDaily.expiredListedPods = market.expiredListedPods
+    marketDaily.deltaAvailableListedPods = marketDaily.deltaAvailableListedPods.minus(listing.remainingAmount)
+    marketDaily.availableListedPods = market.availableListedPods
     marketDaily.save()
 
     listing.status = 'EXPIRED'
@@ -71,6 +74,7 @@ export function createHistoricalPodListing(listing: PodListing): void {
         let newListing = PodListing.load(id)
         if (newListing == null) {
             newListing = new PodListing(id)
+            newListing.podMarketplace = listing.podMarketplace
             newListing.historyID = listing.historyID
             newListing.plot = listing.plot
             newListing.farmer = listing.farmer
@@ -81,12 +85,13 @@ export function createHistoricalPodListing(listing: PodListing): void {
             newListing.index = listing.index
             newListing.start = listing.start
             newListing.amount = listing.amount
-            newListing.totalAmount = listing.totalAmount
+            newListing.originalAmount = listing.originalAmount
             newListing.remainingAmount = listing.remainingAmount
             newListing.filledAmount = listing.filledAmount
-            newListing.totalFilled = listing.totalFilled
+            newListing.filled = listing.filled
             newListing.cancelledAmount = listing.cancelledAmount
             newListing.pricePerPod = listing.pricePerPod
+            newListing.minFillAmount = listing.minFillAmount
             newListing.maxHarvestableIndex = listing.maxHarvestableIndex
             newListing.mode = listing.mode
             newListing.save()

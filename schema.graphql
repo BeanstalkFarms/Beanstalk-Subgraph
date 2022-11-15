@@ -1,40 +1,4 @@
-# Some items included in this schema come from the Messari Generic Schema
-# Subgraph Schema: Generic
-# Version: 1.3.0
-# See https://github.com/messari/subgraphs/blob/master/docs/Schema.md for details
-
-enum Network {
-  ARBITRUM_ONE
-  ARWEAVE_MAINNET
-  AURORA
-  AVALANCHE
-  BOBA
-  BSC # aka BNB Chain
-  CELO
-  COSMOS
-  CRONOS
-  MAINNET # Ethereum Mainnet
-  FANTOM
-  FUSE
-  HARMONY
-  JUNO
-  MOONBEAM
-  MOONRIVER
-  NEAR_MAINNET
-  OPTIMISM
-  OSMOSIS
-  MATIC # aka Polygon
-  XDAI # aka Gnosis Chain
-}
-
-enum ProtocolType {
-  EXCHANGE
-  LENDING
-  YIELD
-  BRIDGE
-  GENERIC
-  # Will add more
-}
+# Some items included in this schema come from and are inspired by the Messari Generic Schema
 
 enum MarketStatus {
   ACTIVE
@@ -45,48 +9,11 @@ enum MarketStatus {
   EXPIRED
 }
 
-type Token @entity {
-  " Smart contract address of the token "
-  id: ID!
-
-  " Name of the token, mirrored from the smart contract "
-  name: String!
-
-  " Symbol of the token, mirrored from the smart contract "
-  symbol: String!
-
-  " The number of decimal places this token uses, default to 18 "
-  decimals: Int!
-
-  " Optional field to track the price of a token, mostly for caching purposes "
-  lastPriceUSD: BigDecimal
-
-  " Optional field to track the block number of the last token price "
-  lastPriceBlockNumber: BigInt
+enum PlotSource {
+  SOW
+  HARVEST
+  TRANSFER
 }
-
-enum RewardTokenType {
-  " For reward tokens awarded to LPs/lenders "
-  DEPOSIT
-
-  " For reward tokens awarded to borrowers "
-  BORROW
-}
-
-type RewardToken @entity {
-  " { Reward token type }-{ Smart contract address of the reward token } "
-  id: ID!
-
-  " Reference to the actual token "
-  token: Token!
-
-  " The type of the reward token "
-  type: RewardTokenType!
-}
-
-#############################
-##### Protocol Metadata #####
-#############################
 
 type Beanstalk @entity {
   " Smart contract address of the protocol's main contract (Factory, Registry, etc) "
@@ -106,9 +33,6 @@ type Beanstalk @entity {
 
   " Version of the methodology used to compute metrics, loosely based on SemVer format (e.g. 1.0.0) "
   methodologyVersion: String!
-
-  " The blockchain network this subgraph is indexing on "
-  network: Network!
 
   " Timestamp of the latest DiamondCut call "
   lastUpgrade: BigInt!
@@ -144,7 +68,7 @@ type Season @entity {
   season: Int!
 
   " Block timestamp when sunrise was called "
-  timestamp: BigInt!
+  createdAt: BigInt!
   
   " Price of BEAN during sunrise "
   price: BigDecimal!
@@ -172,437 +96,722 @@ type Season @entity {
 }
 
 type Silo @entity {
+  "Address for the farmer or Beanstalk"
   id: ID!
+  "Beanstalk diamond address"
   beanstalk: Beanstalk!
+  "Farmer address if applicable"
   farmer: Farmer
+  "Tokens whitelisted for deposit within the silo"
   whitelistedTokens: [String!]!
+  "Link to all silo assets currently associated with this silo"
   assets: [SiloAsset!]! @derivedFrom(field: "silo")
-  totalValueLockedUSD: BigDecimal!
-  totalDepositedBDV: BigInt!
-  totalStalk: BigInt!
-  totalPlantableStalk: BigInt!
-  totalSeeds: BigInt!
-  totalRoots: BigInt!
-  totalBeanMints: BigInt!
-  totalFarmers: Int!
+  "Current BDV of all deposited assets"
+  depositedBDV: BigInt!
+  "Current stalk balance"
+  stalk: BigInt!
+  "Current plantable stalk for bean seigniorage not yet claimed"
+  plantableStalk: BigInt!
+  "Current seeds balance"
+  seeds: BigInt!
+  "Current roots balance"
+  roots: BigInt!
+  "Cumulative total for bean mints sent to the silo"
+  beanMints: BigInt!
+  "Current number of active farmers deposited in the silo"
+  activeFarmers: Int!
+  "Link to hourly snapshot data"
   hourlySnapshots: [SiloHourlySnapshot!]! @derivedFrom(field: "silo")
+  "Link to daily snapshot data"
   dailySnapshots: [SiloDailySnapshot!]! @derivedFrom(field: "silo")
 }
 
 type SiloHourlySnapshot @entity {
+  "ID of silo-Unix Hour Timestamp"
   id: ID!
+  "Season for the snapshot"
   season: Int!
+  "Silo associated with the snapshot"
   silo: Silo!
-  totalValueLockedUSD: BigDecimal!
-  totalDepositedBDV: BigInt!
-  totalStalk: BigInt!
-  totalPlantableStalk: BigInt!
-  totalSeeds: BigInt!
-  totalRoots: BigInt!
-  totalBeanMints: BigInt!
-  totalFarmers: Int!
-  beansPerStalk: BigInt!
-  cumulativeDepositedUSD: BigDecimal!
-  hourlyDepositedUSD: BigDecimal!
-  hourlyDepositedBDV: BigInt!
-  hourlyWithdrawnBDV: BigInt!
-  hourlyClaimableBDV: BigInt!
-  hourlyStalkDelta: BigInt!
-  hourlyPlantableStalkDelta: BigInt!
-  hourlySeedsDelta: BigInt!
-  hourlyRootsDelta: BigInt!
-  hourlyBeanMints: BigInt!
-  hourlyFarmers: Int!
-  blockNumber: BigInt!
-  timestamp: BigInt!
-  lastUpdated: BigInt!
+  "Point in time current BDV of all deposited assets"
+  depositedBDV: BigInt!
+  "Point in time current stalk balance"
+  stalk: BigInt!
+  "Point in time current plantable stalk for bean seigniorage not yet claimed"
+  plantableStalk: BigInt!
+  "Point in time current seeds balance"
+  seeds: BigInt!
+  "Point in time current roots balance"
+  roots: BigInt!
+  "Point in time cumulative total for bean mints sent to the silo"
+  beanMints: BigInt!
+  "Point in time current number of active farmers deposited in the silo"
+  activeFarmers: Int!
+  "Point in time delta BDV of all deposited assets"
+  deltaDepositedBDV: BigInt!
+  "Point in time delta stalk balance"
+  deltaStalk: BigInt!
+  "Point in time current plantable stalk for bean seigniorage not yet claimed"
+  deltaPlantableStalk: BigInt!
+  "Point in time delta seeds balance"
+  deltaSeeds: BigInt!
+  "Point in time delta roots balance"
+  deltaRoots: BigInt!
+  "Point in time delta total for bean mints sent to the silo"
+  deltaBeanMints: BigInt!
+  "Point in time delta number of active farmers deposited in the silo"
+  deltaActiveFarmers: Int!
+  "Timestamp of initial snapshot creation"
+  createdAt: BigInt!
+  "Timestamp of last entity update"
+  updatedAt: BigInt!
 }
 
 type SiloDailySnapshot @entity {
+  "ID of silo-Unix Hour Timestamp"
   id: ID!
+  "Last season for the snapshot"
   season: Int!
+  "Silo associated with the snapshot"
   silo: Silo!
-  totalValueLockedUSD: BigDecimal!
-  totalDepositedBDV: BigInt!
-  totalStalk: BigInt!
-  totalPlantableStalk: BigInt!
-  totalSeeds: BigInt!
-  totalRoots: BigInt!
-  totalBeanMints: BigInt!
-  totalFarmers: Int!
-  beansPerStalk: BigInt!
-  cumulativeDepositedUSD: BigDecimal!
-  dailyDepositedUSD: BigDecimal!
-  dailyDepositedBDV: BigInt!
-  dailyWithdrawnBDV: BigInt!
-  dailyClaimableBDV: BigInt!
-  dailyStalkDelta: BigInt!
-  dailyPlantableStalkDelta: BigInt!
-  dailySeedsDelta: BigInt!
-  dailyRootsDelta: BigInt!
-  dailyBeanMints: BigInt!
-  dailyFarmers: Int!
-  blockNumber: BigInt!
-  timestamp: BigInt!
-  lastUpdated: BigInt!
+  "Point in time current BDV of all deposited assets"
+  depositedBDV: BigInt!
+  "Point in time current stalk balance"
+  stalk: BigInt!
+  "Point in time current plantable stalk for bean seigniorage not yet claimed"
+  plantableStalk: BigInt!
+  "Point in time current seeds balance"
+  seeds: BigInt!
+  "Point in time current roots balance"
+  roots: BigInt!
+  "Point in time cumulative total for bean mints sent to the silo"
+  beanMints: BigInt!
+  "Point in time current number of active farmers deposited in the silo"
+  activeFarmers: Int!
+  "Point in time delta BDV of all deposited assets"
+  deltaDepositedBDV: BigInt!
+  "Point in time delta stalk balance"
+  deltaStalk: BigInt!
+  "Point in time current plantable stalk for bean seigniorage not yet claimed"
+  deltaPlantableStalk: BigInt!
+  "Point in time delta seeds balance"
+  deltaSeeds: BigInt!
+  "Point in time delta roots balance"
+  deltaRoots: BigInt!
+  "Point in time delta total for bean mints sent to the silo"
+  deltaBeanMints: BigInt!
+  "Point in time delta number of active farmers deposited in the silo"
+  deltaActiveFarmers: Int!
+  "Timestamp of initial snapshot creation"
+  createdAt: BigInt!
+  "Timestamp of last entity update"
+  updatedAt: BigInt!
 }
 
 type SiloAsset @entity {
+  "Silo ID - Asset Token Address"
   id: ID!
+  "Silo for this asset"
   silo: Silo!
+  "Token address for this asset"
   token: String!
-  totalValueLockedUSD: BigDecimal!
-  totalDepositedBDV: BigInt!
-  totalDepositedAmount: BigInt!
-  cumulativeDepositedUSD: BigDecimal!
-  totalStalk: BigInt!
-  totalSeeds: BigInt!
-  totalFarmAmount: BigInt!
+  "Current BDV of deposits"
+  depositedBDV: BigInt!
+  "Current Token amount of deposits"
+  depositedAmount: BigInt!
+  "Current Token amount of silo withdrawals"
+  withdrawnAmount: BigInt!
+  "Current internal (farm) balance of the asset"
+  farmAmount: BigInt!
+  "Link to hourly snapshot data"
   hourlySnapshots: [SiloAssetHourlySnapshot!]! @derivedFrom(field: "siloAsset")
+  "Link to daily snapshot data"
   dailySnapshots: [SiloAssetDailySnapshot!]! @derivedFrom(field: "siloAsset")
 }
 
 type SiloAssetHourlySnapshot @entity {
+  "Silo Asset ID - Unix Timestamp"
   id: ID!
+  "Season for the snapshot"
   season: Int!
+  "Silo asset associated with this snapshot"
   siloAsset: SiloAsset!
-  totalValueLockedUSD: BigDecimal!
-  totalDepositedBDV: BigInt!
-  totalDepositedAmount: BigInt!
-  totalStalk: BigInt!
-  totalSeeds: BigInt!
-  cumulativeDepositedUSD: BigDecimal!
-  totalFarmAmount: BigInt!
-  hourlyDepositedUSD: BigDecimal!
-  hourlyDepositedBDV: BigInt!
-  hourlyDepositedAmount: BigInt!
-  hourlyWithdrawnAmount: BigInt!
-  hourlyStalkDelta: BigInt!
-  hourlySeedsDelta: BigInt!
-  hourlyFarmAmountDelta: BigInt!
-  blockNumber: BigInt!
-  timestamp: BigInt!
-  lastUpdated: BigInt!
+  "Point in time current BDV of deposits"
+  depositedBDV: BigInt!
+  "Point in time current Token amount of deposits"
+  depositedAmount: BigInt!
+  "Point in time current Token amount of silo withdrawals"
+  withdrawnAmount: BigInt!
+  "Point in time current internal (farm) balance of the asset"
+  farmAmount: BigInt!
+  "Point in time delta BDV of deposits"
+  deltaDepositedBDV: BigInt!
+  "Point in time delta Token amount of deposits"
+  deltaDepositedAmount: BigInt!
+  "Point in time delta Token amount of silo withdrawals"
+  deltaWithdrawnAmount: BigInt!
+  "Point in time delta internal (farm) balance of the asset"
+  deltaFarmAmount: BigInt!
+  "Timestamp of initial snapshot creation"
+  createdAt: BigInt!
+  "Timestamp of last entity update"
+  updatedAt: BigInt!
 }
 
 type SiloAssetDailySnapshot @entity {
+  "Silo Asset ID - Unix Timestamp"
   id: ID!
+  "Last season for the snapshot"
   season: Int!
+  "Silo asset associated with this snapshot"
   siloAsset: SiloAsset!
-  totalValueLockedUSD: BigDecimal!
-  totalDepositedBDV: BigInt!
-  totalDepositedAmount: BigInt!
-  totalStalk: BigInt!
-  totalSeeds: BigInt!
-  cumulativeDepositedUSD: BigDecimal!
-  totalFarmAmount: BigInt!
-  dailyDepositedUSD: BigDecimal!
-  dailyDepositedBDV: BigInt!
-  dailyDepositedAmount: BigInt!
-  dailyWithdrawnAmount: BigInt!
-  dailyStalkDelta: BigInt!
-  dailySeedsDelta: BigInt!
-  dailyFarmAmountDelta: BigInt!
-  blockNumber: BigInt!
-  timestamp: BigInt!
-  lastUpdated: BigInt!
+  "Point in time current BDV of deposits"
+  depositedBDV: BigInt!
+  "Point in time current Token amount of deposits"
+  depositedAmount: BigInt!
+  "Point in time current Token amount of silo withdrawals"
+  withdrawnAmount: BigInt!
+  "Point in time current internal (farm) balance of the asset"
+  farmAmount: BigInt!
+  "Point in time delta BDV of deposits"
+  deltaDepositedBDV: BigInt!
+  "Point in time delta Token amount of deposits"
+  deltaDepositedAmount: BigInt!
+  "Point in time delta Token amount of silo withdrawals"
+  deltaWithdrawnAmount: BigInt!
+  "Point in time delta internal (farm) balance of the asset"
+  deltaFarmAmount: BigInt!
+  "Timestamp of initial snapshot creation"
+  createdAt: BigInt!
+  "Timestamp of last entity update"
+  updatedAt: BigInt!
 }
 
 type SiloYield @entity {
   "Season of data points"
   id: ID!
+  "Sortable int field for season"
   season: Int!
+  "Beta used for EMA"
   beta: BigDecimal!
+  "u used for EMA"
   u: Int!
+  "Bean EMA for season"
   beansPerSeasonEMA: BigDecimal!
+  "Bean APY for two seeds per BDV"
   twoSeedBeanAPY: BigDecimal!
+  "Stalk APY for two seeds per BDV"
   twoSeedStalkAPY: BigDecimal!
+  "Bean APY for four seeds per BDV"
   fourSeedBeanAPY: BigDecimal!
+  "Stalk APY for four seeds per BDV"
   fourSeedStalkAPY: BigDecimal!
-  timestamp: BigInt!
+  "Unix timestamp of update"
+  createdAt: BigInt!
 }
 
 type Field @entity {
   " Contract address for this field or farmer "
   id: ID!
+  "Contract address of beanstalk"
   beanstalk: Beanstalk!
+  "Farmer address if applicable"
   farmer: Farmer
+  "Current season number"
   season: Int!
-  weather: Int!
+  "Current temperature"
+  temperature: Int!
+  "Rate of return: Temperature / Bean Price"
   realRateOfReturn: BigDecimal!
-  totalNumberOfSowers: Int!
-  totalNumberOfSows: Int!
-  totalSownBeans: BigInt!
+  "Cumulative number of unique sowers"
+  numberOfSowers: Int!
+  "Cumulative number of sows"
+  numberOfSows: Int!
+  "Cumulative total of sown beans"
+  sownBeans: BigInt!
+  "Array of current non-harvestable plots"
   plotIndexes: [BigInt!]!
-  totalPods: BigInt!
-  totalHarvestablePods: BigInt!
-  totalHarvestedPods: BigInt!
-  totalSoil: BigInt!
+  "Current outstanding non-harvestable pods"
+  unharvestablePods: BigInt!
+  "Current harvestable pods"
+  harvestablePods: BigInt!
+  "Cumulative harvested pods"
+  harvestedPods: BigInt!
+  "Current amount of soil available"
+  soil: BigInt!
+  "Current pod index"
   podIndex: BigInt!
+  "Current pod rate: Total unharvestable pods / bean supply"
   podRate: BigDecimal!
+  "Link to hourly snapshot data"
   hourlySnapshots: [FieldHourlySnapshot!]! @derivedFrom(field: "field")
+  "Link to daily snapshot data"
   dailySnapshots: [FieldDailySnapshot!]! @derivedFrom(field: "field")
 }
 
 type FieldHourlySnapshot @entity {
+  "Field ID - Unix Timestamp"
   id: ID!
+  "Field associated with this snapshot"
   field: Field!
+  "Season"
   season: Int!
-  weather: Int!
+  "Point in time temperature"
+  temperature: Int!
+  "Point in time rate of return: Temperature / Bean Price"
   realRateOfReturn: BigDecimal!
-  podIndex: BigInt!
+  "Point in time cumulative number of unique sowers"
   numberOfSowers: Int!
-  totalNumberOfSowers: Int!
+  "Point in time cumulative number of sows"
   numberOfSows: Int!
-  totalNumberOfSows: Int!
+  "Point in time cumulative total of sown beans"
   sownBeans: BigInt!
-  totalSownBeans: BigInt!
-  newPods: BigInt!
-  totalPods: BigInt!
-  newHarvestablePods: BigInt!
-  totalHarvestablePods: BigInt!
-  newHarvestedPods: BigInt!
-  totalHarvestedPods: BigInt!
-  newSoil: BigInt!
-  totalSoil: BigInt!
+  "Point in time outstanding non-harvestable pods"
+  unharvestablePods: BigInt!
+  "Point in time harvestable pods"
+  harvestablePods: BigInt!
+  "Point in time cumulative harvested pods"
+  harvestedPods: BigInt!
+  "Point in time amount of soil remaining"
+  soil: BigInt!
+  "Point in time pod index"
+  podIndex: BigInt!
+  "Point in time pod rate: Total unharvestable pods / bean supply"
   podRate: BigDecimal!
+  "Point in time delta number of unique sowers"
+  deltaNumberOfSowers: Int!
+  "Point in time delta number of sows"
+  deltaNumberOfSows: Int!
+  "Point in time delta total of sown beans"
+  deltaSownBeans: BigInt!
+  "Point in time delta non-harvestable pods"
+  deltaUnharvestablePods: BigInt!
+  "Point in time delta harvestable pods"
+  deltaHarvestablePods: BigInt!
+  "Point in time delta harvested pods"
+  deltaHarvestedPods: BigInt!
+  "Point in time amount of soil issued"
+  issuedSoil: BigInt!
+  "Number of blocks between sunrise and soil being sold out"
   blocksToSoldOutSoil: BigInt!
+  "Bool flag if soil sold out for the season"
   soilSoldOut: Boolean!
+  "Creation Block Number"
   blockNumber: BigInt!
-  timestamp: BigInt!
-  lastUpdated: BigInt!
+  "Timestamp of initial snapshot creation"
+  createdAt: BigInt!
+  "Timestamp of last entity update"
+  updatedAt: BigInt!
 }
 
 type FieldDailySnapshot @entity {
+  "Field ID - Unix Timestamp"
   id: ID!
+  "Field associated with this snapshot"
   field: Field!
+  "Last season in the snapshot"
   season: Int!
-  weather: Int!
+  "Point in time temperature"
+  temperature: Int!
+  "Point in time rate of return: Temperature / Bean Price"
   realRateOfReturn: BigDecimal!
-  podIndex: BigInt!
+  "Point in time cumulative number of unique sowers"
   numberOfSowers: Int!
-  totalNumberOfSowers: Int!
+  "Point in time cumulative number of sows"
   numberOfSows: Int!
-  totalNumberOfSows: Int!
+  "Point in time cumulative total of sown beans"
   sownBeans: BigInt!
-  totalSownBeans: BigInt!
-  newPods: BigInt!
-  totalPods: BigInt!
-  newHarvestablePods: BigInt!
-  totalHarvestablePods: BigInt!
-  newHarvestedPods: BigInt!
-  totalHarvestedPods: BigInt!
-  newSoil: BigInt!
-  totalSoil: BigInt!
+  "Point in time outstanding non-harvestable pods"
+  unharvestablePods: BigInt!
+  "Point in time harvestable pods"
+  harvestablePods: BigInt!
+  "Point in time delta harvested pods"
+  harvestedPods: BigInt!
+  "Point in time amount of soil remaining"
+  soil: BigInt!
+  "Point in time pod index"
+  podIndex: BigInt!
+  "Point in time pod rate: Total unharvestable pods / bean supply"
   podRate: BigDecimal!
-  blockNumber: BigInt!
-  timestamp: BigInt!
-  lastUpdated: BigInt!
+  "Point in time delta number of unique sowers"
+  deltaNumberOfSowers: Int!
+  "Point in time delta number of sows"
+  deltaNumberOfSows: Int!
+  "Point in time delta total of sown beans"
+  deltaSownBeans: BigInt!
+  "Point in time delta non-harvestable pods"
+  deltaUnharvestablePods: BigInt!
+  "Point in time delta harvestable pods"
+  deltaHarvestablePods: BigInt!
+  "Point in time delta harvested pods"
+  deltaHarvestedPods: BigInt!
+  "Point in time amount of soil issued"
+  issuedSoil: BigInt!
+  "Timestamp of initial snapshot creation"
+  createdAt: BigInt!
+  "Timestamp of last entity update"
+  updatedAt: BigInt!
 }
 
 # ---===== Farmer Account Entities =====---
 
 type Farmer @entity {
-  id: ID! # Account
+  "Address for the farmer"
+  id: ID!
   silo: Silo @derivedFrom(field: "farmer")
-  #assets: [FarmerAsset!]! # Add in any circulating information?
-  #balances: [FarmerBalance!]!
   deposits: [SiloDeposit!]! @derivedFrom(field: "farmer")
   withdraws: [SiloWithdraw!]! @derivedFrom(field: "farmer")
   field: Field @derivedFrom(field: "farmer")
   plots: [Plot!]! @derivedFrom(field: "farmer")
   listings: [PodListing!]! @derivedFrom(field: "farmer")
   orders: [PodOrder!]! @derivedFrom(field: "farmer")
-  sown: Boolean!
+  fills: [PodFill!]! @derivedFrom(field: "to")
   fertilizers: [FertilizerBalance!]! @derivedFrom(field: "farmer")
 }
 
 type SiloDeposit @entity {
   "Account - Token Address - Season"
   id: ID! 
+  "Farmer address"
   farmer: Farmer!
+  "Token Address"
   token: String!
+  "Season of deposit"
   season: Int!
-  tokenAmount: BigInt!
-  removedTokenAmount: BigInt!
+  "Current token amount deposited"
+  amount: BigInt!
+  "Original token amount deposited"
+  depositedAmount: BigInt!
+  "Token amount withdrawn"
+  withdrawnAmount: BigInt!
+  "Original BDV of the deposit"
   bdv: BigInt!
-  removedBDV: BigInt!
-  stalk: BigInt!
-  seeds: BigInt!
+  "Withdrawn BDV"
+  withdrawnBDV: BigInt!
+  "Transaction hashes for multiple deposits in one season"
   hashes: [String!]!
+  "Timestamp of first deposit"
   createdAt: BigInt!
+  "Timestamp when last updated"
   updatedAt: BigInt!
 }
 
 type SiloWithdraw @entity {
   "Account - Deposit Token - Current Season"
   id: ID!
+  "Farmer address"
   farmer: Farmer!
+  "Token address"
   token: String!
+  "Season withdrawal initiated"
   withdrawSeason: Int!
+  "Season when withdrawal can be claimed"
   claimableSeason: Int!
+  "Flag for if this has been claimed"
   claimed: Boolean!
+  "Token amount withdrawn"
   amount: BigInt!
-  hash: String!
+  "Transaction hash of withdrawal"
+  hashes: [String!]!
+  "Timestamp created"
   createdAt: BigInt!
 }
 
 type Plot @entity {
-  id: ID! # Index of the plot
+  "Plot index"
+  id: ID! 
+  "Field to which this plot belongs"
   field: Field!
+  "Farmer who owns this plot"
   farmer: Farmer!
-  " Event that created the plot "
-  source: String!
+  "Transaction source for this plot"
+  source: PlotSource!
+  "Associated plot listing"
   listing: PodListing
+  "Season when created"
   season: Int!
+  "Creation transaction hash"
   creationHash: String!
+  "Timestamp of creation"
   createdAt: BigInt!
+  "Timestamp when updated"
   updatedAt: BigInt!
+  "Plot Index"
   index: BigInt!
+  "Beans used to sow, if any"
   beans: BigInt!
+  "Total pods in plot"
   pods: BigInt!
+  "Total pods that were sown, if any"
   sownPods: BigInt!
-  weather: Int!
+  "Temperature when the plot was sown"
+  temperature: Int!
+  "Number of pods harvestable"
   harvestablePods: BigInt!
+  "Number of pods harvested"
   harvestedPods: BigInt!
+  "Flag for if plot is fully harvested"
   fullyHarvested: Boolean!
 }
 
 type PodMarketplace @entity {
-  " Contract address of beanstalk or farmer "
+  " Contract address of beanstalk "
   id: ID!
+  "Current season of the marketplace"
   season: Int!
+  "Indexes of actively listed plots"
   listingIndexes: [BigInt!]!
+  "Active pod order IDs"
   orders: [PodOrder!]!
+  "All historical listings"
+  allListings: [PodListing!]! @derivedFrom(field: "podMarketplace")
+  "All historical orders"
+  allOrders: [PodOrder!]! @derivedFrom(field: "podMarketplace")
+  "All historical marketplace fills"
   fills: [PodFill!]! @derivedFrom(field: "podMarketplace")
-  totalPodsListed: BigInt!
-  totalPodsFilled: BigInt!
-  totalPodsExpired: BigInt!
-  totalPodsCancelled: BigInt!
-  totalPodsAvailable: BigInt!
-  totalOrdersCreated: BigInt!
-  totalOrdersFilled: BigInt!
-  totalOrdersCancelled: BigInt!
-  totalPodVolume: BigInt!
-  totalBeanVolume: BigInt!
+  "Current cumulative pods listed for sale"
+  listedPods: BigInt!
+  "Current cumulative pod listings filled"
+  filledListedPods: BigInt!
+  "Current cumulative pod listings that expired"
+  expiredListedPods: BigInt!
+  "Current cumulative pod listings that were cancelled"
+  cancelledListedPods: BigInt!
+  "Current amount of total pods listed"
+  availableListedPods: BigInt!
+  "Current cumulative pod orders created"
+  orderedPods: BigInt!
+  "Current cumulative pod orders filled"
+  filledOrderedPods: BigInt!
+  "Current cumulative pod orders cancelled"
+  cancelledOrderedPods: BigInt!
+  "Cumulative pod volume between listings and orders"
+  podVolume: BigInt!
+  "Cumulative bean volume between listings and orders"
+  beanVolume: BigInt!
+  "Link to hourly snapshot data"
   hourlySnapshots: [PodMarketplaceHourlySnapshot!]! @derivedFrom(field: "podMarketplace")
+  "Link to daily snapshot data"
   dailySnapshots: [PodMarketplaceDailySnapshot!]! @derivedFrom(field: "podMarketplace")
 }
 
 type PodMarketplaceHourlySnapshot @entity {
+  "Marketplace ID - Unix Timestamp"
   id: ID!
+  "Point in time latest season"
   season: Int!
+  "Marketplace associated with snapshot"
   podMarketplace: PodMarketplace!
-  newPodsListed: BigInt!
-  totalPodsListed: BigInt!
-  newPodsFilled: BigInt!
-  totalPodsFilled: BigInt!
-  newPodsExpired: BigInt!
-  totalPodsExpired: BigInt!
-  newPodsCancelled: BigInt!
-  totalPodsCancelled: BigInt!
-  newPodsAvailable: BigInt!
-  totalPodsAvailable: BigInt!
-  newOrdersCreated: BigInt!
-  totalOrdersCreated: BigInt!
-  newOrdersFilled: BigInt!
-  totalOrdersFilled: BigInt!
-  newOrdersCancelled: BigInt!
-  totalOrdersCancelled: BigInt!
-  newPodVolume: BigInt!
-  totalPodVolume: BigInt!
-  newBeanVolume: BigInt!
-  totalBeanVolume: BigInt!
-  blockNumber: BigInt!
-  timestamp: BigInt!
+  "Point in time current cumulative pods listed for sale"
+  listedPods: BigInt!
+  "Point in time current cumulative pod listings filled"
+  filledListedPods: BigInt!
+  "Point in time current cumulative pod listings that expired"
+  expiredListedPods: BigInt!
+  "Point in time current cumulative pod listings that were cancelled"
+  cancelledListedPods: BigInt!
+  "Point in time current amount of total pods listed"
+  availableListedPods: BigInt!
+  "Point in time current cumulative pod orders created"
+  orderedPods: BigInt!
+  "Point in time current cumulative pod orders filled"
+  filledOrderedPods: BigInt!
+  "Point in time current cumulative pod orders cancelled"
+  cancelledOrderedPods: BigInt!
+  "Point in time current cumulative pod volume between listings and orders"
+  podVolume: BigInt!
+  "Point in time current cumulative bean volume between listings and orders"
+  beanVolume: BigInt!
+  "Point in time current delta pods listed for sale"
+  deltaListedPods: BigInt!
+  "Point in time current delta pod listings filled"
+  deltaFilledListedPods: BigInt!
+  "Point in time current delta pod listings that expired"
+  deltaExpiredListedPods: BigInt!
+  "Point in time current delta pod listings that were cancelled"
+  deltaCancelledListedPods: BigInt!
+  "Point in time current delta of total pods listed"
+  deltaAvailableListedPods: BigInt!
+  "Point in time current delta pod orders created"
+  deltaOrderedPods: BigInt!
+  "Point in time current delta pod orders filled"
+  deltaFilledOrderedPods: BigInt!
+  "Point in time current delta pod orders cancelled"
+  deltaCancelledOrderedPods: BigInt!
+  "Point in time current delta pod volume between listings and orders"
+  deltaPodVolume: BigInt!
+  "Point in time current delta bean volume between listings and orders"
+  deltaBeanVolume: BigInt!
+  "Timestamp of initial snapshot creation"
+  createdAt: BigInt!
+  "Timestamp of last entity update"
+  updatedAt: BigInt!
 }
 
 type PodMarketplaceDailySnapshot @entity {
+  "Marketplace ID - Unix Timestamp"
   id: ID!
+  "Point in time latest season"
   season: Int!
+  "Marketplace associated with snapshot"
   podMarketplace: PodMarketplace!
-  newPodsListed: BigInt!
-  totalPodsListed: BigInt!
-  newPodsFilled: BigInt!
-  totalPodsFilled: BigInt!
-  newPodsExpired: BigInt!
-  totalPodsExpired: BigInt!
-  newPodsCancelled: BigInt!
-  totalPodsCancelled: BigInt!
-  newPodsAvailable: BigInt!
-  totalPodsAvailable: BigInt!
-  newOrdersCreated: BigInt!
-  totalOrdersCreated: BigInt!
-  newOrdersFilled: BigInt!
-  totalOrdersFilled: BigInt!
-  newOrdersCancelled: BigInt!
-  totalOrdersCancelled: BigInt!
-  newPodVolume: BigInt!
-  totalPodVolume: BigInt!
-  newBeanVolume: BigInt!
-  totalBeanVolume: BigInt!
-  blockNumber: BigInt!
-  timestamp: BigInt!
+  "Point in time current cumulative pods listed for sale"
+  listedPods: BigInt!
+  "Point in time current cumulative pod listings filled"
+  filledListedPods: BigInt!
+  "Point in time current cumulative pod listings that expired"
+  expiredListedPods: BigInt!
+  "Point in time current cumulative pod listings that were cancelled"
+  cancelledListedPods: BigInt!
+  "Point in time current amount of total pods listed"
+  availableListedPods: BigInt!
+  "Point in time current cumulative pod orders created"
+  orderedPods: BigInt!
+  "Point in time current cumulative pod orders filled"
+  filledOrderedPods: BigInt!
+  "Point in time current cumulative pod orders cancelled"
+  cancelledOrderedPods: BigInt!
+  "Point in time current cumulative pod volume between listings and orders"
+  podVolume: BigInt!
+  "Point in time current cumulative bean volume between listings and orders"
+  beanVolume: BigInt!
+  "Point in time current delta pods listed for sale"
+  deltaListedPods: BigInt!
+  "Point in time current delta pod listings filled"
+  deltaFilledListedPods: BigInt!
+  "Point in time current delta pod listings that expired"
+  deltaExpiredListedPods: BigInt!
+  "Point in time current delta pod listings that were cancelled"
+  deltaCancelledListedPods: BigInt!
+  "Point in time current delta of total pods listed"
+  deltaAvailableListedPods: BigInt!
+  "Point in time current delta pod orders created"
+  deltaOrderedPods: BigInt!
+  "Point in time current delta pod orders filled"
+  deltaFilledOrderedPods: BigInt!
+  "Point in time current delta pod orders cancelled"
+  deltaCancelledOrderedPods: BigInt!
+  "Point in time current delta pod volume between listings and orders"
+  deltaPodVolume: BigInt!
+  "Point in time current delta bean volume between listings and orders"
+  deltaBeanVolume: BigInt!
+  "Timestamp of initial snapshot creation"
+  createdAt: BigInt!
+  "Timestamp of last entity update"
+  updatedAt: BigInt!
 }
 
 type PodListing @entity {
-  id: ID! # the account plus index
-  " Historical ID for joins"
+  "Account - Plot Index"
+  id: ID!
+  "Marketplace used for listing"
+  podMarketplace: PodMarketplace!
+  " Historical ID for joins on frontend"
   historyID: String!
+  "Plot being listed"
   plot: Plot!
+  "Farmer listing the plot"
   farmer: Farmer!
+  "Timestamp created"
   createdAt: BigInt!
+  "Timestamp updated"
   updatedAt: BigInt!
+  "Current market status of listing"
   status: MarketStatus!
+  "Any associated market fill"
   fill: PodFill
+  "Original index of the plot listed"
   originalIndex: BigInt!
+  "Current index of plot listed"
   index: BigInt!
+  "Start within plot for listing"
   start: BigInt!
+  "Amount of pods listed"
   amount: BigInt!
-  totalAmount: BigInt!
+  "Total amount of original listing"
+  originalAmount: BigInt!
+  "Remaining amount left to be filled"
   remainingAmount: BigInt!
+  "Amount filled on this listing"
   filledAmount: BigInt!
-  totalFilled: BigInt!
+  "Total amount filled from original listing"
+  filled: BigInt!
+  "Amount cancelled"
   cancelledAmount: BigInt!
+  "Market v1 price per pod"
   pricePerPod: Int!
+  "Minimum amount needed to fill this listing"
+  minFillAmount: BigInt!
+  "Max harvestable index before listing expires"
   maxHarvestableIndex: BigInt!
+  "Market v2 pricing function"
+  pricingFunction:Bytes
+  "Sale bean mode (internal/external)"
   mode: Int!
+  "Market v2 pricing type"
+  pricingType: Int
 }
 
 type PodOrder @entity {
+  "Order ID emitted by event"
   id: ID!
+  "Marketplace used for order"
+  podMarketplace: PodMarketplace!
   " Historical ID for joins"
   historyID: String!
+  "Farmer placing the order"
   farmer: Farmer!
+  "Creation timestamp"
   createdAt: BigInt!
+  "Timestamp updated"
   updatedAt: BigInt!
+  "Current status of order"
   status: MarketStatus!
+  "Any fill associated with this order"
   fill: PodFill
-  amount: BigInt!
-  filledAmount: BigInt!
+  "V1 - Original amount of the ordered pods"
+  podAmount: BigInt!
+  "V2 - Original amount of beans used to order pods"
+  beanAmount: BigInt!
+  "Current filled amount"
+  podAmountFilled: BigInt!
+  "Bean Amount Filled"
+  beanAmountFilled: BigInt!
+  "Minimum amount needed to fill this order"
+  minFillAmount: BigInt!
+  "Max place in line for pods to fulfill the order"
   maxPlaceInLine: BigInt!
+  "Market v1 price per pod"
   pricePerPod: Int!
+  "Market v2 pricing function"
+  pricingFunction: Bytes
+  "Market v2 pricing type"
+  pricingType: Int
 }
 
 type PodFill @entity {
+  "Beanstalk address - Order/Listing index - transaction hash"
   id: ID!
+  "Marketplace associated with this fill"
   podMarketplace: PodMarketplace!
+  "Creation timestamp"
   createdAt: BigInt!
+  "Associated listing, if any"
   listing: PodListing
+  "Associated order, if any"
   order: PodOrder
-  from: String!
-  to: String!
+  "Account fulfilling the order"
+  from: String!      # These are already referenced via the listing and order entities.
+  "Account filling the order"
+  to: Farmer!
+  "Number of pods filled"
   amount: BigInt!
+  "Index of plot transferred"
   index: BigInt!
+  "Start of plot transferred"
   start: BigInt!
-}
-
-type Transaction @entity {
-  id: ID!
-  timestamp: BigInt!
-  blockNumber: BigInt!
-  from: Bytes!
-  to: Bytes
+  "Total beans used to fill listing/order"
+  costInBeans: BigInt
 }
 
 ##################################
@@ -611,28 +820,38 @@ type Transaction @entity {
 
 # Global Fertilizer state for tracking
 type Fertilizer @entity {
+  "Token address for fert"
   id: ID!
-  totalSupply: BigInt!
+  "Total overall suppy of fert tokens"
+  supply: BigInt!
   tokens: [FertilizerToken!]! @derivedFrom(field: "fertilizer")
 }
 
 # Id-level Fertilizer entity
 type FertilizerToken @entity {
+  "Total BPF for purchase"
   id: ID!
   fertilizer: Fertilizer!
+  "Total supply for this Humidity"
   supply: BigInt!
+  "Humidity paid for this ID"
   humidity: BigDecimal!
+  "Ending BPF on creation"
   endBpf: BigInt!
+  "Starting BPF on creation"
   startBpf: BigInt!
+  "Season created"
   season: Int!
   balances: [FertilizerBalance!]! @derivedFrom(field: "fertilizerToken")
 }
 
 # 
 type FertilizerBalance @entity {
+  "Fertilizer Token - Farmer address"
   id: ID!
   fertilizerToken: FertilizerToken!
   farmer: Farmer!
+  "Current balance of token"
   amount: BigInt!
 }
 
@@ -663,7 +882,7 @@ interface Event {
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
 }
 
 interface SiloEvent implements Event{
@@ -678,7 +897,7 @@ interface SiloEvent implements Event{
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
 }
 
 interface FieldEvent implements Event{
@@ -693,7 +912,7 @@ interface FieldEvent implements Event{
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
 }
 
 interface MarketplaceEvent implements Event{
@@ -708,7 +927,7 @@ interface MarketplaceEvent implements Event{
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
 }
 
 type PodTransfer implements FieldEvent @entity(immutable: true) {
@@ -731,7 +950,7 @@ type PodTransfer implements FieldEvent @entity(immutable: true) {
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
 }
 
 type Harvest implements FieldEvent @entity(immutable: true) {
@@ -752,7 +971,7 @@ type Harvest implements FieldEvent @entity(immutable: true) {
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
   
 }
 
@@ -768,15 +987,15 @@ type Chop implements SiloEvent @entity(immutable: true){
   " Address chopping "
   farmer: String!
   " Unripe token being chopped "
-  unripe: Token!
+  unripe: String!
   " Amount being chopped"
   amount: BigInt!
   " Underlying token "
-  underlying: Token!
+  underlying: String!
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
 }
 
 type Incentive implements SiloEvent @entity(immutable: true) {
@@ -795,7 +1014,7 @@ type Incentive implements SiloEvent @entity(immutable: true) {
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
 }
 
 type Reward implements SiloEvent @entity(immutable: true) {
@@ -818,7 +1037,7 @@ type Reward implements SiloEvent @entity(immutable: true) {
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
 }
 
 type MetapoolOracle implements SiloEvent @entity(immutable: true) {
@@ -841,7 +1060,7 @@ type MetapoolOracle implements SiloEvent @entity(immutable: true) {
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
 }
 
 type AddDeposit implements SiloEvent @entity(immutable: true) {
@@ -866,7 +1085,7 @@ type AddDeposit implements SiloEvent @entity(immutable: true) {
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
 }
 
 type RemoveDeposit implements SiloEvent @entity(immutable: true) {
@@ -889,7 +1108,7 @@ type RemoveDeposit implements SiloEvent @entity(immutable: true) {
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
 }
 
 type StalkChange implements SiloEvent @entity(immutable: true) {
@@ -910,7 +1129,7 @@ type StalkChange implements SiloEvent @entity(immutable: true) {
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
 }
 
 type SeedChange implements SiloEvent @entity(immutable: true) {
@@ -931,7 +1150,7 @@ type SeedChange implements SiloEvent @entity(immutable: true) {
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
 }
 
 type PodListingCreated implements MarketplaceEvent @entity(immutable: true) {
@@ -959,10 +1178,14 @@ type PodListingCreated implements MarketplaceEvent @entity(immutable: true) {
   maxHarvestableIndex: BigInt!
   "Claim to location"
   mode: Int!
+  "Pricing Function Data"
+  pricingFunction: Bytes
+  "Pricing Type"
+  pricingType: Int
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
 }
 
 type PodListingFilled implements MarketplaceEvent @entity(immutable: true) {
@@ -986,10 +1209,12 @@ type PodListingFilled implements MarketplaceEvent @entity(immutable: true) {
   start: BigInt!
   "Number of pods transferred"
   amount: BigInt!
+  "Beans paid to fill the listing"
+  costInBeans: BigInt
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
 }
 
 type PodListingCancelled implements MarketplaceEvent @entity(immutable: true) {
@@ -1010,7 +1235,7 @@ type PodListingCancelled implements MarketplaceEvent @entity(immutable: true) {
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
 }
 
 type PodOrderCreated implements MarketplaceEvent @entity(immutable: true) {
@@ -1034,10 +1259,14 @@ type PodOrderCreated implements MarketplaceEvent @entity(immutable: true) {
   pricePerPod: Int!
   "Max place in line"
   maxPlaceInLine: BigInt!
+  "Pricing Function Data"
+  pricingFunction: Bytes
+  "Pricing Type"
+  pricingType: Int
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
 }
 
 type PodOrderFilled implements MarketplaceEvent @entity(immutable: true) {
@@ -1061,10 +1290,12 @@ type PodOrderFilled implements MarketplaceEvent @entity(immutable: true) {
   start: BigInt!
   "Number of pods transferred"
   amount: BigInt!
+  "Beans paid to fill the order"
+  costInBeans: BigInt
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
 }
 
 type PodOrderCancelled implements MarketplaceEvent @entity(immutable: true) {
@@ -1085,7 +1316,7 @@ type PodOrderCancelled implements MarketplaceEvent @entity(immutable: true) {
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
 }
 
 type WhitelistToken implements SiloEvent @entity(immutable: true) {
@@ -1108,7 +1339,7 @@ type WhitelistToken implements SiloEvent @entity(immutable: true) {
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
 }
 
 type DewhitelistToken implements SiloEvent @entity(immutable: true) {
@@ -1125,5 +1356,5 @@ type DewhitelistToken implements SiloEvent @entity(immutable: true) {
   " Block number of this event "
   blockNumber: BigInt!
   " Timestamp of this event "
-  timestamp: BigInt!
+  createdAt: BigInt!
 }
