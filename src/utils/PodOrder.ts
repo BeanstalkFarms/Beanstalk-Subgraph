@@ -14,6 +14,7 @@ export function loadPodOrder(orderID: Bytes): PodOrder {
         order.updatedAt = ZERO_BI
         order.status = ''
         order.podAmount = ZERO_BI
+        order.beanAmount = ZERO_BI
         order.podAmountFilled = ZERO_BI
         order.beanAmountFilled = ZERO_BI
         order.minFillAmount = ZERO_BI
@@ -39,6 +40,7 @@ export function createHistoricalPodOrder(order: PodOrder): void {
             newOrder.updatedAt = order.updatedAt
             newOrder.status = order.status
             newOrder.podAmount = order.podAmount
+            newOrder.beanAmount = order.beanAmount
             newOrder.podAmountFilled = order.podAmountFilled
             newOrder.beanAmountFilled = order.beanAmountFilled
             newOrder.minFillAmount = order.minFillAmount
