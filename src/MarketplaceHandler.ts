@@ -353,8 +353,10 @@ export function handlePodListingCreated_v2(event: PodListingCreated_v2): void {
     let listing = loadPodListing(event.params.account, event.params.index)
 
     if (listing.createdAt !== ZERO_BI) {
+        // Re-listed prior plot with new info
         createHistoricalPodListing(listing)
         listing.createdAt = ZERO_BI
+        listing.status = 'ACTIVE'
     }
 
     listing.historyID = listing.id + '-' + event.block.timestamp.toString()
