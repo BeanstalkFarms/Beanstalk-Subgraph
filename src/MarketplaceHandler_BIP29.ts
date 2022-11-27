@@ -45,6 +45,7 @@ export function handlePodListingCreated_v2(event: PodListingCreated_v2): void {
     if (listing.createdAt !== ZERO_BI) {
         createHistoricalPodListing(listing)
         listing.createdAt = ZERO_BI
+        listing.status = 'ACTIVE'
     }
 
     listing.historyID = listing.id + '-' + event.block.timestamp.toString()
