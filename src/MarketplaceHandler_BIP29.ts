@@ -163,7 +163,7 @@ export function handlePodOrderCreated_v2(event: PodOrderCreated_v2): void {
     order.createdAt = event.block.timestamp
     order.updatedAt = event.block.timestamp
     order.status = 'ACTIVE'
-    order.amount = event.params.amount
+    order.amount = event.params.amount.times(BigInt.fromI32(event.params.pricePerPod)).div(BigInt.fromI32(1000000))
     order.filledAmount = ZERO_BI
     order.minFillAmount = event.params.minFillAmount
     order.maxPlaceInLine = event.params.maxPlaceInLine
