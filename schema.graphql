@@ -484,8 +484,10 @@ type SiloDeposit @entity {
   depositedAmount: BigInt!
   "Token amount withdrawn"
   withdrawnAmount: BigInt!
-  "Original BDV of the deposit"
+  "Current BDV of the deposit"
   bdv: BigInt!
+  "Original deposited BDV"
+  depositedBDV: BigInt!
   "Withdrawn BDV"
   withdrawnBDV: BigInt!
   "Transaction hashes for multiple deposits in one season"

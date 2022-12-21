@@ -36,6 +36,7 @@ export function handleAddDeposit(event: AddDeposit): void {
     deposit.amount = deposit.amount.plus(event.params.amount)
     deposit.depositedAmount = deposit.depositedAmount.plus(event.params.amount)
     deposit.bdv = deposit.bdv.plus(event.params.bdv)
+    deposit.depositedBDV = deposit.depositedBDV.plus(event.params.bdv)
     let depositHashes = deposit.hashes
     depositHashes.push(event.transaction.hash.toHexString())
     deposit.hashes = depositHashes
@@ -84,6 +85,7 @@ export function handleRemoveDeposit(event: RemoveDeposit): void {
 
     // Update deposit
     deposit.withdrawnBDV = deposit.withdrawnBDV.plus(withdrawnBDV)
+    deposit.bdv = deposit.bdv.minus(withdrawnBDV)
     deposit.withdrawnAmount = deposit.withdrawnAmount.plus(event.params.amount)
     deposit.amount = deposit.amount.minus(event.params.amount)
     deposit.save()
@@ -124,6 +126,7 @@ export function handleRemoveDeposits(event: RemoveDeposits): void {
 
         // Update deposit
         deposit.withdrawnBDV = deposit.withdrawnBDV.plus(withdrawnBDV)
+        deposit.bdv = deposit.bdv.minus(withdrawnBDV)
         deposit.withdrawnAmount = deposit.withdrawnAmount.plus(event.params.amounts[i])
         deposit.amount = deposit.amount.minus(event.params.amounts[i])
         deposit.save()
