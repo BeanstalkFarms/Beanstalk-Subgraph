@@ -745,7 +745,7 @@ type PodListing @entity {
   "Max harvestable index before listing expires"
   maxHarvestableIndex: BigInt!
   "Market v2 pricing function"
-  pricingFunction:Bytes
+  pricingFunction: Bytes
   "Sale bean mode (internal/external)"
   mode: Int!
   "Market v2 pricing type"
@@ -811,7 +811,7 @@ type PodFill @entity {
   "Start of plot transferred"
   start: BigInt!
   "Total beans used to fill listing/order"
-  costInBeans: BigInt
+  costInBeans: BigInt 
 }
 
 ##################################
@@ -845,7 +845,6 @@ type FertilizerToken @entity {
   balances: [FertilizerBalance!]! @derivedFrom(field: "fertilizerToken")
 }
 
-# 
 type FertilizerBalance @entity {
   "Fertilizer Token - Farmer address"
   id: ID!
@@ -853,6 +852,25 @@ type FertilizerBalance @entity {
   farmer: Farmer!
   "Current balance of token"
   amount: BigInt!
+}
+
+type FertilizerYield @entity {
+  "Season of data points"
+  id: ID!
+  "Current season"
+  season: Int!
+  "Current humidity"
+  humidity: BigDecimal!
+  "Current outstanding fert"
+  outstandingFert: BigInt!
+  "Current Bean EMA"
+  beansPerSeasonEMA: BigDecimal!
+  "BPF delta"
+  deltaBpf: BigDecimal!
+  "Simplified APY for new Fert"
+  simpleAPY: BigDecimal!
+  "Block timestamp at creation"
+  createdAt: BigInt!
 }
 
 ##################################
@@ -1161,6 +1179,8 @@ type PodListingCreated implements MarketplaceEvent @entity(immutable: true) {
   pricePerPod: Int!
   "Max index for listing"
   maxHarvestableIndex: BigInt!
+  "Minimum fill amount"
+  minFillAmount: BigInt!
   "Claim to location"
   mode: Int!
   "Pricing Function Data"

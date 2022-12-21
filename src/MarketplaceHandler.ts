@@ -79,6 +79,7 @@ export function handlePodListingCreated(event: PodListingCreated_v1): void {
     rawEvent.amount = event.params.amount
     rawEvent.pricePerPod = event.params.pricePerPod
     rawEvent.maxHarvestableIndex = event.params.maxHarvestableIndex
+    rawEvent.minFillAmount = ZERO_BI
     rawEvent.mode = event.params.toWallet
     rawEvent.blockNumber = event.block.number
     rawEvent.createdAt = event.block.timestamp
@@ -336,6 +337,8 @@ export function handlePodListingCreated_v1_1(event: PodListingCreated_v1_1): voi
     rawEvent.amount = event.params.amount
     rawEvent.pricePerPod = event.params.pricePerPod
     rawEvent.maxHarvestableIndex = event.params.maxHarvestableIndex
+    rawEvent.maxHarvestableIndex = ZERO_BI
+    rawEvent.minFillAmount = ZERO_BI
     rawEvent.mode = event.params.mode
     rawEvent.blockNumber = event.block.number
     rawEvent.createdAt = event.block.timestamp
@@ -356,9 +359,9 @@ export function handlePodListingCreated_v2(event: PodListingCreated_v2): void {
         // Re-listed prior plot with new info
         createHistoricalPodListing(listing)
         listing.createdAt = ZERO_BI
-        listing.status = 'ACTIVE'
     }
 
+    listing.status = 'ACTIVE'
     listing.historyID = listing.id + '-' + event.block.timestamp.toString()
     listing.plot = plot.id
     listing.createdAt = listing.createdAt == ZERO_BI ? event.block.timestamp : listing.createdAt
@@ -372,7 +375,7 @@ export function handlePodListingCreated_v2(event: PodListingCreated_v2): void {
     listing.minFillAmount = event.params.minFillAmount
     listing.maxHarvestableIndex = event.params.maxHarvestableIndex
     listing.pricingFunction = event.params.pricingFunction
-    listing.mode = event.params.mode === true ? 0 : 1
+    listing.mode = event.params.mode
     listing.pricingType = event.params.pricingType
     listing.save()
 
@@ -394,6 +397,7 @@ export function handlePodListingCreated_v2(event: PodListingCreated_v2): void {
     rawEvent.amount = event.params.amount
     rawEvent.pricePerPod = event.params.pricePerPod
     rawEvent.maxHarvestableIndex = event.params.maxHarvestableIndex
+    rawEvent.minFillAmount = event.params.minFillAmount
     rawEvent.mode = event.params.mode
     rawEvent.pricingFunction = event.params.pricingFunction
     rawEvent.pricingType = event.params.pricingType

@@ -186,6 +186,10 @@ export function handleSoil(event: Soil): void {
     fieldDaily.issuedSoil = fieldDaily.issuedSoil.plus(event.params.soil)
     fieldDaily.updatedAt = event.block.timestamp
     fieldDaily.save()
+
+    if (event.params.season.toI32() >= 6075) {
+        updateBeanEMA(event.params.season.toI32(), event.block.timestamp)
+    }
 }
 
 export function handleIncentive(event: Incentivization): void {
@@ -212,8 +216,4 @@ export function handleIncentive(event: Incentivization): void {
     season.save()
 
     updateHarvestablePlots(season.harvestableIndex, event.block.timestamp, event.block.number)
-
-    if (beanstalk.lastSeason >= 6075) {
-        updateBeanEMA(beanstalk.lastSeason, event.block.timestamp)
-    }
 }

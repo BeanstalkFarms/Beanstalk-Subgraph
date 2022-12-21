@@ -1,10 +1,13 @@
 import { BigDecimal, BigInt } from "@graphprotocol/graph-ts";
-import { BEANSTALK } from "./utils/Constants";
+import { Beanstalk } from "../generated/Season-Replanted/Beanstalk";
+import { BEANSTALK, FERTILIZER } from "./utils/Constants";
 import { toDecimal, ZERO_BD } from "./utils/Decimals";
+import { loadFertilizer } from "./utils/Fertilizer";
+import { loadFertilizerYield } from "./utils/FertilizerYield";
 import { loadSilo, loadSiloHourlySnapshot } from "./utils/Silo";
 import { loadSiloYield } from "./utils/SiloYield";
 
-const MAX_WINDOW = 336;
+const MAX_WINDOW = 720;
 
 // Note: minimum value of `t` is 6075
 export function updateBeanEMA(t: i32, timestamp: BigInt): void {
@@ -49,6 +52,8 @@ export function updateBeanEMA(t: i32, timestamp: BigInt): void {
     siloYield.fourSeedBeanAPY = fourSeedAPY[0]
     siloYield.fourSeedStalkAPY = fourSeedAPY[1]
     siloYield.save()
+
+    updateFertAPY(t, timestamp)
 }
 
 /**
@@ -123,4 +128,19 @@ export function calculateAPY(
     apys[1] = k.minus(k_start) // stalkAPY
 
     return apys
+}
+function updateFertAPY(t: i32, timestamp: BigInt): void {
+    let siloYield = loadSiloYield(t)
+    let fertilizerYield = loadFertilizerYield(t)
+    let fertilizer = loadFertilizer(FERTILIZER)
+    let beanstalk = Beanstalk.bind(BEANSTALK)
+    let currentFertHumidity = beanstalk.try_getCurrentHumidity()
+
+    fertilizerYield.humidity = BigDecimal.fromString(currentFertHumidity.reverted ? '500' : currentFertHumidity.value.toString()).div(BigDecimal.fromString('1000'))
+    fertilizerYield.outstandingFert = fertilizer.supply
+    fertilizerYield.beansPerSeasonEMA = siloYield.beansPerSeasonEMA
+    fertilizerYield.deltaBpf = fertilizerYield.beansPerSeasonEMA.div(BigDecimal.fromString(fertilizerYield.outstandingFert.toString()))
+    fertilizerYield.simpleAPY = fertilizerYield.deltaBpf == ZERO_BD ? ZERO_BD : fertilizerYield.humidity.div((BigDecimal.fromString('1').plus(fertilizerYield.humidity)).div(fertilizerYield.deltaBpf).div(BigDecimal.fromString('8760')))
+    fertilizerYield.createdAt = timestamp
+    fertilizerYield.save()
 }
