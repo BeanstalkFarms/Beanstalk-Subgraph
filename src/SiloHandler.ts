@@ -78,10 +78,8 @@ export function handleRemoveDeposit(event: RemoveDeposit): void {
 
     let beanstalk = loadBeanstalk(event.address) // get current season
     let deposit = loadSiloDeposit(event.params.account, event.params.token, event.params.season)
-    let remainingTokenAmount = deposit.depositedAmount.minus(deposit.withdrawnAmount)
-    let remainingBDV = deposit.bdv.minus(deposit.withdrawnBDV)
 
-    let withdrawnBDV = remainingTokenAmount == ZERO_BI ? ZERO_BI : event.params.amount.times(remainingBDV).div(remainingTokenAmount)
+    let withdrawnBDV = deposit.amount == ZERO_BI ? ZERO_BI : event.params.amount.times(deposit.bdv).div(deposit.amount)
 
     // Update deposit
     deposit.withdrawnBDV = deposit.withdrawnBDV.plus(withdrawnBDV)
@@ -119,10 +117,8 @@ export function handleRemoveDeposits(event: RemoveDeposits): void {
     for (let i = 0; i < event.params.seasons.length; i++) {
 
         let deposit = loadSiloDeposit(event.params.account, event.params.token, event.params.seasons[i])
-        let remainingTokenAmount = deposit.depositedAmount.minus(deposit.withdrawnAmount)
-        let remainingBDV = deposit.bdv.minus(deposit.withdrawnBDV)
 
-        let withdrawnBDV = remainingTokenAmount == ZERO_BI ? ZERO_BI : event.params.amounts[i].times(remainingBDV).div(remainingTokenAmount)
+        let withdrawnBDV = deposit.amount == ZERO_BI ? ZERO_BI : event.params.amounts[i].times(deposit.bdv).div(deposit.amount)
 
         // Update deposit
         deposit.withdrawnBDV = deposit.withdrawnBDV.plus(withdrawnBDV)
