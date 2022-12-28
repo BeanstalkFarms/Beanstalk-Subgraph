@@ -752,6 +752,8 @@ type PodListing @entity {
   mode: Int!
   "Market v2 pricing type"
   pricingType: Int
+  "Transaction hash when this entity was created"
+  creationHash: String!
 }
 
 type PodOrder @entity {
@@ -789,6 +791,8 @@ type PodOrder @entity {
   pricingFunction: Bytes
   "Market v2 pricing type"
   pricingType: Int
+  "Transaction hash when this entity was created"
+  creationHash: String!
 }
 
 type PodFill @entity {

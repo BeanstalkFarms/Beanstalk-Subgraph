@@ -30,6 +30,7 @@ export function loadPodListing(account: Address, index: BigInt): PodListing {
         listing.minFillAmount = ZERO_BI
         listing.maxHarvestableIndex = ZERO_BI
         listing.mode = 0
+        listing.creationHash = ''
         listing.save()
     }
     return listing
@@ -94,6 +95,7 @@ export function createHistoricalPodListing(listing: PodListing): void {
             newListing.minFillAmount = listing.minFillAmount
             newListing.maxHarvestableIndex = listing.maxHarvestableIndex
             newListing.mode = listing.mode
+            newListing.creationHash = listing.creationHash
             newListing.save()
             created = true
         }

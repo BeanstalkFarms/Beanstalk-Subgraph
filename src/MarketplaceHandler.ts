@@ -59,6 +59,7 @@ export function handlePodListingCreated(event: PodListingCreated_v1): void {
     listing.pricePerPod = event.params.pricePerPod
     listing.maxHarvestableIndex = event.params.maxHarvestableIndex
     listing.mode = event.params.toWallet === true ? 0 : 1
+    listing.creationHash = event.transaction.hash.toHexString()
     listing.save()
 
     plot.listing = listing.id
@@ -147,6 +148,7 @@ export function handlePodListingFilled(event: PodListingFilled_v1): void {
         remainingListing.pricePerPod = listing.pricePerPod
         remainingListing.maxHarvestableIndex = listing.maxHarvestableIndex
         remainingListing.mode = listing.mode
+        remainingListing.creationHash = event.transaction.hash.toHexString()
         remainingListing.save()
         market.listingIndexes.push(remainingListing.index)
     }
@@ -196,6 +198,7 @@ export function handlePodOrderCreated(event: PodOrderCreated_v1): void {
     order.podAmountFilled = ZERO_BI
     order.maxPlaceInLine = event.params.maxPlaceInLine
     order.pricePerPod = event.params.pricePerPod
+    order.creationHash = event.transaction.hash.toHexString()
     order.save()
 
     updateMarketOrderBalances(event.address, order.id, event.params.amount, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp)
@@ -225,6 +228,7 @@ export function handlePodOrderFilled(event: PodOrderFilled_v1): void {
 
     order.updatedAt = event.block.timestamp
     order.podAmountFilled = order.podAmountFilled.plus(event.params.amount)
+    order.beanAmountFilled = order.beanAmountFilled.plus(beanAmount)
     order.status = order.podAmount == order.podAmountFilled ? 'FILLED' : 'ACTIVE'
     order.save()
 
@@ -317,6 +321,7 @@ export function handlePodListingCreated_v1_1(event: PodListingCreated_v1_1): voi
     listing.pricePerPod = event.params.pricePerPod
     listing.maxHarvestableIndex = event.params.maxHarvestableIndex
     listing.mode = event.params.mode
+    listing.creationHash = event.transaction.hash.toHexString()
     listing.save()
 
     plot.listing = listing.id
@@ -377,6 +382,7 @@ export function handlePodListingCreated_v2(event: PodListingCreated_v2): void {
     listing.pricingFunction = event.params.pricingFunction
     listing.mode = event.params.mode
     listing.pricingType = event.params.pricingType
+    listing.creationHash = event.transaction.hash.toHexString()
     listing.save()
 
     plot.listing = listing.id
@@ -439,6 +445,7 @@ export function handlePodListingFilled_v2(event: PodListingFilled_v2): void {
         remainingListing.pricePerPod = listing.pricePerPod
         remainingListing.maxHarvestableIndex = listing.maxHarvestableIndex
         remainingListing.mode = listing.mode
+        remainingListing.creationHash = event.transaction.hash.toHexString()
         remainingListing.save()
         market.listingIndexes.push(remainingListing.index)
     }
@@ -491,6 +498,7 @@ export function handlePodOrderCreated_v2(event: PodOrderCreated_v2): void {
     order.pricePerPod = event.params.pricePerPod
     order.pricingFunction = event.params.pricingFunction
     order.pricingType = event.params.priceType
+    order.creationHash = event.transaction.hash.toHexString()
     order.save()
 
     updateMarketOrderBalances(event.address, order.id, ZERO_BI, ZERO_BI, event.params.amount, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp)
