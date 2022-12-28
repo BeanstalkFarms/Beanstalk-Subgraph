@@ -704,94 +704,285 @@ type PodMarketplaceDailySnapshot @entity {
 }
 
 type PodListing @entity {
-  "Account - Plot Index"
+  ######################## Identifiers ########################
+
+  """
+  The PodListing ID is a unique subgraph ID: `{account}-{index}"
+
+  The on-chain identifier for a PodListing is the `index`.
+  """
   id: ID!
+
   "Marketplace used for listing"
   podMarketplace: PodMarketplace!
-  " Historical ID for joins on frontend"
+
+  "Historical ID for joins"
   historyID: String!
-  "Plot being listed"
+
+  "Plot being Listed."
   plot: Plot!
-  "Farmer listing the plot"
+
+  "The Farmer that created the PodListing."
   farmer: Farmer!
-  "Timestamp created"
+
+  ######################## Configuration ########################
+
+  "The Pod Index of the listed Plot."
+  index: BigInt!
+
+  """
+  The position within the Plot from which to sell Pods.
+
+  0 <= `start` <= (plot size - `amount`)
+  """
+  start: BigInt!
+
+  "Where Beans are sent when the PodListing is Filled. See `FarmToMode`."
+  mode: Int!
+
+  ######################## Constraints ########################
+
+  """
+  When the `harvestableIndex` reaches this number, the Listing becomes EXPIRED.
+  """
+  maxHarvestableIndex: BigInt!
+
+  "Minimum number of Beans required to perform a Fill."
+  minFillAmount: BigInt!
+
+  ######################## Pricing ########################
+
+  """
+  The Pricing Type states whether this PodListing uses FIXED or DYNAMIC pricing.
+
+  null = V1 FIXED  = use `pricePerPod`
+  0    = V2 FIXED  = use `pricePerPod`
+  1    = V2 DYNAMIC = use `pricingFunction`
+  """
+  pricingType: Int
+  
+  """
+  [V1] The FIXED price per Pod denominated in Beans.
+
+  Ex. `pricePerPod = 10000` indicates a price of 0.01 Beans per Pod.
+
+  If `pricingType = 1`, this field is set to `0` and should be ignored.
+  """
+  pricePerPod: Int!
+
+  """
+  [V2] The FIXED or DYNAMIC pricing function, encoded as bytes.
+
+  This must be decoded client-side, see `LibPolynomial.sol` for more info.
+  """
+  pricingFunction: Bytes
+
+  ######################## Amounts [Relative to Original] ########################
+
+  """
+  The original index of the first PodListing in a parent->child chain.
+  
+  If `originalIndex !== index`, then this PodListing was created when a parent
+  PodListing was partially filled.
+  """
+  originalIndex: BigInt!
+
+  """
+  The original amount of Pods listed in the first PodListing in a parent->child
+  chain.
+  """
+  originalAmount: BigInt!
+
+  """
+  The amount of Pods Filled since the initial PodListing was Created.
+  
+  `0 <= filled <= originalAmount`
+  """
+  filled: BigInt!
+
+  ######################## Amounts [Relative to Child] ########################
+  
+  """
+  The maximum amount of Pods remaining to be sold by *this* PodListing.
+
+  When this PodListing is Filled or Cancelled, `amount` does NOT change.
+  """
+  amount: BigInt!
+
+  """
+  The number of Pods remaining in *this* PodListing.
+
+  When a Fill occurs, `remainingAmount` is decremented on this PodListing. A new
+  PodListing is created with an updated `index` and `amount` equal to this
+  PodListing's remainingAmount.
+
+  If this PodListing has NOT been Filled: `remainingAmount = amount`
+  If this PodListing has been Filled: `remainingAmount < amount`
+  If this PodListing has been Cancelled: `remainingAmount = 0`
+  """
+  remainingAmount: BigInt!
+
+  """
+  The number of Pods purchased from *this* PodListing.
+
+  If not yet Filled or the PodListing is CANCELLED: `filledAmount = 0`
+  """
+  filledAmount: BigInt!
+
+  """
+  The number of Pods that were remaining in *this* PodListing when it was Cancelled.
+  """
+  cancelledAmount: BigInt!
+
+  ######################## Activity ########################
+
+  "Any Fills associated with this PodListing."
+  fill: PodFill
+
+  ######################## Metadata ########################
+  
+  "Timestamp of PodListing creation."
   createdAt: BigInt!
-  "Timestamp updated"
+
+  "Timestamp of last update to this PodListing, including Fills and Cancellations."
   updatedAt: BigInt!
+
   "Current market status of listing"
   status: MarketStatus!
-  "Any associated market fill"
-  fill: PodFill
-  "Original index of the plot listed"
-  originalIndex: BigInt!
-  "Current index of plot listed"
-  index: BigInt!
-  "Start within plot for listing"
-  start: BigInt!
-  "Amount of pods listed"
-  amount: BigInt!
-  "Total amount of original listing"
-  originalAmount: BigInt!
-  "Remaining amount left to be filled"
-  remainingAmount: BigInt!
-  "Amount filled on this listing"
-  filledAmount: BigInt!
-  "Total amount filled from original listing"
-  filled: BigInt!
-  "Amount cancelled"
-  cancelledAmount: BigInt!
-  "Market v1 price per pod"
-  pricePerPod: Int!
-  "Minimum amount needed to fill this listing"
-  minFillAmount: BigInt!
-  "Max harvestable index before listing expires"
-  maxHarvestableIndex: BigInt!
-  "Market v2 pricing function"
-  pricingFunction: Bytes
-  "Sale bean mode (internal/external)"
-  mode: Int!
-  "Market v2 pricing type"
-  pricingType: Int
-  "Transaction hash when this entity was created"
+
+  "Transaction hash when this PodListing entity was created."
   creationHash: String!
 }
 
 type PodOrder @entity {
-  "Order ID emitted by event"
+  ######################## Identifiers ########################
+
+  """
+  The PodOrder ID matchces the `id` stored on-chain:
+
+  `keccak256(abi.encodePacked(account, pricePerPod, maxPlaceInLine, minFillAmount))`
+  """
   id: ID!
-  "Marketplace used for order"
-  podMarketplace: PodMarketplace!
-  " Historical ID for joins"
+
+  """
+  Historical ID for joins: `{account}-{createdAt}`
+  """
   historyID: String!
-  "Farmer placing the order"
+
+  "The Farmer that created the Pod Order."
   farmer: Farmer!
-  "Creation timestamp"
-  createdAt: BigInt!
-  "Timestamp updated"
-  updatedAt: BigInt!
-  "Current status of order"
-  status: MarketStatus!
-  "Any fill associated with this order"
-  fill: PodFill
-  "V1 - Original amount of the ordered pods"
-  podAmount: BigInt!
-  "V2 - Original amount of beans used to order pods"
-  beanAmount: BigInt!
-  "Current filled amount"
-  podAmountFilled: BigInt!
-  "Bean Amount Filled"
-  beanAmountFilled: BigInt!
-  "Minimum amount needed to fill this order"
+
+  "Marketplace used for Pod Order."
+  podMarketplace: PodMarketplace!
+
+  ######################## Constraints ########################
+
+  "Minimum number of Pods required to perform a Fill."
   minFillAmount: BigInt!
-  "Max place in line for pods to fulfill the order"
+
+  "Any Pod before `maxPlaceInLine` is eligible to Fill this PodOrder."
   maxPlaceInLine: BigInt!
-  "Market v1 price per pod"
-  pricePerPod: Int!
-  "Market v2 pricing function"
-  pricingFunction: Bytes
-  "Market v2 pricing type"
+
+  ######################## Pricing ########################
+
+  """
+  The Pricing Type states whether this PodOrder uses FIXED or DYNAMIC pricing.
+
+  null = V1 FIXED  = use `pricePerPod`
+  0    = V2 FIXED  = use `pricePerPod`
+  1    = V2 DYNAMIC = use `pricingFunction`
+  """
   pricingType: Int
-  "Transaction hash when this entity was created"
+
+  """
+  [V1] The FIXED price per Pod denominated in Beans.
+
+  Ex. `pricePerPod = 10000` indicates a price of 0.01 Beans per Pod.
+
+  If `pricingType = 1`, this field is initialized to `0` and should be ignored.
+  """
+  pricePerPod: Int!
+
+  """
+  [V2] The FIXED or DYNAMIC pricing function, encoded as bytes.
+
+  This must be decoded client-side, see `LibPolynomial.sol` for more info.
+
+  null    = V1 FIXED    = use `pricePerPod`
+  "0x"    = V2 FIXED    = use `pricePerPod`
+  "0x..." = V2 DYNAMIC  = use `pricingFunction`
+  """
+  pricingFunction: Bytes
+
+  ######################## Amounts ########################
+
+  """
+  The original number of Pods requested by this PodOrder.
+
+  Does NOT change as Fills occur.
+  Not deterministic for PodOrders with pricingType = DYNAMIC.
+
+  If pricingType = FIXED:
+    Set to the number of Pods which can be purchased by the Order.
+    If FIXED (V1): `amount` field emitted in PodOrderCreated. 
+    If FIXED (V2): `amount / pricePerPod` fields emitted in PodOrderCreated.
+
+  If pricingType = DYNAMIC:
+    Set to `0`. The number of Pods that will be provided is unknown, since
+    the price is calculated based on the place in line of supplied Pods.
+  """
+  podAmount: BigInt!
+
+  """
+  The original number of Beans locked in the PodOrder.
+
+  Does NOT change as Fills occur.
+  Always deterministic, since the Farmer must lock Beans for PodOrder fulfillment.
+
+  If FIXED (V1): `amount * pricePerPod` fields emitted in PodOrderCreated.
+  If FIXED (V2): `amount` field emitted in PodOrderCreated.
+  If DYNAMIC (V2): `amount` field emitted in PodOrderCreated.
+  """
+  beanAmount: BigInt!
+
+  """
+  The current number of Pods that have been purchased by this PodOrder.
+
+  Increases during each subsequent Fill.
+  If pricingType = FIXED: `0 <= podAmountFilled <= podAmount`
+  If pricingType = DYNAMIC: No constraint, since `podAmount` is unknown.
+
+  Upon PodOrder cancellation, this value is locked.
+  """
+  podAmountFilled: BigInt!
+
+  """
+  The current number of Beans spent to acquire Pods.
+  
+  Increases during each subsequent Fill:
+  `0 <= beanAmountFilled <= beanAmount`
+
+  Upon PodOrder cancellation, this value is locked.
+  """
+  beanAmountFilled: BigInt!
+
+  ######################## Activity ########################
+
+  "All Fills associated with this PodOrder."
+  fill: PodFill
+
+  ######################## Metadata ########################
+
+  "Current status of order."
+  status: MarketStatus!
+
+  "Timestamp of PodOrder creation."
+  createdAt: BigInt!
+
+  "Timestamp of last PodOrder update. Changes when a PodOrder is Filled or Cancelled."
+  updatedAt: BigInt!
+
+  "Transaction hash when this PodOrder entity was created."
   creationHash: String!
 }
 
