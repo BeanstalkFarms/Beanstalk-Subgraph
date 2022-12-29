@@ -230,6 +230,9 @@ export function handlePodOrderFilled(event: PodOrderFilled_v1): void {
     order.podAmountFilled = order.podAmountFilled.plus(event.params.amount)
     order.beanAmountFilled = order.beanAmountFilled.plus(beanAmount)
     order.status = order.podAmount == order.podAmountFilled ? 'FILLED' : 'ACTIVE'
+    let newFills = order.fills
+    newFills.push(fill.id)
+    order.fills = newFills
     order.save()
 
     fill.createdAt = event.block.timestamp
@@ -530,6 +533,9 @@ export function handlePodOrderFilled_v2(event: PodOrderFilled_v2): void {
     order.beanAmountFilled = order.beanAmountFilled.plus(event.params.costInBeans)
     order.podAmountFilled = order.podAmountFilled.plus(event.params.amount)
     order.status = order.beanAmount == order.beanAmountFilled ? 'FILLED' : 'ACTIVE'
+    let newFills = order.fills
+    newFills.push(fill.id)
+    order.fills = newFills
     order.save()
 
     fill.createdAt = event.block.timestamp

@@ -969,7 +969,7 @@ type PodOrder @entity {
   ######################## Activity ########################
 
   "All Fills associated with this PodOrder."
-  fill: PodFill
+  fills: [PodFill!]!
 
   ######################## Metadata ########################
 
