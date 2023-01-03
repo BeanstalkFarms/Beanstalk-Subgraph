@@ -727,7 +727,17 @@ type PodListing @entity {
 
   ######################## Configuration ########################
 
-  "The Pod Index of the listed Plot."
+  """
+  The absolute index of the listed Plot in the Pod Line.
+ 
+  Measured from the front, so the Listing contains all Pods between
+  (index) and (index + totalAmount).
+ 
+  An example where the podLine is 50,000 but the index is 150,000:
+     0         the first Pod issued
+     100,000   harvestableIndex
+     150,000   index
+  """
   index: BigInt!
 
   """
@@ -780,7 +790,7 @@ type PodListing @entity {
   ######################## Amounts [Relative to Original] ########################
 
   """
-  The original index of the first PodListing in a parent->child chain.
+  The original index from the first emission of PodListingCreated in a chain.
   
   If `originalIndex !== index`, then this PodListing was created when a parent
   PodListing was partially filled.
@@ -788,8 +798,7 @@ type PodListing @entity {
   originalIndex: BigInt!
 
   """
-  The original amount of Pods listed in the first PodListing in a parent->child
-  chain.
+  The total number of Pods listed during the first emission of PodListingCreated.
   """
   originalAmount: BigInt!
 
@@ -840,15 +849,15 @@ type PodListing @entity {
   fill: PodFill
 
   ######################## Metadata ########################
+
+  "Current market status of listing"
+  status: MarketStatus!
   
   "Timestamp of PodListing creation."
   createdAt: BigInt!
 
   "Timestamp of last update to this PodListing, including Fills and Cancellations."
   updatedAt: BigInt!
-
-  "Current market status of listing"
-  status: MarketStatus!
 
   "Transaction hash when this PodListing entity was created."
   creationHash: String!
@@ -877,11 +886,14 @@ type PodOrder @entity {
 
   ######################## Constraints ########################
 
+  """
+  The Farmer is willing to buy any Pod that is before maxPlaceInLine at pricePerPod.
+  As the Pod Line moves, this value stays the same because new Pods meet the criteria.
+  """
+  maxPlaceInLine: BigInt!
+
   "Minimum number of Pods required to perform a Fill."
   minFillAmount: BigInt!
-
-  "Any Pod before `maxPlaceInLine` is eligible to Fill this PodOrder."
-  maxPlaceInLine: BigInt!
 
   ######################## Pricing ########################
 
@@ -934,6 +946,17 @@ type PodOrder @entity {
   podAmount: BigInt!
 
   """
+  The current number of Pods that have been purchased by this PodOrder.
+
+  Increases during each subsequent Fill.
+  If pricingType = FIXED: `0 <= podAmountFilled <= podAmount`
+  If pricingType = DYNAMIC: No constraint, since `podAmount` is unknown.
+
+  Upon PodOrder cancellation, this value is locked.
+  """
+  podAmountFilled: BigInt!
+
+  """
   The original number of Beans locked in the PodOrder.
 
   Does NOT change as Fills occur.
@@ -944,17 +967,6 @@ type PodOrder @entity {
   If DYNAMIC (V2): `amount` field emitted in PodOrderCreated.
   """
   beanAmount: BigInt!
-
-  """
-  The current number of Pods that have been purchased by this PodOrder.
-
-  Increases during each subsequent Fill.
-  If pricingType = FIXED: `0 <= podAmountFilled <= podAmount`
-  If pricingType = DYNAMIC: No constraint, since `podAmount` is unknown.
-
-  Upon PodOrder cancellation, this value is locked.
-  """
-  podAmountFilled: BigInt!
 
   """
   The current number of Beans spent to acquire Pods.
