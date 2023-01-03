@@ -8,6 +8,7 @@ import { loadPodMarketplace, loadPodMarketplaceDailySnapshot, loadPodMarketplace
 export function loadPodListing(account: Address, index: BigInt): PodListing {
     let id = account.toHexString() + '-' + index.toString()
     let listing = PodListing.load(id)
+
     if (listing == null) {
         listing = new PodListing(id)
         listing.podMarketplace = BEANSTALK.toHexString()
@@ -40,6 +41,7 @@ export function loadPodListing(account: Address, index: BigInt): PodListing {
 
         listing.save()
     }
+    
     return listing
 }
 

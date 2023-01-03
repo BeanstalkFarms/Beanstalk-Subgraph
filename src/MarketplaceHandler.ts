@@ -32,7 +32,14 @@ import { createHistoricalPodListing, loadPodListing } from "./utils/PodListing";
 import { loadPodMarketplace, loadPodMarketplaceDailySnapshot, loadPodMarketplaceHourlySnapshot } from "./utils/PodMarketplace";
 import { createHistoricalPodOrder, loadPodOrder } from "./utils/PodOrder";
 
-/* ======== Original Functions ======== */
+/* ------------------------------------
+ * POD MARKETPLACE V1
+ * 
+ * Proposal: BIP-11 https://bean.money/bip-11
+ * Deployed: 02/05/2022 @ block 14148509
+ * Code: https://github.com/BeanstalkFarms/Beanstalk/commit/75a67fc94cf2637ac1d7d7c89645492e31423fed
+ * ------------------------------------
+ */
 
 export function handlePodListingCreated(event: PodListingCreated_v1): void {
     let plotCheck = Plot.load(event.params.index.toString())
@@ -65,7 +72,7 @@ export function handlePodListingCreated(event: PodListingCreated_v1): void {
     listing.originalAmount = event.params.amount
 
     // Amounts [Relative to Child]
-    listing.amount = event.params.amount
+    listing.amount = event.params.amount // in Pods
     listing.remainingAmount = listing.originalAmount
     
     // Metadata
@@ -168,6 +175,7 @@ export function handlePodListingFilled(event: PodListingFilled_v1): void {
     }
     listing.save()
 
+    /// Save pod fill
     let fill = loadPodFill(event.address, event.params.index, event.transaction.hash.toHexString())
     fill.createdAt = event.block.timestamp
     fill.listing = listing.id
@@ -179,7 +187,7 @@ export function handlePodListingFilled(event: PodListingFilled_v1): void {
     fill.costInBeans = beanAmount
     fill.save()
 
-    // Save the raw event data
+    /// Save the raw event data
     let id = 'podListingFilled-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
     let rawEvent = new PodListingFilledEvent(id)
     rawEvent.hash = event.transaction.hash.toHexString()
@@ -310,9 +318,17 @@ export function handlePodOrderCancelled(event: PodOrderCancelled): void {
     rawEvent.save()
 }
 
-/* ======== Replant Functions ======== */
+/* ------------------------------------
+ * POD MARKETPLACE V1 - REPLANTED
+ * 
+ * When Beanstalk was Replanted, `event.params.mode` was changed from
+ * `bool` to `uint8`. 
+ * 
+ * Proposal: ...
+ * Deployed: ... at block 15277986
+ * ------------------------------------
+ */
 
-// Handle the signature change that happened with replant from the bool to uint8
 export function handlePodListingCreated_v1_1(event: PodListingCreated_v1_1): void {
     let plotCheck = Plot.load(event.params.index.toString())
     if (plotCheck == null) { return }
@@ -375,7 +391,13 @@ export function handlePodListingCreated_v1_1(event: PodListingCreated_v1_1): voi
     rawEvent.save()
 }
 
-/* ======== PodMarket V2 Functions ======== */
+/* ------------------------------------
+ * POD MARKETPLACE V2
+ * 
+ * Proposal: BIP-29 https://bean.money/bip-29
+ * Deployed: 11/12/2022 @ block 15277986
+ * ------------------------------------
+ */
 
 export function handlePodListingCreated_v2(event: PodListingCreated_v2): void {
 
@@ -608,7 +630,10 @@ export function handlePodOrderFilled_v2(event: PodOrderFilled_v2): void {
     rawEvent.save()
 }
 
-/* ======== Common Functions ======== */
+/* ------------------------------------
+ * SHARED FUNCTIONS
+ * ------------------------------------
+ */
 
 function updateMarketListingBalances(
     marketAddress: Address,
