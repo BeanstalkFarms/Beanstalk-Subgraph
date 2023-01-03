@@ -50,13 +50,18 @@ export function handlePodListingCreated(event: PodListingCreated_v1): void {
     let listing = loadPodListing(event.params.account, event.params.index)
     if (listing.createdAt !== ZERO_BI) {
         createHistoricalPodListing(listing)
+        listing.status = 'ACTIVE'
         listing.createdAt = ZERO_BI
+        listing.fill = null
+        listing.filled = ZERO_BI
+        listing.filledAmount = ZERO_BI
+        listing.cancelledAmount = ZERO_BI
     }
-    
+
     // Identifiers
     listing.historyID = listing.id + '-' + event.block.timestamp.toString()
     listing.plot = plot.id
-    
+
     // Configuration
     listing.start = event.params.start
     listing.mode = event.params.toWallet === true ? 0 : 1
@@ -74,7 +79,7 @@ export function handlePodListingCreated(event: PodListingCreated_v1): void {
     // Amounts [Relative to Child]
     listing.amount = event.params.amount // in Pods
     listing.remainingAmount = listing.originalAmount
-    
+
     // Metadata
     listing.createdAt = listing.createdAt == ZERO_BI ? event.block.timestamp : listing.createdAt
     listing.updatedAt = event.block.timestamp
@@ -172,8 +177,8 @@ export function handlePodListingFilled(event: PodListingFilled_v1): void {
         remainingListing.creationHash = event.transaction.hash.toHexString()
         remainingListing.save()
         market.listingIndexes.push(remainingListing.index)
+        market.save()
     }
-    listing.save()
 
     /// Save pod fill
     let fill = loadPodFill(event.address, event.params.index, event.transaction.hash.toHexString())
@@ -187,7 +192,10 @@ export function handlePodListingFilled(event: PodListingFilled_v1): void {
     fill.costInBeans = beanAmount
     fill.save()
 
-    /// Save the raw event data
+    listing.fill = fill.id
+    listing.save()
+
+    // Save the raw event data
     let id = 'podListingFilled-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
     let rawEvent = new PodListingFilledEvent(id)
     rawEvent.hash = event.transaction.hash.toHexString()
@@ -276,6 +284,7 @@ export function handlePodOrderFilled(event: PodOrderFilled_v1): void {
         if (orderIndex !== -1) {
             market.orders.splice(orderIndex, 1)
         }
+        market.save()
     }
 
     // Save the raw event data
@@ -343,16 +352,16 @@ export function handlePodListingCreated_v1_1(event: PodListingCreated_v1_1): voi
 
     listing.historyID = listing.id + '-' + event.block.timestamp.toString()
     listing.plot = plot.id
-    
+
     listing.start = event.params.start
     listing.mode = event.params.mode
-    
+
     listing.pricePerPod = event.params.pricePerPod
     listing.maxHarvestableIndex = event.params.maxHarvestableIndex
 
     listing.originalIndex = event.params.index
     listing.originalAmount = event.params.amount
-    
+
     listing.amount = event.params.amount
     listing.remainingAmount = listing.originalAmount
 
@@ -421,7 +430,7 @@ export function handlePodListingCreated_v2(event: PodListingCreated_v2): void {
 
     listing.minFillAmount = event.params.minFillAmount
     listing.maxHarvestableIndex = event.params.maxHarvestableIndex
-    
+
     listing.pricingType = event.params.pricingType
     listing.pricePerPod = event.params.pricePerPod
     listing.pricingFunction = event.params.pricingFunction
@@ -504,8 +513,8 @@ export function handlePodListingFilled_v2(event: PodListingFilled_v2): void {
         remainingListing.creationHash = event.transaction.hash.toHexString()
         remainingListing.save()
         market.listingIndexes.push(remainingListing.index)
+        market.save()
     }
-    listing.save()
 
     let fill = loadPodFill(event.address, event.params.index, event.transaction.hash.toHexString())
     fill.createdAt = event.block.timestamp
@@ -517,6 +526,9 @@ export function handlePodListingFilled_v2(event: PodListingFilled_v2): void {
     fill.start = event.params.start
     fill.costInBeans = event.params.costInBeans
     fill.save()
+
+    listing.fill = fill.id
+    listing.save()
 
     // Save the raw event data
     let id = 'podListingFilled-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
@@ -610,6 +622,7 @@ export function handlePodOrderFilled_v2(event: PodOrderFilled_v2): void {
         if (orderIndex !== -1) {
             market.orders.splice(orderIndex, 1)
         }
+        market.save()
     }
 
     // Save the raw event data

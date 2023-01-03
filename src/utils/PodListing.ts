@@ -28,12 +28,12 @@ export function loadPodListing(account: Address, index: BigInt): PodListing {
         listing.originalIndex = index
         listing.originalAmount = ZERO_BI
         listing.filled = ZERO_BI
-        
+
         listing.amount = ZERO_BI
         listing.remainingAmount = ZERO_BI
         listing.filledAmount = ZERO_BI
         listing.cancelledAmount = ZERO_BI
-        
+
         listing.status = 'ACTIVE'
         listing.createdAt = ZERO_BI
         listing.creationHash = ''
@@ -95,9 +95,9 @@ export function createHistoricalPodListing(listing: PodListing): void {
 
             newListing.maxHarvestableIndex = listing.maxHarvestableIndex
             newListing.minFillAmount = listing.minFillAmount
-            
+
             newListing.pricePerPod = listing.pricePerPod
-            
+
             newListing.originalIndex = listing.originalIndex
             newListing.originalAmount = listing.originalAmount
             newListing.filled = listing.filled
@@ -106,7 +106,9 @@ export function createHistoricalPodListing(listing: PodListing): void {
             newListing.remainingAmount = listing.remainingAmount
             newListing.filledAmount = listing.filledAmount
             newListing.cancelledAmount = listing.cancelledAmount
-            
+
+            newListing.fill = listing.fill
+
             newListing.status = listing.status
             newListing.createdAt = listing.createdAt
             newListing.updatedAt = listing.updatedAt
