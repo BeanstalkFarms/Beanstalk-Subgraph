@@ -347,7 +347,12 @@ export function handlePodListingCreated_v1_1(event: PodListingCreated_v1_1): voi
     let listing = loadPodListing(event.params.account, event.params.index)
     if (listing.createdAt !== ZERO_BI) {
         createHistoricalPodListing(listing)
+        listing.status = 'ACTIVE'
         listing.createdAt = ZERO_BI
+        listing.fill = null
+        listing.filled = ZERO_BI
+        listing.filledAmount = ZERO_BI
+        listing.cancelledAmount = ZERO_BI
     }
 
     listing.historyID = listing.id + '-' + event.block.timestamp.toString()
