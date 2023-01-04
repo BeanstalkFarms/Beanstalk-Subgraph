@@ -277,7 +277,7 @@ export function handlePodOrderFilled(event: PodOrderFilled_v1): void {
 
     updateMarketOrderBalances(event.address, order.id, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, event.params.amount, beanAmount, event.block.timestamp)
 
-    if (order.podAmountFilled = order.podAmount) {
+    if (order.podAmountFilled == order.podAmount) {
         let market = loadPodMarketplace(event.address)
 
         let orderIndex = market.orders.indexOf(order.id)
@@ -564,6 +564,9 @@ export function handlePodOrderCreated_v2(event: PodOrderCreated_v2): void {
 
     if (order.status != '') { createHistoricalPodOrder(order) }
 
+    // Store the pod amount if the order is a FIXED pricingType
+    if (event.params.priceType == 0) { order.podAmount = event.params.amount.times(BigInt.fromI32(1000000)).div(BigInt.fromI32(event.params.pricePerPod)) }
+
     order.historyID = order.id + '-' + event.block.timestamp.toString()
     order.farmer = event.params.account.toHexString()
     order.createdAt = event.block.timestamp
@@ -625,7 +628,7 @@ export function handlePodOrderFilled_v2(event: PodOrderFilled_v2): void {
 
     updateMarketOrderBalances(event.address, order.id, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, event.params.amount, event.params.costInBeans, event.block.timestamp)
 
-    if (order.beanAmountFilled = order.beanAmount) {
+    if (order.beanAmountFilled == order.beanAmount) {
         let market = loadPodMarketplace(event.address)
 
         let orderIndex = market.orders.indexOf(order.id)
