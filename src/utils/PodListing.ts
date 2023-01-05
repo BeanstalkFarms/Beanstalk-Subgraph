@@ -8,30 +8,40 @@ import { loadPodMarketplace, loadPodMarketplaceDailySnapshot, loadPodMarketplace
 export function loadPodListing(account: Address, index: BigInt): PodListing {
     let id = account.toHexString() + '-' + index.toString()
     let listing = PodListing.load(id)
+
     if (listing == null) {
         listing = new PodListing(id)
         listing.podMarketplace = BEANSTALK.toHexString()
         listing.historyID = ''
         listing.plot = index.toString()
         listing.farmer = account.toHexString()
-        listing.createdAt = ZERO_BI
-        listing.updatedAt = ZERO_BI
-        listing.status = 'ACTIVE'
-        listing.originalIndex = index
+
         listing.index = index
         listing.start = ZERO_BI
-        listing.amount = ZERO_BI
+        listing.mode = 0
+
+        listing.maxHarvestableIndex = ZERO_BI
+        listing.minFillAmount = ZERO_BI
+
+        listing.pricePerPod = 0
+
+        listing.originalIndex = index
         listing.originalAmount = ZERO_BI
+        listing.filled = ZERO_BI
+
+        listing.amount = ZERO_BI
         listing.remainingAmount = ZERO_BI
         listing.filledAmount = ZERO_BI
-        listing.filled = ZERO_BI
         listing.cancelledAmount = ZERO_BI
-        listing.pricePerPod = 0
-        listing.minFillAmount = ZERO_BI
-        listing.maxHarvestableIndex = ZERO_BI
-        listing.mode = 0
+
+        listing.status = 'ACTIVE'
+        listing.createdAt = ZERO_BI
+        listing.creationHash = ''
+        listing.updatedAt = ZERO_BI
+
         listing.save()
     }
+    
     return listing
 }
 
@@ -78,22 +88,31 @@ export function createHistoricalPodListing(listing: PodListing): void {
             newListing.historyID = listing.historyID
             newListing.plot = listing.plot
             newListing.farmer = listing.farmer
-            newListing.createdAt = listing.createdAt
-            newListing.updatedAt = listing.updatedAt
-            newListing.status = listing.status
-            newListing.originalIndex = listing.originalIndex
+
             newListing.index = listing.index
             newListing.start = listing.start
-            newListing.amount = listing.amount
+            newListing.mode = listing.mode
+
+            newListing.maxHarvestableIndex = listing.maxHarvestableIndex
+            newListing.minFillAmount = listing.minFillAmount
+
+            newListing.pricePerPod = listing.pricePerPod
+
+            newListing.originalIndex = listing.originalIndex
             newListing.originalAmount = listing.originalAmount
+            newListing.filled = listing.filled
+
+            newListing.amount = listing.amount
             newListing.remainingAmount = listing.remainingAmount
             newListing.filledAmount = listing.filledAmount
-            newListing.filled = listing.filled
             newListing.cancelledAmount = listing.cancelledAmount
-            newListing.pricePerPod = listing.pricePerPod
-            newListing.minFillAmount = listing.minFillAmount
-            newListing.maxHarvestableIndex = listing.maxHarvestableIndex
-            newListing.mode = listing.mode
+
+            newListing.fill = listing.fill
+
+            newListing.status = listing.status
+            newListing.createdAt = listing.createdAt
+            newListing.updatedAt = listing.updatedAt
+            newListing.creationHash = listing.creationHash
             newListing.save()
             created = true
         }

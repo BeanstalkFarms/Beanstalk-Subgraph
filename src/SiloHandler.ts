@@ -36,6 +36,7 @@ export function handleAddDeposit(event: AddDeposit): void {
     deposit.amount = deposit.amount.plus(event.params.amount)
     deposit.depositedAmount = deposit.depositedAmount.plus(event.params.amount)
     deposit.bdv = deposit.bdv.plus(event.params.bdv)
+    deposit.depositedBDV = deposit.depositedBDV.plus(event.params.bdv)
     let depositHashes = deposit.hashes
     depositHashes.push(event.transaction.hash.toHexString())
     deposit.hashes = depositHashes
@@ -77,13 +78,12 @@ export function handleRemoveDeposit(event: RemoveDeposit): void {
 
     let beanstalk = loadBeanstalk(event.address) // get current season
     let deposit = loadSiloDeposit(event.params.account, event.params.token, event.params.season)
-    let remainingTokenAmount = deposit.depositedAmount.minus(deposit.withdrawnAmount)
-    let remainingBDV = deposit.bdv.minus(deposit.withdrawnBDV)
 
-    let withdrawnBDV = remainingTokenAmount == ZERO_BI ? ZERO_BI : event.params.amount.times(remainingBDV).div(remainingTokenAmount)
+    let withdrawnBDV = deposit.amount == ZERO_BI ? ZERO_BI : event.params.amount.times(deposit.bdv).div(deposit.amount)
 
     // Update deposit
     deposit.withdrawnBDV = deposit.withdrawnBDV.plus(withdrawnBDV)
+    deposit.bdv = deposit.bdv.minus(withdrawnBDV)
     deposit.withdrawnAmount = deposit.withdrawnAmount.plus(event.params.amount)
     deposit.amount = deposit.amount.minus(event.params.amount)
     deposit.save()
@@ -117,13 +117,12 @@ export function handleRemoveDeposits(event: RemoveDeposits): void {
     for (let i = 0; i < event.params.seasons.length; i++) {
 
         let deposit = loadSiloDeposit(event.params.account, event.params.token, event.params.seasons[i])
-        let remainingTokenAmount = deposit.depositedAmount.minus(deposit.withdrawnAmount)
-        let remainingBDV = deposit.bdv.minus(deposit.withdrawnBDV)
 
-        let withdrawnBDV = remainingTokenAmount == ZERO_BI ? ZERO_BI : event.params.amounts[i].times(remainingBDV).div(remainingTokenAmount)
+        let withdrawnBDV = deposit.amount == ZERO_BI ? ZERO_BI : event.params.amounts[i].times(deposit.bdv).div(deposit.amount)
 
         // Update deposit
         deposit.withdrawnBDV = deposit.withdrawnBDV.plus(withdrawnBDV)
+        deposit.bdv = deposit.bdv.minus(withdrawnBDV)
         deposit.withdrawnAmount = deposit.withdrawnAmount.plus(event.params.amounts[i])
         deposit.amount = deposit.amount.minus(event.params.amounts[i])
         deposit.save()

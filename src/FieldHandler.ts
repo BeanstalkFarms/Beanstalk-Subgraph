@@ -100,8 +100,8 @@ export function handleHarvest(event: Harvest): void {
 
         if (harvestablePods >= plot.pods) {
             // Plot fully harvests
-            updateFieldTotals(event.address, beanstalk.lastSeason, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, plot.pods, event.block.timestamp, event.block.number)
-            updateFieldTotals(event.params.account, beanstalk.lastSeason, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, plot.pods, event.block.timestamp, event.block.number)
+            updateFieldTotals(event.address, beanstalk.lastSeason, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI.minus(plot.pods), plot.pods, event.block.timestamp, event.block.number)
+            updateFieldTotals(event.params.account, beanstalk.lastSeason, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI.minus(plot.pods), plot.pods, event.block.timestamp, event.block.number)
 
             plot.harvestedPods = plot.pods
             plot.fullyHarvested = true
@@ -109,8 +109,8 @@ export function handleHarvest(event: Harvest): void {
         } else {
             // Plot partially harvests
 
-            updateFieldTotals(event.address, beanstalk.lastSeason, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, harvestablePods, event.block.timestamp, event.block.number)
-            updateFieldTotals(event.params.account, beanstalk.lastSeason, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, harvestablePods, event.block.timestamp, event.block.number)
+            updateFieldTotals(event.address, beanstalk.lastSeason, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI.minus(harvestablePods), harvestablePods, event.block.timestamp, event.block.number)
+            updateFieldTotals(event.params.account, beanstalk.lastSeason, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI.minus(harvestablePods), harvestablePods, event.block.timestamp, event.block.number)
 
             remainingIndex = plot.index.plus(harvestablePods)
             let remainingPods = plot.pods.minus(harvestablePods)

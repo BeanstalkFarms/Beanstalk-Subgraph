@@ -32,41 +32,68 @@ import { createHistoricalPodListing, loadPodListing } from "./utils/PodListing";
 import { loadPodMarketplace, loadPodMarketplaceDailySnapshot, loadPodMarketplaceHourlySnapshot } from "./utils/PodMarketplace";
 import { createHistoricalPodOrder, loadPodOrder } from "./utils/PodOrder";
 
-/* ======== Original Functions ======== */
+/* ------------------------------------
+ * POD MARKETPLACE V1
+ * 
+ * Proposal: BIP-11 https://bean.money/bip-11
+ * Deployed: 02/05/2022 @ block 14148509
+ * Code: https://github.com/BeanstalkFarms/Beanstalk/commit/75a67fc94cf2637ac1d7d7c89645492e31423fed
+ * ------------------------------------
+ */
 
 export function handlePodListingCreated(event: PodListingCreated_v1): void {
-
     let plotCheck = Plot.load(event.params.index.toString())
     if (plotCheck == null) { return }
     let plot = loadPlot(event.address, event.params.index)
-    // Farmer Balances
-    let listing = loadPodListing(event.params.account, event.params.index)
 
+    /// Upsert pod listing
+    let listing = loadPodListing(event.params.account, event.params.index)
     if (listing.createdAt !== ZERO_BI) {
         createHistoricalPodListing(listing)
+        listing.status = 'ACTIVE'
         listing.createdAt = ZERO_BI
+        listing.fill = null
+        listing.filled = ZERO_BI
+        listing.filledAmount = ZERO_BI
+        listing.cancelledAmount = ZERO_BI
     }
 
+    // Identifiers
     listing.historyID = listing.id + '-' + event.block.timestamp.toString()
     listing.plot = plot.id
+
+    // Configuration
+    listing.start = event.params.start
+    listing.mode = event.params.toWallet === true ? 0 : 1
+
+    // Constraints
+    listing.maxHarvestableIndex = event.params.maxHarvestableIndex
+
+    // Pricing
+    listing.pricePerPod = event.params.pricePerPod
+
+    // Amounts [Relative to Original]
+    listing.originalIndex = event.params.index
+    listing.originalAmount = event.params.amount
+
+    // Amounts [Relative to Child]
+    listing.amount = event.params.amount // in Pods
+    listing.remainingAmount = listing.originalAmount
+
+    // Metadata
     listing.createdAt = listing.createdAt == ZERO_BI ? event.block.timestamp : listing.createdAt
     listing.updatedAt = event.block.timestamp
-    listing.originalIndex = event.params.index
-    listing.start = event.params.start
-    listing.amount = event.params.amount
-    listing.originalAmount = event.params.amount
-    listing.remainingAmount = listing.originalAmount
-    listing.pricePerPod = event.params.pricePerPod
-    listing.maxHarvestableIndex = event.params.maxHarvestableIndex
-    listing.mode = event.params.toWallet === true ? 0 : 1
+    listing.creationHash = event.transaction.hash.toHexString()
     listing.save()
 
+    /// Update plot
     plot.listing = listing.id
     plot.save()
 
+    /// Update market totals
     updateMarketListingBalances(event.address, plot.index, event.params.amount, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp)
 
-    // Save the raw event data
+    /// Save raw event data
     let id = 'podListingCreated-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
     let rawEvent = new PodListingCreatedEvent(id)
     rawEvent.hash = event.transaction.hash.toHexString()
@@ -79,6 +106,7 @@ export function handlePodListingCreated(event: PodListingCreated_v1): void {
     rawEvent.amount = event.params.amount
     rawEvent.pricePerPod = event.params.pricePerPod
     rawEvent.maxHarvestableIndex = event.params.maxHarvestableIndex
+    rawEvent.minFillAmount = ZERO_BI
     rawEvent.mode = event.params.toWallet
     rawEvent.blockNumber = event.block.number
     rawEvent.createdAt = event.block.timestamp
@@ -146,11 +174,13 @@ export function handlePodListingFilled(event: PodListingFilled_v1): void {
         remainingListing.pricePerPod = listing.pricePerPod
         remainingListing.maxHarvestableIndex = listing.maxHarvestableIndex
         remainingListing.mode = listing.mode
+        remainingListing.creationHash = event.transaction.hash.toHexString()
         remainingListing.save()
         market.listingIndexes.push(remainingListing.index)
+        market.save()
     }
-    listing.save()
 
+    /// Save pod fill
     let fill = loadPodFill(event.address, event.params.index, event.transaction.hash.toHexString())
     fill.createdAt = event.block.timestamp
     fill.listing = listing.id
@@ -161,6 +191,9 @@ export function handlePodListingFilled(event: PodListingFilled_v1): void {
     fill.start = event.params.start
     fill.costInBeans = beanAmount
     fill.save()
+
+    listing.fill = fill.id
+    listing.save()
 
     // Save the raw event data
     let id = 'podListingFilled-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
@@ -195,6 +228,7 @@ export function handlePodOrderCreated(event: PodOrderCreated_v1): void {
     order.podAmountFilled = ZERO_BI
     order.maxPlaceInLine = event.params.maxPlaceInLine
     order.pricePerPod = event.params.pricePerPod
+    order.creationHash = event.transaction.hash.toHexString()
     order.save()
 
     updateMarketOrderBalances(event.address, order.id, event.params.amount, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp)
@@ -224,7 +258,11 @@ export function handlePodOrderFilled(event: PodOrderFilled_v1): void {
 
     order.updatedAt = event.block.timestamp
     order.podAmountFilled = order.podAmountFilled.plus(event.params.amount)
+    order.beanAmountFilled = order.beanAmountFilled.plus(beanAmount)
     order.status = order.podAmount == order.podAmountFilled ? 'FILLED' : 'ACTIVE'
+    let newFills = order.fills
+    newFills.push(fill.id)
+    order.fills = newFills
     order.save()
 
     fill.createdAt = event.block.timestamp
@@ -239,13 +277,14 @@ export function handlePodOrderFilled(event: PodOrderFilled_v1): void {
 
     updateMarketOrderBalances(event.address, order.id, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, event.params.amount, beanAmount, event.block.timestamp)
 
-    if (order.podAmountFilled = order.podAmount) {
+    if (order.podAmountFilled == order.podAmount) {
         let market = loadPodMarketplace(event.address)
 
         let orderIndex = market.orders.indexOf(order.id)
         if (orderIndex !== -1) {
             market.orders.splice(orderIndex, 1)
         }
+        market.save()
     }
 
     // Save the raw event data
@@ -288,42 +327,64 @@ export function handlePodOrderCancelled(event: PodOrderCancelled): void {
     rawEvent.save()
 }
 
-/* ======== Replant Functions ======== */
-
+/* ------------------------------------
+ * POD MARKETPLACE V1 - REPLANTED
+ * 
+ * When Beanstalk was Replanted, `event.params.mode` was changed from
+ * `bool` to `uint8`. 
+ * 
+ * Proposal: ...
+ * Deployed: ... at block 15277986
+ * ------------------------------------
+ */
 
 export function handlePodListingCreated_v1_1(event: PodListingCreated_v1_1): void {
     let plotCheck = Plot.load(event.params.index.toString())
     if (plotCheck == null) { return }
     let plot = loadPlot(event.address, event.params.index)
-    // Farmer Balances
-    let listing = loadPodListing(event.params.account, event.params.index)
 
+    /// Upsert pod listing
+    let listing = loadPodListing(event.params.account, event.params.index)
     if (listing.createdAt !== ZERO_BI) {
         createHistoricalPodListing(listing)
+        listing.status = 'ACTIVE'
         listing.createdAt = ZERO_BI
+        listing.fill = null
+        listing.filled = ZERO_BI
+        listing.filledAmount = ZERO_BI
+        listing.cancelledAmount = ZERO_BI
     }
 
     listing.historyID = listing.id + '-' + event.block.timestamp.toString()
     listing.plot = plot.id
-    listing.createdAt = listing.createdAt == ZERO_BI ? event.block.timestamp : listing.createdAt
-    listing.updatedAt = event.block.timestamp
-    listing.status = 'ACTIVE'
-    listing.originalIndex = event.params.index
+
     listing.start = event.params.start
-    listing.amount = event.params.amount
-    listing.originalAmount = event.params.amount
-    listing.remainingAmount = listing.originalAmount
+    listing.mode = event.params.mode
+
     listing.pricePerPod = event.params.pricePerPod
     listing.maxHarvestableIndex = event.params.maxHarvestableIndex
-    listing.mode = event.params.mode
+
+    listing.originalIndex = event.params.index
+    listing.originalAmount = event.params.amount
+
+    listing.amount = event.params.amount
+    listing.remainingAmount = listing.originalAmount
+
+    listing.status = 'ACTIVE'
+    listing.createdAt = listing.createdAt == ZERO_BI ? event.block.timestamp : listing.createdAt
+    listing.updatedAt = event.block.timestamp
+    listing.creationHash = event.transaction.hash.toHexString()
+
     listing.save()
 
+    /// Update plot
     plot.listing = listing.id
     plot.save()
 
+    /// Update market totals
     updateMarketListingBalances(event.address, plot.index, event.params.amount, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp)
 
-    // Save the raw event data
+    /// Save raw event data
     let id = 'podListingCreated-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
     let rawEvent = new PodListingCreatedEvent(id)
     rawEvent.hash = event.transaction.hash.toHexString()
@@ -336,50 +397,75 @@ export function handlePodListingCreated_v1_1(event: PodListingCreated_v1_1): voi
     rawEvent.amount = event.params.amount
     rawEvent.pricePerPod = event.params.pricePerPod
     rawEvent.maxHarvestableIndex = event.params.maxHarvestableIndex
+    rawEvent.maxHarvestableIndex = ZERO_BI
+    rawEvent.minFillAmount = ZERO_BI
     rawEvent.mode = event.params.mode
     rawEvent.blockNumber = event.block.number
     rawEvent.createdAt = event.block.timestamp
     rawEvent.save()
 }
 
-/* ======== PodMarket V2 Functions ======== */
+/* ------------------------------------
+ * POD MARKETPLACE V2
+ * 
+ * Proposal: BIP-29 https://bean.money/bip-29
+ * Deployed: 11/12/2022 @ block 15277986
+ * ------------------------------------
+ */
 
 export function handlePodListingCreated_v2(event: PodListingCreated_v2): void {
 
     let plotCheck = Plot.load(event.params.index.toString())
     if (plotCheck == null) { return }
     let plot = loadPlot(event.address, event.params.index)
-    // Farmer Balances
-    let listing = loadPodListing(event.params.account, event.params.index)
 
+    /// Upsert PodListing
+    let listing = loadPodListing(event.params.account, event.params.index)
     if (listing.createdAt !== ZERO_BI) {
+        // Re-listed prior plot with new info
         createHistoricalPodListing(listing)
+        listing.status = 'ACTIVE'
         listing.createdAt = ZERO_BI
+        listing.fill = null
+        listing.filled = ZERO_BI
+        listing.filledAmount = ZERO_BI
+        listing.cancelledAmount = ZERO_BI
     }
 
     listing.historyID = listing.id + '-' + event.block.timestamp.toString()
     listing.plot = plot.id
-    listing.createdAt = listing.createdAt == ZERO_BI ? event.block.timestamp : listing.createdAt
-    listing.updatedAt = event.block.timestamp
-    listing.originalIndex = event.params.index
+
     listing.start = event.params.start
-    listing.amount = event.params.amount
-    listing.originalAmount = event.params.amount
-    listing.remainingAmount = listing.originalAmount
-    listing.pricePerPod = event.params.pricePerPod
+    listing.mode = event.params.mode
+
     listing.minFillAmount = event.params.minFillAmount
     listing.maxHarvestableIndex = event.params.maxHarvestableIndex
-    listing.pricingFunction = event.params.pricingFunction
-    listing.mode = event.params.mode === true ? 0 : 1
+
     listing.pricingType = event.params.pricingType
+    listing.pricePerPod = event.params.pricePerPod
+    listing.pricingFunction = event.params.pricingFunction
+
+    listing.originalIndex = event.params.index
+    listing.originalAmount = event.params.amount
+
+    listing.amount = event.params.amount
+    listing.remainingAmount = listing.originalAmount
+
+    listing.status = 'ACTIVE'
+    listing.createdAt = listing.createdAt == ZERO_BI ? event.block.timestamp : listing.createdAt
+    listing.updatedAt = event.block.timestamp
+    listing.creationHash = event.transaction.hash.toHexString()
+
     listing.save()
 
+    /// Update plot
     plot.listing = listing.id
     plot.save()
 
+    /// Update market totals
     updateMarketListingBalances(event.address, plot.index, event.params.amount, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp)
 
-    // Save the raw event data
+    /// Save  raw event data
     let id = 'podListingCreated-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
     let rawEvent = new PodListingCreatedEvent(id)
     rawEvent.hash = event.transaction.hash.toHexString()
@@ -392,6 +478,7 @@ export function handlePodListingCreated_v2(event: PodListingCreated_v2): void {
     rawEvent.amount = event.params.amount
     rawEvent.pricePerPod = event.params.pricePerPod
     rawEvent.maxHarvestableIndex = event.params.maxHarvestableIndex
+    rawEvent.minFillAmount = event.params.minFillAmount
     rawEvent.mode = event.params.mode
     rawEvent.pricingFunction = event.params.pricingFunction
     rawEvent.pricingType = event.params.pricingType
@@ -433,10 +520,11 @@ export function handlePodListingFilled_v2(event: PodListingFilled_v2): void {
         remainingListing.pricePerPod = listing.pricePerPod
         remainingListing.maxHarvestableIndex = listing.maxHarvestableIndex
         remainingListing.mode = listing.mode
+        remainingListing.creationHash = event.transaction.hash.toHexString()
         remainingListing.save()
         market.listingIndexes.push(remainingListing.index)
+        market.save()
     }
-    listing.save()
 
     let fill = loadPodFill(event.address, event.params.index, event.transaction.hash.toHexString())
     fill.createdAt = event.block.timestamp
@@ -448,6 +536,9 @@ export function handlePodListingFilled_v2(event: PodListingFilled_v2): void {
     fill.start = event.params.start
     fill.costInBeans = event.params.costInBeans
     fill.save()
+
+    listing.fill = fill.id
+    listing.save()
 
     // Save the raw event data
     let id = 'podListingFilled-' + event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
@@ -473,6 +564,9 @@ export function handlePodOrderCreated_v2(event: PodOrderCreated_v2): void {
 
     if (order.status != '') { createHistoricalPodOrder(order) }
 
+    // Store the pod amount if the order is a FIXED pricingType
+    if (event.params.priceType == 0) { order.podAmount = event.params.amount.times(BigInt.fromI32(1000000)).div(BigInt.fromI32(event.params.pricePerPod)) }
+
     order.historyID = order.id + '-' + event.block.timestamp.toString()
     order.farmer = event.params.account.toHexString()
     order.createdAt = event.block.timestamp
@@ -485,6 +579,7 @@ export function handlePodOrderCreated_v2(event: PodOrderCreated_v2): void {
     order.pricePerPod = event.params.pricePerPod
     order.pricingFunction = event.params.pricingFunction
     order.pricingType = event.params.priceType
+    order.creationHash = event.transaction.hash.toHexString()
     order.save()
 
     updateMarketOrderBalances(event.address, order.id, ZERO_BI, ZERO_BI, event.params.amount, ZERO_BI, ZERO_BI, ZERO_BI, event.block.timestamp)
@@ -516,6 +611,9 @@ export function handlePodOrderFilled_v2(event: PodOrderFilled_v2): void {
     order.beanAmountFilled = order.beanAmountFilled.plus(event.params.costInBeans)
     order.podAmountFilled = order.podAmountFilled.plus(event.params.amount)
     order.status = order.beanAmount == order.beanAmountFilled ? 'FILLED' : 'ACTIVE'
+    let newFills = order.fills
+    newFills.push(fill.id)
+    order.fills = newFills
     order.save()
 
     fill.createdAt = event.block.timestamp
@@ -530,13 +628,14 @@ export function handlePodOrderFilled_v2(event: PodOrderFilled_v2): void {
 
     updateMarketOrderBalances(event.address, order.id, ZERO_BI, ZERO_BI, ZERO_BI, ZERO_BI, event.params.amount, event.params.costInBeans, event.block.timestamp)
 
-    if (order.beanAmountFilled = order.beanAmount) {
+    if (order.beanAmountFilled == order.beanAmount) {
         let market = loadPodMarketplace(event.address)
 
         let orderIndex = market.orders.indexOf(order.id)
         if (orderIndex !== -1) {
             market.orders.splice(orderIndex, 1)
         }
+        market.save()
     }
 
     // Save the raw event data
@@ -557,7 +656,10 @@ export function handlePodOrderFilled_v2(event: PodOrderFilled_v2): void {
     rawEvent.save()
 }
 
-/* ======== Common Functions ======== */
+/* ------------------------------------
+ * SHARED FUNCTIONS
+ * ------------------------------------
+ */
 
 function updateMarketListingBalances(
     marketAddress: Address,
